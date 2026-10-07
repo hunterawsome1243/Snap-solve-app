@@ -80,7 +80,7 @@ The browser tests use a fake backend, a fake Claude for the artifact, and a fake
 skewed sheet of paper, so they need no API key and no network. The first run needs
 `npx playwright install chromium` (inside `frontend/`).
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request: backend tests, frontend unit tests
+GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and on pushes to `main`: backend tests, frontend unit tests
 and build, the browser tests, and a check that `artifact/hunter-scan.html` is up to date with its source (rebuild it
 with `python artifact/build.py` after editing `artifact/hunter-scan.src.html` or `frontend/src/lib/scanner.js`).
 
