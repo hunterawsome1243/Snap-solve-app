@@ -54,6 +54,7 @@ def test_prices_endpoint(monkeypatch):
                         {"retailer": "Ghost", "price": 1, "currency": "USD", "url": "https://ghost.com/a", "condition": "new"}],
              "summary": "ok"},
             {"https://shop.com/a"},
+            {"https://shop.com/a": "2 days ago"},
         ),
     )
     r = client.post("/api/buy/prices", json={"query": "widget", "country": "us"}).json()
@@ -88,7 +89,47 @@ def test_recommend_falls_back_to_likely_store():
 def test_prices_endpoint_includes_recommendation(monkeypatch):
     monkeypatch.setattr(
         main, "search_web",
-        lambda q, c: ({"offers": [{"retailer": "Shop", "price": 99.5, "currency": "USD", "url": "https://shop.com/a", "condition": "new", "in_stock": "yes"}], "summary": ""}, {"https://shop.com/a"}),
+        lambda q, c: ({"offers": [{"retailer": "Shop", "price": 99.5, "currency": "USD", "url": "https://shop.com/a", "condition": "new", "in_stock": "yes"}], "summary": ""}, {"https://shop.com/a"}, {}),
     )
     r = client.post("/api/buy/prices", json={"query": "widget", "country": "US"}).json()
     assert r["recommendation"]["retailer"] == "Shop" and r["offers"][0]["recommended"] is True
+
+
+def test_search_age_is_kept_and_likely_stores_returned(monkeypatch):
+    monkeypatch.setattr(main, "search_web", lambda q, c: (
+        {"offers": [{"retailer": "Shop", "price": 10, "url": "https://shop.com/a", "free_shipping": "YES"}],
+         "likely_stores": [{"name": "Target", "why": "Good range."}]},
+        {"https://shop.com/a"}, {"https://shop.com/a": "3 days ago"}))
+    r = client.post("/api/buy/prices", json={"query": "widget"}).json()
+    assert r["offers"][0]["seen"] == "3 days ago" and r["offers"][0]["free_shipping"] == "yes"
+    assert r["likely_stores"][0]["name"] == "Target"
+
+
+def _rank(filters, offers=None):
+    offers = offers or [
+        {"retailer": "Cheap", "price": 80, "url": "https://cheap.biz/a", "condition": "used", "in_stock": "yes", "free_shipping": "yes"},
+        {"retailer": "Amazon", "price": 100, "url": "https://amazon.com/a", "condition": "new", "in_stock": "yes", "free_shipping": "yes"},
+        {"retailer": "Target", "price": 104, "url": "https://target.com/a", "condition": "new", "in_stock": "yes", "free_shipping": "no"},
+        {"retailer": "Pricey", "price": 150, "url": "https://pricey.com/a", "condition": "new", "in_stock": "yes", "free_shipping": "yes"},
+    ]
+    return client.post("/api/buy/rank", json={"query": "widget", "offers": offers, "filters": filters}).json()
+
+
+def test_rank_filters():
+    assert [o["retailer"] for o in _rank({"new_only": True})["offers"]] == ["Amazon", "Target", "Pricey"]
+    assert [o["retailer"] for o in _rank({"free_shipping": True})["offers"]] == ["Cheap", "Amazon", "Pricey"]
+    r = _rank({"max_price": 105, "new_only": True})
+    assert [o["retailer"] for o in r["offers"]] == ["Amazon", "Target"] and r["hidden"] == 2
+    assert r["recommendation"]["retailer"] == "Amazon"
+
+
+def test_rank_preferred_store_wins_a_close_call_only():
+    assert _rank({"new_only": True, "preferred_store": "target"})["recommendation"]["retailer"] == "Target"
+    assert _rank({"new_only": True, "preferred_store": "pricey"})["recommendation"]["retailer"] != "Pricey"
+
+
+def test_rank_no_match_gives_no_recommendation_and_rejects_bad_urls():
+    r = _rank({"max_price": 10})
+    assert r["offers"] == [] and r["recommendation"] is None and r["hidden"] == 4
+    bad = _rank({}, [{"retailer": "X", "price": 5, "url": "javascript:alert(1)"}])
+    assert bad["offers"] == []

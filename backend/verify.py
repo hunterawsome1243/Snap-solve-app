@@ -217,3 +217,179 @@ def verify(problem: dict, answer: dict) -> dict:
         return {"status": "unverified", "detail": f"Couldn't run the independent check ({exc})."}
     except Exception as exc:  # noqa: BLE001
         return {"status": "unverified", "detail": f"Couldn't run the independent check ({exc})."}
+
+
+# ------------------------------------------------------------------ per-step checks
+#
+# A step may carry "verify": {"type": ..., "expr": ...} describing what that line asserts:
+#   "equation"   an equation that every true solution of the original problem must satisfy
+#   "expression" an expression equal to the ORIGINAL expression (evaluate / simplify problems)
+#   "result"     an expression equal to the FINAL result (derivative, integral)
+# Steps without "verify" are reported as unchecked. A wrong middle step that still lands on the right
+# answer is caught here, because the step itself is tested, not just where the chain ends.
+
+
+def _true_solutions(problem: dict, answer: dict):
+    """Solutions to test steps against: SymPy's (when finite), else the claimed ones."""
+    eq = _parse_eq(problem["equation"])
+    var = _sym(problem.get("variable") or "x")
+    try:
+        sols = sp.solveset(eq, var, domain=sp.S.Reals)
+        if sols.is_FiniteSet and len(sols) > 0:
+            return var, list(sols)
+    except Exception:  # noqa: BLE001
+        pass
+    claimed = [_parse(v) for v in answer.get("values", [])]
+    return var, claimed
+
+
+def _step_checker(problem: dict, answer: dict):
+    kind = problem.get("kind")
+    if kind == "solve":
+        var, sols = _true_solutions(problem, answer)
+
+        def check(v):
+            if v.get("type") != "equation" or not sols:
+                return "unchecked"
+            eq = _parse_eq(v["expr"])
+            return "ok" if all(_satisfies(eq, {var: s}) for s in sols) else "bad"
+        return check
+    if kind == "system":
+        vs = [_sym(x) for x in problem["variables"]]
+        eqs = [_parse_eq(e) for e in problem["equations"]]
+        try:
+            sols = sp.solve(eqs, vs, dict=True)
+        except Exception:  # noqa: BLE001
+            sols = []
+        sols = [s for s in sols if set(s) == set(vs) and all(not s[x].free_symbols for x in vs)]
+
+        def check(v):
+            if v.get("type") != "equation" or not sols:
+                return "unchecked"
+            eq = _parse_eq(v["expr"])
+            return "ok" if all(_satisfies(eq, s) for s in sols) else "bad"
+        return check
+    if kind in {"evaluate", "simplify"}:
+        orig = _parse(problem["expr"])
+
+        def check(v):
+            if v.get("type") != "expression":
+                return "unchecked"
+            return "ok" if _equivalent(_parse(v["expr"]), orig) else "bad"
+        return check
+    if kind in {"derivative", "integral"}:
+        expr = _parse(problem["expr"])
+        var = _sym(problem.get("variable") or "x")
+        bounds = problem.get("bounds")
+
+        def check(v):
+            if v.get("type") != "result":
+                return "unchecked"
+            e = _parse(v["expr"])
+            if kind == "derivative":
+                return "ok" if _equivalent(e, sp.diff(expr, var)) else "bad"
+            if bounds:
+                truth = sp.integrate(expr, (var, _parse(bounds[0]), _parse(bounds[1])))
+                if truth.has(sp.Integral):
+                    truth = sp.Integral(expr, (var, _parse(bounds[0]), _parse(bounds[1]))).evalf(20)
+                return "ok" if _equivalent(e, truth) else "bad"
+            return "ok" if _is_zero(sp.diff(e, var) - expr) else "bad"
+        return check
+    return None
+
+
+def verify_steps(problem: dict, answer: dict, steps: list[dict]) -> list[str]:
+    """One status per step: "ok", "bad" or "unchecked". Never raises."""
+    try:
+        check = _step_checker(problem, answer)
+    except Exception:  # noqa: BLE001
+        check = None
+    out = []
+    for s in steps:
+        v = s.get("verify")
+        if check is None or not isinstance(v, dict) or not v.get("expr"):
+            out.append("unchecked")
+            continue
+        try:
+            out.append(check(v))
+        except Exception:  # noqa: BLE001
+            out.append("unchecked")
+    return out
+
+
+# ------------------------------------------------------------------ practice grading
+
+
+def truth_latex(problem: dict) -> str | None:
+    """The correct answer as LaTeX, computed by SymPy (never by the model)."""
+    try:
+        kind = problem.get("kind")
+        if kind in {"evaluate", "simplify"}:
+            return sp.latex(sp.simplify(_parse(problem["expr"])))
+        if kind == "solve":
+            eq = _parse_eq(problem["equation"])
+            var = _sym(problem.get("variable") or "x")
+            sols = sp.solveset(eq, var, domain=sp.S.Reals)
+            if sols.is_FiniteSet:
+                items = sorted(sols, key=lambda s: float(sp.N(s))) if sols else []
+                return (sp.latex(var) + " = " + ",\\ ".join(sp.latex(s) for s in items)) if items else "\\text{no real solution}"
+            return None
+        if kind == "system":
+            vs = [_sym(x) for x in problem["variables"]]
+            sols = sp.solve([_parse_eq(e) for e in problem["equations"]], vs, dict=True)
+            if len(sols) == 1 and set(sols[0]) == set(vs):
+                return ",\\ ".join(f"{sp.latex(v)} = {sp.latex(sols[0][v])}" for v in vs)
+            return None
+        if kind == "derivative":
+            return sp.latex(sp.simplify(sp.diff(_parse(problem["expr"]), _sym(problem.get("variable") or "x"))))
+        if kind == "integral":
+            v = _sym(problem.get("variable") or "x")
+            e = _parse(problem["expr"])
+            b = problem.get("bounds")
+            if b:
+                return sp.latex(sp.simplify(sp.integrate(e, (v, _parse(b[0]), _parse(b[1])))))
+            return sp.latex(sp.integrate(e, v)) + " + C"
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+_SPLIT = re.compile(r"\s*(?:,|;|\bor\b|\band\b|\n)\s*", re.I)
+
+
+def parse_user_answer(problem: dict, text: str) -> dict:
+    """Turn what the student typed into the answer shape verify() expects."""
+    text = (text or "").strip().replace("−", "-").replace("×", "*").replace("·", "*")
+    kind = problem.get("kind")
+    if kind == "solve":
+        if re.fullmatch(r"(no (real )?solutions?|none|∅)", text, re.I):
+            return {"values": []}
+        var = str(problem.get("variable") or "x")
+        vals = []
+        for part in _SPLIT.split(text):
+            part = part.strip()
+            if not part:
+                continue
+            m = re.match(rf"^{re.escape(var)}\s*=\s*(.+)$", part)
+            vals.append(m.group(1) if m else part)
+        return {"values": vals}
+    if kind == "system":
+        sol = {}
+        for part in _SPLIT.split(text.strip("() ")):
+            m = re.match(r"^([A-Za-z_]\w*)\s*=\s*(.+)$", part.strip())
+            if m:
+                sol[m.group(1)] = m.group(2)
+        return {"solutions": [sol]}
+    value = text.split("=")[-1].strip()
+    if kind == "integral" and not problem.get("bounds"):
+        value = re.sub(r"\s*\+\s*[cC]\s*$", "", value)
+    return {"value": value}
+
+
+def check_user_answer(problem: dict, text: str) -> dict:
+    """{"correct": bool, "detail": str, "correct_latex": str | None}"""
+    answer = parse_user_answer(problem, text)
+    res = verify(problem, answer)
+    if res["status"] == "unverified":
+        return {"correct": None, "detail": res["detail"], "correct_latex": truth_latex(problem)}
+    return {"correct": res["status"] == "match", "detail": res["detail"], "correct_latex": truth_latex(problem)}
