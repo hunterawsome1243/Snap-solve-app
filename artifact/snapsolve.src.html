@@ -1,0 +1,714 @@
+<title>SnapSolve</title>
+<style>
+/* Layout: one narrow column on graph paper; a big viewfinder button is the home screen, results read like worked homework. */
+:root {
+  --bg: #f2f5f7; --surface: #ffffff; --ink: #12203a; --muted: #5d6b82; --line: #dde4ec;
+  --accent: #1456d6; --accent-ink: #ffffff; --soft: #e8eff9; --grid: rgba(20, 86, 214, .06);
+  --hi: #ffe066; --ok-bg: #e3f6ea; --ok: #136a38; --warn-bg: #fff0dc; --warn: #8f4300; --warn-line: #f0b062;
+  --info-bg: #e8eefc; --info: #2a3f8f; --shadow: 0 1px 2px rgba(18, 32, 58, .06), 0 10px 28px rgba(18, 32, 58, .07);
+  --display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  --body: 'Figtree', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1322; --surface: #141d31; --ink: #e8eef8; --muted: #93a1ba; --line: #26324b;
+    --accent: #6ea2ff; --accent-ink: #08122a; --soft: #1b2742; --grid: rgba(110, 162, 255, .07);
+    --hi: #8a6d00; --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #3a2610; --warn: #ffc27a; --warn-line: #8a5a1c;
+    --info-bg: #1b2547; --info: #aab8ff; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1322; --surface: #141d31; --ink: #e8eef8; --muted: #93a1ba; --line: #26324b;
+  --accent: #6ea2ff; --accent-ink: #08122a; --soft: #1b2742; --grid: rgba(110, 162, 255, .07);
+  --hi: #8a6d00; --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #3a2610; --warn: #ffc27a; --warn-line: #8a5a1c;
+  --info-bg: #1b2547; --info: #aab8ff; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  background-color: var(--bg); color: var(--ink); font: 16px/1.5 var(--body);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px; padding-inline: 16px;
+}
+h1, h2 { font-family: var(--display); margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+h1 { font-size: 2.1rem; line-height: 1.08; }
+h2 { font-size: 1.2rem; }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.app { max-width: 560px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+header.top { display: flex; justify-content: space-between; align-items: center; padding-block: 12px; }
+.logo { display: flex; align-items: center; gap: 9px; font: 800 1.2rem var(--display); background: none; border: 0; padding: 0; letter-spacing: -.02em; }
+.logo-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 1.1rem; }
+main { flex: 1; display: flex; flex-direction: column; gap: 14px; padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.center { text-align: center; align-items: center; }
+.row { display: flex; gap: 10px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.grow { flex: 1; min-width: 0; }
+.muted { color: var(--muted); }
+.tiny { font-size: .8rem; }
+.eyebrow { font: 600 .72rem var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+
+.btn { border: 1px solid transparent; border-radius: 14px; padding: 13px 18px; font-weight: 700; background: none; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.secondary { background: var(--soft); color: var(--accent); }
+.btn.ghost { border-color: var(--line); background: var(--surface); }
+.link { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 6px; align-self: center; }
+.link.danger { color: var(--warn); }
+.icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+
+/* home */
+.hero { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+.hero p { max-width: 38ch; }
+.snap {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  aspect-ratio: 1 / 1; width: 100%; max-height: 330px; margin-top: 10px; border-radius: 26px; cursor: pointer;
+  background: var(--accent); color: var(--accent-ink); font: 800 1.35rem var(--display);
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.snap:active { transform: scale(.985); }
+.snap svg { width: 64px; height: 64px; }
+.snap i { position: absolute; width: 30px; height: 30px; border: 4px solid currentColor; opacity: .55; }
+.snap i:nth-of-type(1) { top: 18px; left: 18px; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
+.snap i:nth-of-type(2) { top: 18px; right: 18px; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
+.snap i:nth-of-type(3) { bottom: 18px; left: 18px; border-right: 0; border-top: 0; border-bottom-left-radius: 10px; }
+.snap i:nth-of-type(4) { bottom: 18px; right: 18px; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
+.drop { border: 2px dashed var(--line); border-radius: 18px; padding: 16px; text-align: center; }
+.drop.over { border-color: var(--accent); background: var(--soft); }
+.alt { display: flex; gap: 10px; }
+.alt > * { flex: 1; text-align: center; }
+label.btn { cursor: pointer; display: block; }
+
+/* crop */
+.stage { display: flex; justify-content: center; background: #000; border-radius: 12px; overflow: hidden; }
+.cwrap { position: relative; line-height: 0; touch-action: none; user-select: none; -webkit-user-select: none; max-width: 100%; overflow: hidden; }
+.cwrap img { display: block; max-width: 100%; max-height: 56vh; width: auto; height: auto; -webkit-user-drag: none; }
+.cbox { position: absolute; border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .55); cursor: move; touch-action: none; }
+.hd { position: absolute; width: 30px; height: 30px; border: 3px solid #fff; border-radius: 50%; background: var(--accent); touch-action: none; }
+.hd.tl { left: -15px; top: -15px; } .hd.tr { right: -15px; top: -15px; }
+.hd.bl { left: -15px; bottom: -15px; } .hd.br { right: -15px; bottom: -15px; }
+
+.spinner { width: 40px; height: 40px; border-radius: 50%; border: 4px solid var(--line); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+.thumb { max-width: 100%; max-height: 120px; border-radius: 10px; opacity: .85; }
+
+/* editor */
+.preview { background: var(--soft); border-radius: 14px; padding: 16px 10px; text-align: center; overflow-x: auto; min-height: 72px; display: grid; place-items: center; }
+textarea { width: 100%; font: 15px/1.4 var(--mono); padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); resize: vertical; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: var(--soft); color: var(--accent); border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 700; min-width: 44px; }
+
+/* result */
+.problem { overflow-x: auto; }
+.answer { font-size: 1.8rem; overflow-x: auto; padding: 4px 0 8px; }
+.answer .katex-display { margin: .15em 0; }
+.answer .katex-display > .katex { display: inline-block; background: linear-gradient(transparent 62%, var(--hi) 62%, var(--hi) 92%, transparent 92%); padding: 0 .15em; }
+.steps { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 16px; counter-reset: s; }
+.steps li { display: flex; gap: 12px; align-items: flex-start; }
+.steps li::before { counter-increment: s; content: counter(s); flex: none; width: 26px; height: 26px; border-radius: 8px; background: var(--soft); color: var(--accent); font: 700 .8rem var(--mono); display: grid; place-items: center; margin-top: 4px; }
+.sb { min-width: 0; flex: 1; }
+.sm { overflow-x: auto; overflow-y: hidden; }
+.sm .katex-display { margin: .2em 0; text-align: left; }
+.sm .katex-display > .katex { text-align: left; }
+.explain { color: var(--muted); font-size: .95rem; }
+.conclusion { margin-top: 12px; font-weight: 600; }
+.banner { border-radius: 12px; padding: 10px 14px; font-size: .92rem; display: flex; flex-direction: column; gap: 2px; }
+.banner.ok { background: var(--ok-bg); color: var(--ok); font-weight: 600; }
+.banner.info { background: var(--info-bg); color: var(--info); }
+.banner.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-line); }
+.banner.warn strong { font-size: 1.05rem; }
+
+/* history */
+.hitem { display: flex; gap: 8px; align-items: center; padding: 14px 16px; }
+.hopen { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 0; }
+.hans { color: var(--accent); font-weight: 600; overflow-x: auto; }
+
+.switch { display: flex; align-items: center; gap: 7px; cursor: pointer; font: 600 .75rem var(--mono); color: var(--muted); }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.track { width: 38px; height: 22px; border-radius: 11px; background: var(--line); position: relative; transition: background .15s; }
+.track::after { content: ''; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(16px); }
+.switch input:focus-visible + .track { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5; }
+nav.tabs .in { display: flex; width: min(560px, 100%); }
+nav.tabs button { flex: 1; background: none; border: 0; padding: 10px 0 12px; display: flex; flex-direction: column; align-items: center; gap: 3px; font: 700 .72rem var(--mono); color: var(--muted); }
+nav.tabs svg { width: 22px; height: 22px; }
+nav.tabs button[aria-current="true"] { color: var(--accent); }
+.katex { font-size: 1.1em; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>/*KATEX_CSS*/</style>
+
+<div class="app">
+  <header class="top">
+    <button class="logo" id="logo" type="button"><span class="logo-mark">∑</span>SnapSolve</button>
+    <label class="switch" title="Make the explanations simpler"><input type="checkbox" id="eli"><span class="track"></span>ELI12</label>
+  </header>
+  <main id="view"></main>
+</div>
+<input class="sr" id="cam" type="file" accept="image/*" capture="environment" aria-label="Take a photo">
+<input class="sr" id="pick" type="file" accept="image/*" aria-label="Choose an image">
+<nav class="tabs"><div class="in">
+  <button type="button" id="tab-solve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Solve</button>
+  <button type="button" id="tab-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
+</div></nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+<script>/*KATEX_JS*/</script>
+<script>
+(() => {
+  'use strict'
+  const $ = (s) => document.querySelector(s)
+  const view = $('#view')
+
+  // ---------- storage (per-device conveniences; always guarded) ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('snapsolve.' + k); return v === null ? d : JSON.parse(v) } catch { return d } },
+    set(k, v) { try { localStorage.setItem('snapsolve.' + k, JSON.stringify(v)) } catch {} },
+  }
+
+  const S = {
+    tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
+    result: null, busy: false, error: '', simple: store.get('simple', false),
+    history: store.get('history', []), sample: null, canReadImages: false, ready: false,
+    ctl: null,
+  }
+
+  // ---------- tiny DOM helper ----------
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag)
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'class') el.className = v
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v)
+      else if (v === true) el.setAttribute(k, '')
+      else if (v !== false && v != null) el.setAttribute(k, v)
+    }
+    for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(kid))
+    return el
+  }
+  function tex(latex, display = false) {
+    const s = h('span')
+    try { s.innerHTML = katex.renderToString(latex || '', { throwOnError: false, displayMode: display, strict: 'ignore' }) }
+    catch { s.textContent = latex }
+    return s
+  }
+
+  // ---------- Claude (via the viewer's own account) ----------
+  const READ_PROMPT = `You transcribe handwritten or printed math from the attached photo into LaTeX.
+Reply with ONLY a JSON object: {"readable": boolean, "latex": string, "message": string}
+Rules:
+- Transcribe exactly what is written. Never solve it, never "fix" it, never guess.
+- If the image is blurry, too dark, cut off, has no math, or you are not confident about the symbols, set "readable": false, "latex": "" and write a short, friendly "message" saying what is wrong and asking the user to retake the photo (better light, closer, hold steady).
+- Several lines (e.g. a system of equations): join them with \\\\ inside \\begin{cases} ... \\end{cases}.
+- Use \\times for multiplication signs and the letter x for the variable. Use \\frac, \\sqrt, ^, _, \\int, \\frac{d}{dx}, \\sin, \\log, \\ln as appropriate.
+- If readable, "message" is an empty string, or a brief note if one symbol is ambiguous.`
+
+  const SOLVE_PROMPT = `You are a careful math tutor. Solve the problem given in LaTeX.
+Reply with ONLY one JSON object (no prose, no code fences) with exactly these keys:
+{
+ "answer_latex": "final answer in LaTeX, e.g. x = 2 \\\\text{ or } x = 3",
+ "steps": [{"latex": "one line of work", "explain": "one short sentence on what was done"}],
+ "check": {"steps": [{"latex": "...", "explain": "..."}], "conclusion": "one sentence"},
+ "problem": { machine-readable version of the problem, see below },
+ "answer": { machine-readable version of your final answer, see below }
+}
+"problem" and "answer" are re-checked by a calculator library (math.js), so write every expression as a math.js-parsable string: use ^ for powers, * for EVERY multiplication (write 2*x, never 2x), sqrt(), log(x) is the NATURAL log, log(x, 10) is base 10, sin/cos/tan/asin/acos/atan, pi, e. Trig is in radians; for degrees write sin(30*pi/180).
+Pick ONE shape:
+ - arithmetic / simplify an expression: problem {"kind": "evaluate" or "simplify", "expr": "2+3*4"}  answer {"value": "14"}
+ - one equation: problem {"kind": "solve", "equation": "x^2-5*x+6=0", "variable": "x"}  answer {"values": ["2", "3"]}  (list EVERY real solution; [] if none)
+ - system of equations: problem {"kind": "system", "equations": ["x+y=3", "x-y=1"], "variables": ["x", "y"]}  answer {"solutions": [{"x": "2", "y": "1"}]}
+ - derivative: problem {"kind": "derivative", "expr": "x^3", "variable": "x"}  answer {"value": "3*x^2"}
+ - integral: problem {"kind": "integral", "expr": "2*x", "variable": "x"}  answer {"value": "x^2"}  (definite: add "bounds": ["0", "1"]; leave out + C in "value")
+ - anything else (e.g. a word problem): problem {"kind": "other"}  answer {"value": "..."}
+Writing the work:
+- "steps": one line per step, in order; each "latex" is one clean line of math (prose only inside \\text{}); each "explain" is one short sentence.
+- "check": plug the answer back into the ORIGINAL problem and show the arithmetic so the user can see it works (for derivatives/integrals, differentiate back or compare a quick sample value).
+- Never put markdown or $ delimiters in any field.`
+
+  const SIMPLE_NOTE = `\nEXPLAIN LIKE I'M 12: write every "explain" and the check "conclusion" in very simple, friendly language a 12-year-old understands. Short words, tiny sentences, a quick everyday analogy when it helps. The math lines stay the same; only the wording changes.`
+
+  const COPY = {
+    not_granted: 'Allow SnapSolve to use Claude when asked, then try again.',
+    sampling_disabled: 'Claude isn’t available for this account.',
+    rate_limited: 'Too many requests or your usage limit was reached. Wait a bit, then try again.',
+    session_expired: 'Your session expired. Reload the page and sign in again.',
+    image_rejected: 'That image couldn’t be used. Try a different photo.',
+    images_unavailable: 'Reading photos isn’t available here. Type the equation instead.',
+    invalid_json: 'The answer came back garbled. Try again.',
+    refused: 'Claude declined that input. Check the equation and try again.',
+  }
+  const errText = (e) => COPY[e?.code] || 'Something went wrong talking to Claude. Try again.'
+
+  async function initSample() {
+    try {
+      S.sample = await window.claude?.use('sample')
+      if (S.sample) S.canReadImages = !!(await S.sample.limits().catch(() => null))?.images
+    } catch { S.sample = null }
+    S.ready = true
+    render()
+  }
+
+  const blobOf = (canvas) => new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.88))
+
+  // ---------- images ----------
+  async function loadPhoto(file, max = 2000) {
+    let src, w, h2
+    try {
+      src = await createImageBitmap(file, { imageOrientation: 'from-image' }); w = src.width; h2 = src.height
+    } catch {
+      src = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(file) })
+      w = src.naturalWidth; h2 = src.naturalHeight
+    }
+    const k = Math.min(1, max / Math.max(w, h2))
+    const c = document.createElement('canvas')
+    c.width = Math.round(w * k); c.height = Math.round(h2 * k)
+    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height)
+    return c.toDataURL('image/jpeg', 0.92)
+  }
+  function cropToCanvas(img, c, max = 1600) {
+    const sx = c.x * img.naturalWidth, sy = c.y * img.naturalHeight, sw = c.w * img.naturalWidth, sh = c.h * img.naturalHeight
+    const k = Math.min(1, max / Math.max(sw, sh))
+    const cv = document.createElement('canvas')
+    cv.width = Math.max(1, Math.round(sw * k)); cv.height = Math.max(1, Math.round(sh * k))
+    cv.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height)
+    return cv
+  }
+
+  // ---------- independent verification with math.js ----------
+  const PTS = [0.37, 0.91, 1.43, 1.87, 2.31, 3.17, 0.62, 1.2, 2.6, 4.2, 0.12, 5.3]
+  const close = (a, b, t = 1e-6) => Math.abs(a - b) <= t * (1 + Math.max(Math.abs(a), Math.abs(b)))
+  const SAFE = /^[A-Za-z0-9_+\-*/^().,\s]*$/
+
+  function parse(src) {
+    const s = String(src ?? '').trim()
+    if (!s || !SAFE.test(s)) throw new Error('cannot parse "' + s + '"')
+    return math.parse(s)
+  }
+  function symbols(node) {
+    const out = new Set()
+    node.traverse((n, path, parent) => {
+      if (n.isSymbolNode && !(parent && parent.isFunctionNode && path === 'fn') && !(n.name in math)) out.add(n.name)
+    })
+    return out
+  }
+  function num(node, scope = {}) {
+    try {
+      const v = node.evaluate({ ...scope })
+      if (typeof v === 'number') return Number.isFinite(v) ? v : NaN
+      if (v && typeof v.re === 'number') return Math.abs(v.im) < 1e-9 ? v.re : NaN
+      return NaN
+    } catch { return NaN }
+  }
+  const fmt = (x) => (Number.isInteger(x) ? String(x) : String(Number(x.toPrecision(8))))
+  const ok = (detail) => ({ status: 'match', detail })
+  const bad = (detail) => ({ status: 'mismatch', detail })
+  const unv = (detail) => ({ status: 'unverified', detail })
+
+  function scopeFor(names, i) {
+    const sc = {}
+    names.forEach((n, j) => { sc[n] = PTS[(i + j * 3) % PTS.length] })
+    return sc
+  }
+
+  function checkValue(p, a) {
+    const kind = p.kind
+    const claimed = parse(a.value)
+    const expr = parse(p.expr)
+    const v = String(p.variable || 'x')
+    if (kind === 'evaluate' || kind === 'simplify') {
+      const names = [...new Set([...symbols(expr), ...symbols(claimed)])]
+      if (!names.length) {
+        const A = num(expr), B = num(claimed)
+        if (Number.isNaN(A) || Number.isNaN(B)) return unv('Couldn’t evaluate it numerically.')
+        return close(A, B) ? ok('math.js got the same value.') : bad('math.js got ' + fmt(A))
+      }
+      let good = 0
+      for (let i = 0; i < PTS.length; i++) {
+        const sc = scopeFor(names, i), A = num(expr, sc), B = num(claimed, sc)
+        if (Number.isNaN(A) || Number.isNaN(B)) continue
+        if (!close(A, B, 1e-6)) return bad('The two expressions differ at ' + names.map((n) => n + ' = ' + sc[n]).join(', '))
+        good++
+      }
+      return good >= 3 ? ok('Both expressions agree at ' + good + ' test points.') : unv('Not enough test points to compare.')
+    }
+    if (kind === 'derivative' || (kind === 'integral' && !p.bounds)) {
+      const f = kind === 'derivative' ? expr : claimed          // function we differentiate numerically
+      const target = kind === 'derivative' ? claimed : expr     // what its derivative should equal
+      const names = [...new Set([...symbols(f), ...symbols(target)])].filter((n) => n !== v)
+      let good = 0
+      for (let i = 0; i < PTS.length; i++) {
+        const t = PTS[i], d = 1e-5 * (1 + Math.abs(t))
+        const sc = { ...scopeFor(names, i), [v]: t }
+        const hi = num(f, { ...sc, [v]: t + d }), lo = num(f, { ...sc, [v]: t - d }), want = num(target, sc)
+        if ([hi, lo, want].some(Number.isNaN)) continue
+        const got = (hi - lo) / (2 * d)
+        if (!close(got, want, 1e-4)) return bad('At ' + v + ' = ' + t + ' the slope should be ' + fmt(want) + ' but the answer gives ' + fmt(got))
+        good++
+      }
+      return good >= 3 ? ok('Checked numerically at ' + good + ' points.') : unv('Not enough valid test points.')
+    }
+    if (kind === 'integral') {
+      const lo = num(parse(p.bounds[0])), hi = num(parse(p.bounds[1]))
+      if (Number.isNaN(lo) || Number.isNaN(hi)) return unv('Couldn’t evaluate the bounds.')
+      const N = 4000, step = (hi - lo) / N
+      let sum = 0
+      for (let i = 0; i <= N; i++) {
+        const y = num(expr, { [v]: lo + i * step })
+        if (Number.isNaN(y)) return unv('The integrand isn’t defined everywhere on the interval.')
+        sum += y * (i === 0 || i === N ? 1 : i % 2 ? 4 : 2)
+      }
+      const val = (sum * step) / 3
+      const want = num(claimed)
+      if (Number.isNaN(want)) return unv('Couldn’t evaluate the answer.')
+      return close(val, want, 1e-5) ? ok('Numeric integration gives the same value.') : bad('Numeric integration gives ' + fmt(val))
+    }
+    return unv('This problem type can’t be checked automatically.')
+  }
+
+  function realRoots(F) {
+    const roots = []
+    const add = (r) => { if (!roots.some((x) => Math.abs(x - r) < 1e-4)) roots.push(r) }
+    const LO = -100, HI = 100, STEP = 0.01
+    let px = LO, py = F(px)
+    const ys = [py]
+    for (let x = LO + STEP; x <= HI + 1e-9; x += STEP) {
+      const y = F(x)
+      ys.push(y)
+      if (Number.isFinite(py) && Number.isFinite(y) && py * y < 0) {
+        let a = px, b = x, fa = py
+        for (let k = 0; k < 60; k++) { const m = (a + b) / 2, fm = F(m); if (fa * fm <= 0) b = m; else { a = m; fa = fm } }
+        const r = (a + b) / 2
+        if (Math.abs(F(r)) < 1e-6 * (1 + Math.abs(r))) add(r)   // reject poles that merely flip sign
+      }
+      px = x; py = y
+    }
+    // touching roots (double roots): local minima of |F| that reach ~0
+    for (let i = 1; i < ys.length - 1; i++) {
+      const a = Math.abs(ys[i - 1]), b = Math.abs(ys[i]), c = Math.abs(ys[i + 1])
+      if (b < a && b <= c && b < 1e-2) {
+        let lo = LO + (i - 1) * STEP, hi = LO + (i + 1) * STEP
+        for (let k = 0; k < 80; k++) {
+          const m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3
+          if (Math.abs(F(m1)) < Math.abs(F(m2))) hi = m2; else lo = m1
+        }
+        const r = (lo + hi) / 2
+        if (Math.abs(F(r)) < 1e-7) add(r)
+      }
+    }
+    return roots
+  }
+
+  function checkSolve(p, a) {
+    const [l, r] = String(p.equation).split('=')
+    if (r === undefined) throw new Error('not an equation')
+    const L = parse(l), R = parse(r), v = String(p.variable || 'x')
+    const F = (x) => num(L, { [v]: x }) - num(R, { [v]: x })
+    const claimed = (a.values || []).map((s) => num(parse(s)))
+    for (const c of claimed) {
+      if (Number.isNaN(c)) return unv('A solution wasn’t a real number.')
+      const res = F(c)
+      if (!(Math.abs(res) < 1e-6 * (1 + Math.abs(c)))) return bad(v + ' = ' + fmt(c) + ' doesn’t satisfy the equation')
+    }
+    if (/sin|cos|tan|cot|sec|csc/.test(String(p.equation))) return ok('Each answer was plugged back into the equation.')
+    const found = realRoots(F)
+    const missing = found.filter((x) => !claimed.some((c) => Math.abs(c - x) < 1e-4 * (1 + Math.abs(x))))
+    if (missing.length) return bad('Also found ' + v + ' ≈ ' + missing.map((x) => fmt(Number(x.toFixed(6)))).join(', '))
+    return ok('Plugged back in, and a numeric scan found no other real solutions.')
+  }
+
+  function checkSystem(p, a) {
+    const vars = p.variables.map(String)
+    const Fs = p.equations.map((e) => {
+      const [l, r] = String(e).split('=')
+      if (r === undefined) throw new Error('not an equation')
+      const L = parse(l), R = parse(r)
+      return (sc) => num(L, sc) - num(R, sc)
+    })
+    const sols = a.solutions || []
+    for (const s of sols) {
+      const sc = {}
+      for (const k of vars) sc[k] = num(parse(s[k]))
+      if (Object.values(sc).some(Number.isNaN)) return unv('A solution wasn’t a real number.')
+      if (!Fs.every((F) => Math.abs(F(sc)) < 1e-6 * (1 + Math.max(...Object.values(sc).map(Math.abs))))) return bad('An answer doesn’t satisfy every equation')
+    }
+    if (Fs.length === vars.length) {
+      const zero = Object.fromEntries(vars.map((k) => [k, 0]))
+      const f0 = Fs.map((F) => F(zero))
+      const A = Fs.map((F, i) => vars.map((k) => F({ ...zero, [k]: 1 }) - f0[i]))
+      const probe = Object.fromEntries(vars.map((k, j) => [k, PTS[(j * 5 + 1) % PTS.length]]))
+      const linear = Fs.every((F, i) => close(F(probe), f0[i] + vars.reduce((t, k, j) => t + A[i][j] * probe[k], 0), 1e-7))
+      if (linear && Number.isFinite(math.det(A)) && Math.abs(math.det(A)) > 1e-9) {
+        const x = math.lusolve(A, f0.map((z) => -z)).map((row) => row[0])
+        const match = sols.length === 1 && vars.every((k, j) => close(x[j], num(parse(sols[0][k])), 1e-6))
+        return match ? ok('Solved the linear system independently: same answer.') : bad('Solving it independently gives ' + vars.map((k, j) => k + ' = ' + fmt(Number(x[j].toFixed(6)))).join(', '))
+      }
+    }
+    return ok('Each answer was plugged into every equation (completeness not checked).')
+  }
+
+  function verify(problem, answer) {
+    if (typeof math === 'undefined') return unv('The math library didn’t load.')
+    try {
+      switch (problem?.kind) {
+        case 'solve': return checkSolve(problem, answer)
+        case 'system': return checkSystem(problem, answer)
+        case 'evaluate': case 'simplify': case 'derivative': case 'integral': return checkValue(problem, answer)
+        default: return unv('This problem type can’t be checked automatically.')
+      }
+    } catch (e) { return unv('Couldn’t run the independent check (' + (e?.message || e) + ').') }
+  }
+
+  // ---------- actions ----------
+  function setError(msg) { S.error = msg || ''; render() }
+  function go(screen) { S.error = ''; S.screen = screen; render() }
+
+  async function onFile(file) {
+    if (!file) return
+    if (!file.type.startsWith('image/')) return setError('Please choose an image file.')
+    try { S.photo = await loadPhoto(file); S.tab = 'solve'; go('crop') }
+    catch { setError('Couldn’t open that image. Try a JPG or PNG.') }
+  }
+
+  async function readCropped(canvas) {
+    S.photo = canvas.toDataURL('image/jpeg', 0.7)
+    go('reading')
+    S.ctl = new AbortController()
+    try {
+      const blob = await blobOf(canvas)
+      const r = await S.sample.json(READ_PROMPT, { images: blob, signal: S.ctl.signal, cache: false })
+      const latex = String(r?.latex || '').trim()
+      const message = String(r?.message || '').trim()
+      if (!r?.readable || !latex) {
+        S.note = message || 'I couldn’t read that. Retake the photo with good light, held steady and close.'
+        return go('unreadable')
+      }
+      S.latex = latex; S.note = message; S.practice = false
+      go('edit')
+    } catch (e) {
+      if (e?.code === 'cancelled') return go('home')
+      S.screen = 'crop'; setError(errText(e))
+    }
+  }
+
+  async function solve(latex = S.latex, simple = S.simple) {
+    S.busy = true; S.error = ''; S.ctl = new AbortController(); render()
+    try {
+      const d = await S.sample.json(SOLVE_PROMPT + (simple ? SIMPLE_NOTE : '') + '\n\nProblem (LaTeX):\n' + latex, { signal: S.ctl.signal, modelTier: 'default' })
+      const steps = (d.steps || []).filter((s) => s && s.latex).map((s) => ({ latex: String(s.latex), explain: String(s.explain || '') }))
+      if (!steps.length || !d.answer_latex) throw { code: 'invalid_json' }
+      const chk = d.check || {}
+      S.result = {
+        answer_latex: String(d.answer_latex), steps,
+        check: { steps: (chk.steps || []).filter((s) => s && s.latex).map((s) => ({ latex: String(s.latex), explain: String(s.explain || '') })), conclusion: String(chk.conclusion || '') },
+        verification: verify(d.problem || {}, d.answer || {}),
+      }
+      S.history = [{ id: Date.now().toString(36), ts: Date.now(), latex, result: S.result }, ...S.history].slice(0, 30)
+      store.set('history', S.history)
+      S.screen = 'result'
+    } catch (e) {
+      if (e?.code !== 'cancelled') S.error = errText(e)
+    } finally { S.busy = false; render() }
+  }
+
+  async function makePractice() {
+    S.busy = true; S.error = ''; render()
+    try {
+      const r = await S.sample.json('You write practice problems for a math student. Given the problem below in LaTeX, write ONE new problem of the same type and similar difficulty with different numbers and a clean, well-defined answer. Reply with ONLY JSON: {"latex": "the new problem in LaTeX"}\n\nOriginal problem:\n' + S.latex, { cache: false })
+      const latex = String(r?.latex || '').trim()
+      if (!latex) throw { code: 'invalid_json' }
+      S.latex = latex; S.note = ''; S.practice = true; S.result = null; S.screen = 'edit'
+    } catch (e) { S.error = errText(e) } finally { S.busy = false; render() }
+  }
+
+  // ---------- views ----------
+  const camIcon = () => { const d = h('span'); d.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'; return d.firstChild }
+
+  function vHome() {
+    const drop = h('div', { class: 'drop muted tiny' }, 'Or drag and drop a picture here')
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over') })
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'))
+    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); onFile(e.dataTransfer.files?.[0]) })
+    const noPhoto = S.ready && !S.canReadImages
+    return [
+      h('div', { class: 'hero' },
+        h('h1', {}, 'Snap a problem.', h('br'), 'Get the work.'),
+        h('p', { class: 'muted' }, 'Photograph an equation on paper and see it solved one step at a time, then checked a second way.')),
+      S.ready && !S.sample && h('div', { class: 'banner info' }, 'Claude isn’t available in this view, so solving is turned off. Open this page in the Claude app.'),
+      noPhoto && S.sample && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view. You can still type an equation.'),
+      h('label', { class: 'snap', for: 'cam', 'aria-label': 'Snap Equation' }, h('i'), h('i'), h('i'), h('i'), camIcon(), 'Snap Equation'),
+      h('div', { class: 'alt' },
+        h('label', { class: 'btn secondary', for: 'pick' }, 'Upload image'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.latex = ''; S.note = ''; S.practice = false; go('edit') } }, 'Type it')),
+      drop,
+    ]
+  }
+
+  function vCrop() {
+    const crop = { x: 0.05, y: 0.2, w: 0.9, h: 0.6 }
+    const img = h('img', { src: S.photo, alt: 'Your photo', draggable: 'false' })
+    const box = h('div', { class: 'cbox' }, ['tl', 'tr', 'bl', 'br'].map((k) => h('span', { class: 'hd ' + k, 'data-m': k })))
+    const wrap = h('div', { class: 'cwrap' }, img, box)
+    const paint = () => Object.assign(box.style, { left: crop.x * 100 + '%', top: crop.y * 100 + '%', width: crop.w * 100 + '%', height: crop.h * 100 + '%' })
+    paint()
+    let d = null
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
+    box.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); box.setPointerCapture(e.pointerId)
+      d = { mode: e.target.dataset.m || 'move', px: e.clientX, py: e.clientY, c: { ...crop } }
+    })
+    box.addEventListener('pointermove', (e) => {
+      if (!d) return
+      const r = wrap.getBoundingClientRect(), dx = (e.clientX - d.px) / r.width, dy = (e.clientY - d.py) / r.height
+      let { x, y, w, h: hh } = d.c
+      if (d.mode === 'move') { x = clamp(x + dx, 0, 1 - w); y = clamp(y + dy, 0, 1 - hh) }
+      else {
+        let x2 = x + w, y2 = y + hh
+        if (d.mode.includes('l')) x = clamp(x + dx, 0, x2 - 0.06)
+        if (d.mode.includes('r')) x2 = clamp(x2 + dx, x + 0.06, 1)
+        if (d.mode.includes('t')) y = clamp(y + dy, 0, y2 - 0.06)
+        if (d.mode.includes('b')) y2 = clamp(y2 + dy, y + 0.06, 1)
+        w = x2 - x; hh = y2 - y
+      }
+      Object.assign(crop, { x, y, w, h: hh }); paint()
+    })
+    const end = () => { d = null }
+    box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end)
+    const run = (c) => () => {
+      if (!S.sample) return setError('Claude isn’t available in this view.')
+      if (!S.canReadImages) { S.latex = ''; return go('edit') }
+      readCropped(cropToCanvas(img, c))
+    }
+    return [h('div', { class: 'card stack' },
+      h('h2', {}, 'Crop to the equation'),
+      h('p', { class: 'muted' }, 'Drag the box so only the problem is inside it.'),
+      h('div', { class: 'stage' }, wrap),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => go('home') }, 'Retake'),
+        h('button', { class: 'btn primary grow', type: 'button', onclick: () => run(crop)() }, 'Read equation')),
+      h('button', { class: 'link', type: 'button', onclick: run({ x: 0, y: 0, w: 1, h: 1 }) }, 'Skip cropping'))]
+  }
+
+  function vWait(title, sub) {
+    return [h('div', { class: 'card stack center' },
+      h('div', { class: 'spinner', role: 'status', 'aria-label': title }),
+      h('h2', {}, title), sub && h('p', { class: 'muted' }, sub),
+      S.screen === 'reading' && S.photo && h('img', { class: 'thumb', src: S.photo, alt: '' }),
+      h('button', { class: 'link', type: 'button', onclick: () => S.ctl?.abort() }, 'Stop'))]
+  }
+
+  function vUnreadable() {
+    return [h('div', { class: 'card stack center' },
+      h('h2', {}, 'I couldn’t read that'),
+      h('p', {}, S.note),
+      h('label', { class: 'btn primary', for: 'cam' }, 'Retake photo'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.latex = ''; go('edit') } }, 'Type it in instead'))]
+  }
+
+  const SNIPS = [['×', '\\times '], ['÷', '\\div '], ['xⁿ', '^{}', -1], ['a/b', '\\frac{}{}', -3], ['√', '\\sqrt{}', -1], ['π', '\\pi ']]
+  function vEdit() {
+    const prev = h('div', { class: 'preview' })
+    const ta = h('textarea', { id: 'latex', rows: '3', spellcheck: 'false', autocapitalize: 'off', autocorrect: 'off', 'aria-label': 'Equation in LaTeX' })
+    ta.value = S.latex
+    const solveBtn = h('button', { class: 'btn primary grow', type: 'button', onclick: () => solve() }, S.busy ? 'Solving…' : 'Solve')
+    const paint = () => {
+      prev.replaceChildren(S.latex.trim() ? tex(S.latex, true) : h('span', { class: 'muted' }, 'Type an equation below'))
+      solveBtn.disabled = !S.latex.trim() || S.busy || !S.sample
+    }
+    ta.addEventListener('input', () => { S.latex = ta.value; paint() })
+    paint()
+    const insert = ([, text, back = 0]) => {
+      const s = ta.selectionStart, e = ta.selectionEnd
+      ta.value = ta.value.slice(0, s) + text + ta.value.slice(e); S.latex = ta.value; paint(); ta.focus()
+      const pos = s + text.length + back; ta.setSelectionRange(pos, pos)
+    }
+    return [h('div', { class: 'card stack' },
+      h('h2', {}, S.practice ? 'Practice problem' : 'Is this right?'),
+      h('p', { class: 'muted' }, S.practice ? 'Try it on paper first, then press Solve to see the answer and the work.' : 'Fix anything I misread (5 vs S, x vs ×) before solving.'),
+      S.note && h('div', { class: 'banner info' }, S.note),
+      prev,
+      h('label', { class: 'eyebrow', for: 'latex' }, 'Edit (LaTeX)'), ta,
+      h('div', { class: 'chips' }, SNIPS.map((s) => h('button', { class: 'chip', type: 'button', onclick: () => insert(s) }, s[0]))),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => go(S.result ? 'result' : 'home') }, 'Back'),
+        solveBtn))]
+  }
+
+  function stepList(steps) {
+    return h('ol', { class: 'steps' }, steps.map((s) =>
+      h('li', {}, h('div', { class: 'sb' }, h('div', { class: 'sm' }, tex(s.latex, true)), s.explain && h('p', { class: 'explain' }, s.explain)))))
+  }
+
+  function vResult() {
+    const r = S.result, v = r.verification
+    const banner = v.status === 'mismatch'
+      ? h('div', { class: 'banner warn', role: 'alert' }, h('strong', {}, 'Double-check this one.'), h('span', {}, 'The AI’s answer and an independent math check disagree. ' + v.detail + '.'))
+      : v.status === 'match' ? h('div', { class: 'banner ok' }, '✓ Verified independently with math.js')
+      : h('div', { class: 'banner info' }, 'Couldn’t be verified automatically. ' + v.detail)
+    return [
+      S.busy && h('div', { class: 'banner info' }, 'Rewriting the explanations…'),
+      h('div', { class: 'card stack' },
+        h('div', { class: 'eyebrow' }, 'Problem'), h('div', { class: 'problem' }, tex(S.latex, true)),
+        h('div', { class: 'eyebrow' }, 'Answer'), h('div', { class: 'answer' }, tex(r.answer_latex, true)), banner),
+      h('div', { class: 'card' }, h('h2', {}, 'Step by step'), stepList(r.steps)),
+      (r.check.steps.length || r.check.conclusion) && h('div', { class: 'card' },
+        h('h2', {}, 'Check'), h('p', { class: 'muted' }, 'Plugging the answer back in:'), stepList(r.check.steps),
+        r.check.conclusion && h('p', { class: 'conclusion' }, r.check.conclusion)),
+      h('div', { class: 'row wrap' },
+        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.busy, onclick: makePractice }, S.busy ? 'Thinking…' : 'Practice a similar one'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => go('edit') }, 'Edit problem')),
+      h('label', { class: 'btn primary', for: 'cam' }, 'Snap another'),
+    ]
+  }
+
+  function vHistory() {
+    if (!S.history.length) return [h('div', { class: 'card stack center' }, h('h2', {}, 'No problems yet'), h('p', { class: 'muted' }, 'Solved problems are saved here, on this device only.'))]
+    return [
+      ...S.history.map((it) => h('div', { class: 'card hitem' },
+        h('button', { class: 'hopen', type: 'button', onclick: () => { S.latex = it.latex; S.result = it.result; S.practice = false; S.tab = 'solve'; go('result') } },
+          h('div', { class: 'problem tiny' }, tex(it.latex)), h('div', { class: 'hans' }, '= ', tex(it.result.answer_latex)),
+          h('div', { class: 'muted tiny' }, new Date(it.ts).toLocaleString())),
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete', onclick: () => { S.history = S.history.filter((x) => x.id !== it.id); store.set('history', S.history); render() } }, '✕'))),
+      h('button', { class: 'link danger', type: 'button', onclick: () => { S.history = []; store.set('history', []); render() } }, 'Clear history'),
+    ]
+  }
+
+  function render() {
+    $('#eli').checked = S.simple
+    $('#tab-solve').setAttribute('aria-current', S.tab === 'solve')
+    $('#tab-hist').setAttribute('aria-current', S.tab === 'history')
+    let body
+    if (S.tab === 'history') body = vHistory()
+    else if (S.screen === 'home') body = vHome()
+    else if (S.screen === 'crop') body = vCrop()
+    else if (S.screen === 'reading') body = vWait('Reading your handwriting…', 'This can take a few seconds.')
+    else if (S.screen === 'unreadable') body = vUnreadable()
+    else if (S.screen === 'edit') body = S.busy ? vWait('Solving…', 'Working it out, then checking it a second way.') : vEdit()
+    else if (S.screen === 'result' && S.result) body = vResult()
+    else body = vHome()
+    const err = S.error && h('div', { class: 'banner warn', role: 'alert' }, S.error)
+    view.replaceChildren(...[err, ...body].filter(Boolean))
+  }
+
+  // ---------- wiring ----------
+  $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
+  $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
+  $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.latex = ''; S.result = null; S.practice = false; go('home') })
+  $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; render() })
+  $('#tab-hist').addEventListener('click', () => { S.tab = 'history'; render() })
+  $('#eli').addEventListener('change', (e) => {
+    S.simple = e.target.checked; store.set('simple', S.simple)
+    if (S.tab === 'solve' && S.screen === 'result' && S.sample && !S.busy) solve(S.latex, S.simple); else render()
+  })
+  render()
+  initSample()
+  window.__snapsolve = { verify } // handy for debugging in the console
+})()
+</script>
