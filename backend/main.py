@@ -250,9 +250,15 @@ Rules:
   marketplaces with no real listing. Include up to 8 offers from different sellers.
 - "price" is a number in "currency" (ISO code), the item price before shipping when you can tell.
 - "condition" is one of new, used, refurbished, unknown. "note" is a few words at most (e.g. "free shipping", "sale").
+- "in_stock" is "yes" only if the listing says it is available, "no" if it says out of stock or unavailable,
+  otherwise "unknown".
+- "likely_stores": up to 3 well-known retailers in the user's region that are most likely to stock this kind
+  of item at a good price, best first, each with a short "why" (range, price matching, sales). This is your
+  general knowledge of retailers, not live stock, so do not claim availability.
 - If you cannot find reliable prices, return an empty offers list and say why in "summary".
 Reply with ONLY one JSON object: {"offers":[{"retailer":string,"price":number,"currency":string,
-"url":string,"condition":string,"note":string}],"summary":string}"""
+"url":string,"condition":string,"in_stock":string,"note":string}],"summary":string,
+"likely_stores":[{"name":string,"why":string}]}"""
 
 WEB_SEARCH_TYPES = ("web_search_20260209", "web_search_20250305")
 AMAZON_DOMAIN = {"US": "com", "GB": "co.uk", "CA": "ca", "DE": "de", "FR": "fr", "IT": "it", "ES": "es", "AU": "com.au", "JP": "co.jp", "IN": "in"}
@@ -337,6 +343,7 @@ def filter_offers(offers, allowed_urls: set[str]) -> list[dict]:
                 "currency": str(o.get("currency") or "USD").strip().upper()[:3] or "USD",
                 "url": url,
                 "condition": str(o.get("condition") or "unknown").strip().lower(),
+                "in_stock": str(o.get("in_stock") or "unknown").strip().lower() if str(o.get("in_stock") or "").strip().lower() in ("yes", "no") else "unknown",
                 "note": str(o.get("note") or "").strip()[:60],
             }
         )
@@ -346,6 +353,52 @@ def filter_offers(offers, allowed_urls: set[str]) -> list[dict]:
     for o in out:
         o["best"] = o is best
     return out
+
+
+REPUTABLE = ("amazon.", "walmart.", "target.", "bestbuy.", "costco.", "homedepot.", "lowes.", "apple.com", "samsung.",
+             "newegg.", "bhphotovideo.", "adorama.", "ebay.", "macys.", "nordstrom.", "ikea.", "wayfair.", "argos.",
+             "currys.", "johnlewis.", "mediamarkt.", "sony.", "nike.", "bose.", "dell.", "hp.com", "lenovo.", "ao.com")
+CONDITION_PENALTY = {"new": 0.0, "unknown": 0.05, "refurbished": 0.12, "used": 0.3}
+
+
+def recommend(offers: list[dict], likely_stores, query: str) -> dict | None:
+    """Pick the store most likely to give the best real deal.
+
+    Score = price relative to the cheapest offer, plus penalties for used/refurbished items and for items
+    that are out of stock (or not confirmed), minus a small bonus for well-known retailers. Lower is better.
+    With no priced offers, fall back to the retailer most likely to stock this kind of item.
+    """
+    if offers:
+        cheapest = min(o["price"] for o in offers)
+
+        def score(o):
+            host = urlparse(o["url"]).netloc.lower()
+            s = o["price"] / cheapest + CONDITION_PENALTY.get(o["condition"], 0.05)
+            s += {"yes": 0.0, "unknown": 0.03, "no": 100.0}[o["in_stock"]]
+            return s - (0.04 if any(r in host for r in REPUTABLE) else 0.0)
+
+        pick = min(offers, key=score)
+        cheaper = [o for o in offers if o["price"] < pick["price"]]
+        if not cheaper:
+            reason = "Lowest price found" + (" for a new item that's in stock." if pick["in_stock"] == "yes" else ".")
+        else:
+            why = []
+            if any(o["in_stock"] == "no" for o in cheaper):
+                why.append("the cheaper listing is out of stock")
+            if any(o["condition"] in ("used", "refurbished") for o in cheaper):
+                why.append("cheaper listings are used or refurbished")
+            gap = round((pick["price"] / cheapest - 1) * 100)
+            reason = ("Best deal you can actually get: " + " and ".join(why) + ".") if why else f"A trusted seller within {gap}% of the lowest price."
+        return {"kind": "offer", "retailer": pick["retailer"], "price": pick["price"], "currency": pick["currency"],
+                "url": pick["url"], "in_stock": pick["in_stock"], "reason": reason}
+    for st in likely_stores or []:
+        if isinstance(st, dict) and str(st.get("name") or "").strip():
+            name = str(st["name"]).strip()[:40]
+            why = str(st.get("why") or "").strip()[:140]
+            return {"kind": "likely", "retailer": name, "price": None, "currency": None,
+                    "url": "https://www.google.com/search?q=" + quote_plus(f"{query} {name}"),
+                    "in_stock": "unknown", "reason": (why + " " if why else "") + "Not confirmed in stock, so check before you go."}
+    return None
 
 
 def search_web(query: str, country: str) -> tuple[dict, set[str]]:
@@ -392,9 +445,13 @@ def buy_prices(req: PricesRequest):
     country = req.country.upper()
     data, urls = search_web(req.query.strip(), country)
     offers = filter_offers(data.get("offers"), urls)
+    rec = recommend(offers, data.get("likely_stores"), req.query.strip())
+    for o in offers:
+        o["recommended"] = bool(rec and rec["kind"] == "offer" and o["url"] == rec["url"])
     return {
         "query": req.query.strip(),
         "offers": offers,
+        "recommendation": rec,
         "summary": str(data.get("summary") or "").strip(),
         "compare": compare_links(req.query.strip(), country),
         "checked_at": int(time.time()),

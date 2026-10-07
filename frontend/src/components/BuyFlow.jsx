@@ -12,18 +12,40 @@ function money(price, currency) {
 }
 
 function Offer({ o, best }) {
+  const meta = [
+    o.in_stock === 'yes' ? 'in stock' : o.in_stock === 'no' ? 'out of stock' : null,
+    o.condition !== 'unknown' ? o.condition : null,
+    o.note || null,
+  ].filter(Boolean)
   return (
     <a className={`offer ${best ? 'best' : ''}`} href={o.url} target="_blank" rel="noopener noreferrer nofollow">
       <div className="offer-main">
-        <div className="offer-name">{o.retailer}</div>
-        <div className="muted tiny">
-          {o.condition !== 'unknown' && o.condition}
-          {o.condition !== 'unknown' && o.note && ' · '}
-          {o.note}
+        <div className="offer-name">
+          {o.retailer}
+          {o.recommended && <span className="tag">Recommended</span>}
         </div>
+        <div className="muted tiny">{meta.join(' · ')}</div>
       </div>
       <div className="offer-price">{money(o.price, o.currency)}</div>
     </a>
+  )
+}
+
+function Recommendation({ r }) {
+  const offer = r.kind === 'offer'
+  return (
+    <div className="card stack rec">
+      <span className="tag">{offer ? 'Best deal' : 'Most likely to have it'}</span>
+      <div className="label">Recommended store</div>
+      <div className="rec-top">
+        <h2>{r.retailer}</h2>
+        {offer && <div className="offer-price">{money(r.price, r.currency)}</div>}
+      </div>
+      <p>{r.reason}</p>
+      <a className="btn primary" href={r.url} target="_blank" rel="noopener noreferrer nofollow">
+        {offer ? `Buy at ${r.retailer}` : `Search ${r.retailer}`}
+      </a>
+    </div>
   )
 }
 
@@ -158,24 +180,17 @@ export default function BuyFlow() {
 
       {screen === 'results' && result && (
         <div className="stack">
-          <div className="card stack">
-            <div className="label">Results for</div>
-            <h2>{result.query}</h2>
-            {result.offers.length > 0 ? (
-              <>
-                <div className="label">Best price</div>
-                <Offer o={result.offers.find((o) => o.best) || result.offers[0]} best />
-              </>
-            ) : (
-              <div className="banner info">No reliable prices found. {result.summary}</div>
-            )}
-            {result.offers.length > 0 && result.summary && <p className="muted">{result.summary}</p>}
-          </div>
+          <div className="label">Results for {result.query}</div>
+          {result.recommendation && <Recommendation r={result.recommendation} />}
+          {result.offers.length === 0 && (
+            <div className="banner info">No reliable prices found. {result.summary}</div>
+          )}
+          {result.offers.length > 0 && result.summary && <p className="muted">{result.summary}</p>}
 
-          {result.offers.length > 1 && (
+          {result.offers.length > 0 && (
             <div className="card stack">
               <h2>All offers, cheapest first</h2>
-              {result.offers.map((o) => <Offer key={o.url} o={o} best={o.best} />)}
+              {result.offers.map((o) => <Offer key={o.url} o={o} best={o.recommended} />)}
             </div>
           )}
 

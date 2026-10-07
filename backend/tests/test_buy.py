@@ -59,3 +59,36 @@ def test_prices_endpoint(monkeypatch):
     r = client.post("/api/buy/prices", json={"query": "widget", "country": "us"}).json()
     assert [o["retailer"] for o in r["offers"]] == ["Shop"] and r["offers"][0]["best"] is True
     assert r["compare"] and r["summary"] == "ok"
+
+
+def _o(retailer, price, cond="new", stock="yes", host=None):
+    h = host or retailer.lower() + ".com"
+    return {"retailer": retailer, "price": price, "currency": "USD", "url": f"https://{h}/p", "condition": cond, "in_stock": stock, "note": ""}
+
+
+def test_recommend_skips_cheap_out_of_stock_and_used():
+    offers = [_o("Cheap", 150, stock="no"), _o("UsedCo", 170, cond="used"), _o("Amazon", 200, host="amazon.com"), _o("Shady", 195, host="shady.biz")]
+    rec = main.recommend(offers, [], "widget")
+    assert rec["retailer"] == "Amazon" and rec["kind"] == "offer"
+    assert "out of stock" in rec["reason"]
+
+
+def test_recommend_takes_cheapest_when_all_equal():
+    rec = main.recommend([_o("A", 100), _o("B", 90)], [], "widget")
+    assert rec["retailer"] == "B" and rec["reason"].startswith("Lowest price found")
+
+
+def test_recommend_falls_back_to_likely_store():
+    rec = main.recommend([], [{"name": "Home Depot", "why": "Big tool range."}], "cordless drill")
+    assert rec["kind"] == "likely" and rec["retailer"] == "Home Depot"
+    assert "Home+Depot" in rec["url"] and "Not confirmed in stock" in rec["reason"]
+    assert main.recommend([], [], "x") is None
+
+
+def test_prices_endpoint_includes_recommendation(monkeypatch):
+    monkeypatch.setattr(
+        main, "search_web",
+        lambda q, c: ({"offers": [{"retailer": "Shop", "price": 99.5, "currency": "USD", "url": "https://shop.com/a", "condition": "new", "in_stock": "yes"}], "summary": ""}, {"https://shop.com/a"}),
+    )
+    r = client.post("/api/buy/prices", json={"query": "widget", "country": "US"}).json()
+    assert r["recommendation"]["retailer"] == "Shop" and r["offers"][0]["recommended"] is True

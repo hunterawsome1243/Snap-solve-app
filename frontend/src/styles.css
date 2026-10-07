@@ -210,3 +210,8 @@ label.snap-btn, label.btn { cursor: pointer; }
 .offer-main { flex: 1; min-width: 0; }
 .offer-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
 .offer-price { font-size: 1.25rem; font-weight: 800; color: var(--brand); white-space: nowrap; }
+.tag { display: inline-block; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; border-radius: 8px; background: var(--brand); color: var(--brand-ink); margin-left: 8px; vertical-align: middle; align-self: flex-start; }
+.rec { border-color: var(--brand); }
+.rec > .tag { margin-left: 0; }
+.rec-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+a.btn { text-decoration: none; text-align: center; }

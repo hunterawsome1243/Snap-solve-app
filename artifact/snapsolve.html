@@ -168,6 +168,10 @@ a.store.first { border-color: var(--accent); background: var(--soft); }
 a.store span { color: var(--muted); font: 500 .75rem var(--mono); }
 .thumb2 { max-width: 100%; max-height: 120px; border-radius: 10px; align-self: flex-start; }
 
+a.btn { text-decoration: none; text-align: center; }
+.tag { align-self: flex-start; font: 700 .7rem var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 4px 9px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); }
+.rec { border-color: var(--accent); }
+
 /* theme picker */
 .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
 .theme { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 10px; }
@@ -235,7 +239,7 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
-    history: store.get('history', []), skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', sample: null, canReadImages: false, ready: false,
+    history: store.get('history', []), skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
     ctl: null,
   }
 
@@ -638,6 +642,25 @@ Rules:
     }
   }
 
+  const STORE_PROMPT = `You advise shoppers on where to buy things. Given a product search phrase and the shopper's country code, name up to 3 well-known retailers that operate in that country and are most likely to stock this kind of item at a good price, best first. Judge by the type of product and each retailer's usual strengths (range, regular sales, price matching, open-box or refurbished deals). You cannot see live stock or prices, so never claim either. Each "why" is one short sentence.
+Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
+
+  async function pickStores() {
+    S.stores = []
+    go('b-picking')
+    S.ctl = new AbortController()
+    try {
+      if (S.sample) {
+        const r = await S.sample.json(STORE_PROMPT + '\n\nProduct: ' + S.query.trim() + '\nCountry: ' + region(), { signal: S.ctl.signal, modelTier: 'quick' })
+        S.stores = (r?.stores || []).filter((x) => x && String(x.name || '').trim()).slice(0, 3).map((x) => ({ name: String(x.name).trim().slice(0, 40), why: String(x.why || '').trim().slice(0, 160) }))
+      }
+    } catch (e) {
+      if (e?.code === 'cancelled') return go('b-confirm')
+      // no recommendation is fine: the search links below still work
+    }
+    go('b-results')
+  }
+
   const region = () => ((navigator.language || 'en-US').split('-')[1] || 'US').toUpperCase()
   function storeLinks(query) {
     const q = encodeURIComponent(query), c = region()
@@ -673,7 +696,7 @@ Rules:
   function vBuyConfirm() {
     const input = h('input', { class: 'field', id: 'bq', type: 'text', placeholder: 'e.g. Sony WH-1000XM5 headphones', 'aria-label': 'Product to search for' })
     input.value = S.query
-    const btn = h('button', { class: 'btn primary grow', type: 'button', onclick: () => go('b-results') }, 'Find best price')
+    const btn = h('button', { class: 'btn primary grow', type: 'button', onclick: pickStores }, 'Find best price')
     const upd = () => { S.query = input.value; btn.disabled = S.query.trim().length < 2 }
     input.addEventListener('input', upd); upd()
     return [h('div', { class: 'card stack' },
@@ -687,7 +710,18 @@ Rules:
 
   function vBuyResults() {
     const links = storeLinks(S.query.trim())
-    return [h('div', { class: 'card stack' },
+    const top = S.stores[0]
+    const topUrl = top && (links.find((l) => top.name.toLowerCase().includes(l.name.split(' ')[0].toLowerCase()))?.url
+      || 'https://www.google.com/search?q=' + encodeURIComponent(S.query.trim() + ' ' + top.name))
+    return [top && h('div', { class: 'card stack rec' },
+        h('span', { class: 'tag' }, 'Most likely to have it'),
+        h('div', { class: 'eyebrow' }, 'Recommended store'),
+        h('h2', {}, top.name),
+        top.why && h('p', {}, top.why),
+        S.stores.length > 1 && h('p', { class: 'muted' }, 'Also worth a look: ' + S.stores.slice(1).map((x) => x.name).join(', ') + '.'),
+        h('a', { class: 'btn primary', href: topUrl, target: '_blank', rel: 'noopener noreferrer' }, 'Search ' + top.name),
+        h('p', { class: 'muted tiny' }, 'Based on the kind of product, not live stock or prices. Check the store\u2019s page before you buy.')),
+      h('div', { class: 'card stack' },
       h('div', { class: 'eyebrow' }, 'Shop for'), h('h2', {}, S.query.trim()),
       h('p', { class: 'muted' }, 'Each link opens that store’s search for this product. Start with Google Shopping, which compares many stores at once.'),
       h('div', { class: 'links' }, links.map((l, i) => h('a', { class: 'store' + (i === 0 ? ' first' : ''), href: l.url, target: '_blank', rel: 'noopener noreferrer' }, l.name, h('span', {}, l.note)))),
@@ -865,7 +899,7 @@ Rules:
     if (S.tab === 'history') body = vHistory()
     else if (S.tab === 'buy') {
       const sc = S.screen.startsWith('b-') || S.screen === 'crop' ? S.screen : 'b-home'
-      body = sc === 'crop' ? vCrop() : sc === 'b-identify' ? vWait('Figuring out what this is\u2026', 'This can take a few seconds.') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
+      body = sc === 'crop' ? vCrop() : sc === 'b-picking' ? vWait('Picking the best store\u2026', 'Thinking about who usually stocks this.') : sc === 'b-identify' ? vWait('Figuring out what this is\u2026', 'This can take a few seconds.') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
     }
     else if (S.screen === 'home') body = vHome()
     else if (S.screen === 'crop') body = vCrop()

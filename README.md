@@ -65,8 +65,11 @@ before solving. If the photo is blurry or unreadable, the app asks you to retake
 
 The **Snap Buy** tab: photograph a product, confirm or edit what Claude thinks it is, and get the best
 current offers. The backend asks Claude to search the web (Anthropic's server-side web search tool), then
-keeps only offers whose link actually appeared in the search results, sorts them by price, and marks the
-cheapest new one as "Best price". It also gives store-search links (Google Shopping sorted low to high,
+keeps only offers whose link actually appeared in the search results and sorts them by price. It then
+**recommends one store** automatically: each offer is scored on price versus the cheapest, in stock or not,
+new versus used or refurbished, and whether the seller is well known, so a cheap out-of-stock or used listing
+won't beat a slightly pricier new one you can actually buy. If no priced offers are found, it recommends the
+store most likely to carry that kind of item (labelled as not confirmed in stock). It also gives store-search links (Google Shopping sorted low to high,
 Amazon, eBay, plus Walmart, Best Buy and Target in the US).
 
 - Web search must be enabled for your Anthropic organization (Console settings), and each Snap Buy search
