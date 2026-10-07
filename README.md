@@ -80,5 +80,33 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
 
 ## Features
 
-Camera / upload / drag-and-drop · crop tool · editable KaTeX preview with symbol shortcuts ·
-"Explain like I'm 12" toggle · "Practice a similar one" · on-device history (localStorage) · dark mode.
+**Solve**
+- Photograph, crop, and review the recognized equation. **Tap any symbol to fix it**: symbols the model was unsure
+  about are marked ("Is S really 5 or s?"), and every symbol offers look-alike suggestions (5/S, 1/l, x/×, 0/O, ...).
+- **Several problems in one photo** are listed separately; solve one at a time or all at once.
+- **Word problems** are turned into an equation, shown next to the story with what each variable means, and
+  you confirm or edit it before solving. The answer comes back in words with units.
+- **Every line of the work is checked**, not just the final answer. A calculator tests each line it can
+  (marked "checked", or flagged "A calculator disagrees with this line"), so a wrong middle step that still lands on
+  the right answer gets caught.
+- **Graphs** of equations, systems, functions, derivatives and definite integrals, with the solution marked.
+  The curves and points are re-evaluated in the browser, so a point is drawn where the curve really is.
+- **Save as PDF or image** to share or print (the share sheet on phones).
+- **Practice** with Easy / Medium / Hard and a topic, a hint on demand, and a streak. Answers are graded by
+  SymPy, not by the model; a problem is only used if its stored answer agrees with SymPy.
+- "Explain like I'm 12" toggle, history on the device, and themes (Light, Dark, Halloween with falling
+  pumpkins, Ocean, Forest, Sunset). Pumpkins respect "reduce motion".
+
+**Snap Buy** (see above)
+- **Barcode scanning** (EAN/UPC from a photo; built-in detector where available, ZXing elsewhere).
+- **Filters**: new only, free shipping, max price, and a preferred store (a soft preference that wins close calls).
+  Filtering re-ranks the offers you already have, with no extra search.
+- **Price tracking**: save a product, re-check it, and see the change since you started. Optional target price.
+  Alerts show while the app is open (plus a browser notification if you allow it). Background alerts would need
+  a server, so a price can change between visits without a ping.
+- **Stale-price honesty**: every result shows when it was checked, each offer shows how old the page was when the
+  search saw it, and anything over a day old gets a warning with a one-tap re-check.
+- **History** shows math and Snap Buy side by side.
+
+**The artifact version** (`artifact/`) has the same Solve features, plus barcode scanning and shared history. Its
+Snap Buy cannot search the web, so filters, price tracking and stale-price warnings do not apply there.

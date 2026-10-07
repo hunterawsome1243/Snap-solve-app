@@ -172,6 +172,76 @@ a.btn { text-decoration: none; text-align: center; }
 .tag { align-self: flex-start; font: 700 .7rem var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 4px 9px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); }
 .rec { border-color: var(--accent); }
 
+/* handwriting fixer */
+.fixer { gap: 10px; }
+.tokens { display: flex; flex-wrap: wrap; gap: 6px; }
+.tok { font: 600 .95rem var(--mono); min-width: 38px; height: 38px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); position: relative; }
+.tok.dim { opacity: .55; }
+.tok.flag { border-color: var(--warn-line); background: var(--warn-bg); color: var(--warn); }
+.tok.flag::after { content: '?'; position: absolute; top: -7px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--warn-line); color: #000; font-size: .7rem; display: grid; place-items: center; }
+.tok.sel { outline: 2px solid var(--accent); }
+.fix-panel { background: var(--soft); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.fix-panel .chip { background: var(--surface); border: 1px solid var(--line); }
+.fix-title code { font-weight: 800; }
+.chip.on { background: var(--accent); color: var(--accent-ink); }
+select.field { appearance: auto; }
+
+/* graph */
+.graph { width: 100%; height: auto; background: var(--bg); border-radius: 14px; }
+.g-grid { stroke: var(--line); stroke-width: 1; }
+.g-axis { stroke: var(--muted); stroke-width: 1.4; }
+.g-tick { fill: var(--muted); font-size: 9px; }
+.g-label { fill: var(--ink); font-size: 10px; font-weight: 700; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
+.g-area { fill: var(--accent); opacity: .22; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .85rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; vertical-align: -1px; }
+
+/* step checks, problems list, word problems, practice, history */
+.chk { display: inline-block; font-size: .75rem; font-weight: 700; margin-top: 4px; }
+.chk.ok { color: var(--ok); } .chk.bad { color: var(--warn); }
+.step-bad::before { background: var(--warn-bg) !important; color: var(--warn) !important; }
+.step-bad .sm { border-left: 3px solid var(--warn-line); padding-left: 8px; }
+.answer-text { font-weight: 600; }
+.link.left { align-self: flex-start; padding-left: 0; }
+.numchip { width: 26px; height: 26px; border-radius: 8px; background: var(--soft); color: var(--accent); font: 700 .8rem var(--mono); display: grid; place-items: center; }
+.status { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.status.done { color: var(--ok); } .status.error { color: var(--warn); } .status.solving { color: var(--accent); }
+.word-text { font-style: italic; }
+.word-card { background: var(--soft); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.vars { margin: 0; padding-left: 18px; } .vars code { font-weight: 800; }
+.answer.small { font-size: 1.15rem; padding: 0; color: var(--accent); }
+.row.spread { justify-content: space-between; }
+.streak { font-weight: 800; font-size: 1.1rem; text-align: right; }
+.type-tag { display: inline-block; font: 800 .68rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); background: var(--soft); padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; }
+.htitle { font-weight: 700; overflow-wrap: anywhere; }
+
+/* export sheet (off-screen, plain styles so it exports cleanly) */
+.sheet-wrap { position: fixed; left: -10000px; top: 0; width: 720px; pointer-events: none; }
+.sheet { width: 720px; padding: 32px; background: var(--surface); color: var(--ink); font: 16px/1.5 var(--body); }
+.sheet-brand { font-weight: 800; font-size: 1.1rem; color: var(--accent); margin-bottom: 8px; }
+.sheet-label { margin-top: 18px; font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.sheet-answer { font-size: 1.6rem; }
+.sheet-verify, .sheet-text { margin: 6px 0 0; } .sheet-verify { color: var(--muted); font-size: .9rem; }
+.sheet-steps { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.sheet-steps li { display: flex; gap: 12px; }
+.sheet-steps li > div { flex: 1; min-width: 0; }
+.sheet-num { flex: none; width: 24px; height: 24px; border-radius: 12px; background: var(--soft); color: var(--accent); font-weight: 800; font-size: .8rem; display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+.sheet-steps p { margin: 0; color: var(--muted); font-size: .92rem; } .sheet-steps p.sheet-bad { color: var(--warn); font-weight: 700; }
+.sheet .katex-display { margin: .25em 0; text-align: left; } .sheet .katex-display > .katex { text-align: left; }
+.sheet-foot { margin-top: 24px; color: var(--muted); font-size: .8rem; }
+
+/* halloween pumpkins */
+.pumpkins { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.pumpkin { position: absolute; top: -48px; opacity: .55; animation: pumpkin-fall linear infinite; will-change: transform; }
+.pumpkin i { display: block; font-style: normal; animation: pumpkin-sway ease-in-out infinite alternate; animation-duration: 3.4s; filter: drop-shadow(0 0 6px rgba(255, 138, 31, .55)); }
+.pumpkin:nth-child(2n) i { animation-duration: 4.6s; }
+.pumpkin:nth-child(3n) i { animation-duration: 5.4s; animation-direction: alternate-reverse; }
+@keyframes pumpkin-fall { to { transform: translateY(calc(100vh + 96px)) rotate(200deg); } }
+@keyframes pumpkin-sway { from { transform: translateX(calc(var(--sway) * -1)); } to { transform: translateX(var(--sway)); } }
+:root[data-skin="halloween"] .logo-mark::after { animation: flicker 3.2s infinite; }
+@keyframes flicker { 0%, 100% { filter: brightness(1); } 8% { filter: brightness(1.5); } 12% { filter: brightness(.85); } 55% { filter: brightness(1.25); } 60% { filter: brightness(.9); } }
+@media (prefers-reduced-motion: reduce) { .pumpkins { display: none; } :root[data-skin="halloween"] .logo-mark::after { animation: none; } }
+
 /* theme picker */
 .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
 .theme { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 10px; }
@@ -215,6 +285,7 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
 <input class="sr" id="cam" type="file" accept="image/*" capture="environment" aria-label="Take a photo">
 <input class="sr" id="pick" type="file" accept="image/*" aria-label="Choose an image">
 <input class="sr" id="cam2" type="file" accept="image/*" capture="environment" aria-label="Take a photo of a product">
+<input class="sr" id="scan" type="file" accept="image/*" capture="environment" aria-label="Scan a barcode">
 <input class="sr" id="pick2" type="file" accept="image/*" aria-label="Choose a product image">
 <nav class="tabs"><div class="in">
   <button type="button" id="tab-solve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Solve</button>
@@ -239,7 +310,7 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
-    history: store.get('history', []), skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
+    history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
     ctl: null,
   }
 
@@ -256,6 +327,17 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
     const root = document.documentElement
     if (S.skin === 'auto' || !SKINS.some((k) => k.id === S.skin)) root.removeAttribute('data-skin')
     else root.setAttribute('data-skin', S.skin)
+    document.querySelector('.pumpkins')?.remove()
+    if (S.skin === 'halloween') document.body.append(pumpkins())
+  }
+  function pumpkins() {
+    const box = h('div', { class: 'pumpkins', 'aria-hidden': 'true' })
+    for (let i = 0; i < 11; i++) {
+      const s = h('span', { class: 'pumpkin' }, h('i', {}, '\ud83c\udf83'))
+      s.style.cssText = 'left:' + ((i * 9.3 + 4) % 96) + '%;font-size:' + (18 + ((i * 7) % 5) * 5) + 'px;animation-duration:' + (13 + ((i * 5) % 8)) + 's;animation-delay:-' + ((i * 3.7) % 14) + 's;--sway:' + (14 + ((i * 11) % 22)) + 'px'
+      box.append(s)
+    }
+    return box
   }
   function vThemes() {
     return h('div', { class: 'card stack' }, h('h2', {}, 'Theme'),
@@ -285,35 +367,71 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
 
   // ---------- Claude (via the viewer's own account) ----------
   const READ_PROMPT = `You transcribe handwritten or printed math from the attached photo into LaTeX.
-Reply with ONLY a JSON object: {"readable": boolean, "latex": string, "message": string}
+Reply with ONLY a JSON object:
+{"readable": boolean, "problems": [{"kind": "math" or "word", "latex": string, "text": string, "uncertain": [{"text": string, "alternatives": [string]}]}], "message": string}
 Rules:
 - Transcribe exactly what is written. Never solve it, never "fix" it, never guess.
-- If the image is blurry, too dark, cut off, has no math, or you are not confident about the symbols, set "readable": false, "latex": "" and write a short, friendly "message" saying what is wrong and asking the user to retake the photo (better light, closer, hold steady).
-- Several lines (e.g. a system of equations): join them with \\\\ inside \\begin{cases} ... \\end{cases}.
+- If the image is blurry, too dark, cut off, has no math, or you are not confident about the symbols, set "readable": false, "problems": [] and write a short, friendly "message" saying what is wrong and asking the user to retake the photo (better light, closer, hold steady).
+- If the photo holds several separate problems (numbered, or clearly separate lines that are not parts of one system), return each as its own entry in reading order. One system of equations is ONE problem.
+- A math problem has "kind": "math", its LaTeX in "latex", and "text": "". A system of equations is one entry: join its lines with \\\\ inside \\begin{cases} ... \\end{cases}.
+- A problem written in words (a story or sentence problem) has "kind": "word", the full wording as plain text in "text", and "latex": "".
 - Use \\times for multiplication signs and the letter x for the variable. Use \\frac, \\sqrt, ^, _, \\int, \\frac{d}{dx}, \\sin, \\log, \\ln as appropriate.
-- If readable, "message" is an empty string, or a brief note if one symbol is ambiguous.`
+- "uncertain": list each symbol you are unsure about, "text" being the exact characters as they appear in your latex and "alternatives" up to 3 other things it could be (e.g. {"text": "5", "alternatives": ["S", "s"]}). Use [] when you are confident.
+- "message" is an empty string unless something needs saying.`
 
-  const SOLVE_PROMPT = `You are a careful math tutor. Solve the problem given in LaTeX.
-Reply with ONLY one JSON object (no prose, no code fences) with exactly these keys:
-{
- "answer_latex": "final answer in LaTeX, e.g. x = 2 \\\\text{ or } x = 3",
- "steps": [{"latex": "one line of work", "explain": "one short sentence on what was done"}],
- "check": {"steps": [{"latex": "...", "explain": "..."}], "conclusion": "one sentence"},
- "problem": { machine-readable version of the problem, see below },
- "answer": { machine-readable version of your final answer, see below }
-}
-"problem" and "answer" are re-checked by a calculator library (math.js), so write every expression as a math.js-parsable string: use ^ for powers, * for EVERY multiplication (write 2*x, never 2x), sqrt(), log(x) is the NATURAL log, log(x, 10) is base 10, sin/cos/tan/asin/acos/atan, pi, e. Trig is in radians; for degrees write sin(30*pi/180).
-Pick ONE shape:
+  const SHAPES = `Pick ONE shape:
  - arithmetic / simplify an expression: problem {"kind": "evaluate" or "simplify", "expr": "2+3*4"}  answer {"value": "14"}
  - one equation: problem {"kind": "solve", "equation": "x^2-5*x+6=0", "variable": "x"}  answer {"values": ["2", "3"]}  (list EVERY real solution; [] if none)
  - system of equations: problem {"kind": "system", "equations": ["x+y=3", "x-y=1"], "variables": ["x", "y"]}  answer {"solutions": [{"x": "2", "y": "1"}]}
  - derivative: problem {"kind": "derivative", "expr": "x^3", "variable": "x"}  answer {"value": "3*x^2"}
- - integral: problem {"kind": "integral", "expr": "2*x", "variable": "x"}  answer {"value": "x^2"}  (definite: add "bounds": ["0", "1"]; leave out + C in "value")
- - anything else (e.g. a word problem): problem {"kind": "other"}  answer {"value": "..."}
+ - integral: problem {"kind": "integral", "expr": "2*x", "variable": "x"}  answer {"value": "x^2"}  (definite: add "bounds": ["0", "1"]; leave out + C in "value")`
+
+  const SOLVE_PROMPT = `You are a careful math tutor. Solve the problem given in LaTeX.
+Reply with ONLY one JSON object (no prose, no code fences) with these keys:
+{
+ "answer_latex": "final answer in LaTeX, e.g. x = 2 \\\\text{ or } x = 3",
+ "answer_text": "only for a word problem, see below; otherwise omit",
+ "steps": [{"latex": "one line of work", "explain": "one short sentence on what was done", "verify": {"type": "...", "expr": "..."}}],
+ "check": {"steps": [{"latex": "...", "explain": "..."}], "conclusion": "one sentence"},
+ "problem": { machine-readable version of the problem, see below },
+ "answer": { machine-readable version of your final answer, see below },
+ "graph": { optional picture of the problem, see below }
+}
+"problem" and "answer" are re-checked by a calculator library (math.js), so write every expression as a math.js-parsable string: use ^ for powers, * for EVERY multiplication (write 2*x, never 2x), sqrt(), log(x) is the NATURAL log, log(x, 10) is base 10, sin/cos/tan/asin/acos/atan, pi, e. Trig is in radians; for degrees write sin(30*pi/180).
+${SHAPES}
+ - anything else: problem {"kind": "other"}  answer {"value": "..."}
 Writing the work:
 - "steps": one line per step, in order; each "latex" is one clean line of math (prose only inside \\text{}); each "explain" is one short sentence.
+- "verify" on a step lets a calculator test that very line. Add it when the line is testable, and omit it otherwise:
+    solve / system problems: {"type": "equation", "expr": "2*x=8"}, the single equation that line shows (one equation that every true solution satisfies; never "x=2 or x=3", never text).
+    evaluate / simplify problems: {"type": "expression", "expr": "2+12"}, the expression that line shows, equal in value to the original expression.
+    derivative / integral problems: {"type": "result", "expr": "..."}, only on a line that shows the finished result or an equivalent form of it, never partial pieces such as one product-rule term.
 - "check": plug the answer back into the ORIGINAL problem and show the arithmetic so the user can see it works (for derivatives/integrals, differentiate back or compare a quick sample value).
+- "graph" (include it when a picture helps: equations, systems of two unknowns, functions, derivatives, definite integrals; omit it for plain arithmetic):
+    {"series": [{"label": "y = 2x + 3", "expr": "2*x+3"}], "points": [{"x": "4", "series": 0, "label": "x = 4"}], "shade": {"from": "0", "to": "3", "series": 0}, "xmin": -10, "xmax": 10}
+  Every "expr" is a math.js expression in x only, written as y = f(x) (a line 2y = x + 1 becomes "(x+1)/2"). One-variable equation f(x) = g(x): series are the two sides (a constant side is just a number such as "11") and points are the solutions (x values, series 0). System of two unknowns: one series per equation solved for y, and one point at the intersection. Derivative: series [f, f']. Definite integral: series [f] plus "shade". Up to 3 series. Choose xmin/xmax so the interesting part is visible.
 - Never put markdown or $ delimiters in any field.`
+
+  const WORD_NOTE = `\nThis equation came from a word problem. Original wording and variable meanings are below. Also return "answer_text": one short sentence that answers the original question in words, with units.`
+
+  const FORMULATE_PROMPT = `You turn a word problem into an equation so it can be solved.
+Reply with ONLY a JSON object: {"variables": [{"name": string, "meaning": string}], "equation_latex": string, "question": string, "message": string}
+Rules:
+- Define each variable in plain words with units (e.g. {"name": "x", "meaning": "number of apples Sam has"}).
+- Write ONE equation in LaTeX that captures the story, or a system inside \\begin{cases} ... \\end{cases} when there are two unknowns. Use x (and y) for variables. Do not solve it.
+- "question" restates in a few words what the problem asks for.
+- If the text is not a solvable math problem, or it is missing information, set "equation_latex": "" and explain in "message". Otherwise "message" is an empty string.`
+
+  const PRACTICE_PROMPT = `You write practice problems for a math student. Reply with ONLY one JSON object: {"latex": string, "hint": string, "problem": {...}, "answer": {...}, "answer_latex": string}
+- "latex": the new problem exactly as the student should see it, in LaTeX.
+- "hint": one or two sentences that nudge the first step. Never reveal the final answer.
+- "problem" and "answer": machine-readable versions checked by a calculator library (math.js). Use ^ for powers, * for every multiplication, sqrt(), log(x) is natural log, pi, e.
+${SHAPES}
+- "answer_latex": the correct answer in LaTeX (for example x = 2,\\\\ 3).
+Rules: the problem must have a clean exact answer (no long decimals) and exactly one correct final answer set. Avoid trig equations with infinitely many solutions.`
+
+  const TOPICS = { mixed: 'any one of: arithmetic with order of operations, a linear equation, a quadratic equation, a 2x2 system, exponents, radicals, logarithms, a derivative, an integral', arithmetic: 'arithmetic with order of operations', linear: 'a linear equation in x', quadratic: 'a quadratic equation in x', system: 'a system of two linear equations in x and y', exponents: 'an expression or equation with exponents', radicals: 'an expression or equation with radicals', logs: 'an expression or equation with logarithms', derivative: 'a derivative (Calculus 1)', integral: 'an integral (Calculus 1)' }
+  const LEVELS = { easy: 'easy: one or two steps, small whole numbers', medium: 'medium: a typical homework problem, a few steps', hard: 'hard: multi-step, needs care (negatives, fractions, or a trap), still with a clean exact answer' }
 
   const SIMPLE_NOTE = `\nEXPLAIN LIKE I'M 12: write every "explain" and the check "conclusion" in very simple, friendly language a 12-year-old understands. Short words, tiny sentences, a quick everyday analogy when it helps. The math lines stay the same; only the wording changes.`
 
@@ -331,6 +449,7 @@ Writing the work:
 
   async function initSample() {
     try {
+      S.downloads = await window.claude?.use('downloads').catch(() => null)
       S.sample = await window.claude?.use('sample')
       if (S.sample) S.canReadImages = !!(await S.sample.limits().catch(() => null))?.images
     } catch { S.sample = null }
@@ -548,6 +667,190 @@ Writing the work:
     } catch (e) { return unv('Couldn’t run the independent check (' + (e?.message || e) + ').') }
   }
 
+  // ---------- helpers ----------
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
+  const LIBS = {
+    html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    zxing: 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js',
+  }
+  const loaded = {}
+  const loadScript = (src) => loaded[src] || (loaded[src] = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src; s.onload = res
+    s.onerror = () => { delete loaded[src]; rej(new Error('Couldn’t load ' + src)) }
+    document.head.append(s)
+  }))
+
+  // ---------- handwriting fixer: tokens and look-alikes ----------
+  const TOKEN_RE = /\\[a-zA-Z]+|\\.|\d+(?:\.\d+)?|[A-Za-z]|\s+|[\s\S]/g
+  function tokenize(latex) {
+    const out = []
+    for (const m of latex.matchAll(TOKEN_RE)) if (!/^\s+$/.test(m[0])) out.push({ text: m[0], start: m.index, end: m.index + m[0].length })
+    return out
+  }
+  const CONFUSABLE = {
+    5: ['S', 's'], S: ['5', 's', '8'], s: ['5', 'S'], 1: ['l', '7', 'I'], l: ['1', 'I'], I: ['1', 'l'], 7: ['1', 'T'],
+    0: ['O', 'o', '6'], O: ['0'], o: ['0', 'a'], 2: ['z', 'Z'], z: ['2'], Z: ['2'], 9: ['g', 'q'], g: ['9', 'q'], q: ['9', 'g'],
+    6: ['b', 'G', '0'], b: ['6', 'h'], 8: ['B', '3', 'S'], B: ['8'], 3: ['8', 'B'], x: ['\\times', 'X', 'y'], X: ['x', '\\times'],
+    '\\times': ['x', '+'], '+': ['t', '\\times', '-'], t: ['+'], '-': ['+', '=', '\\div'], '=': ['-', '\\neq'],
+    u: ['v', 'n'], v: ['u'], n: ['u', 'h'], a: ['o', 'd'], y: ['g', 'x', '4'], 4: ['9', 'y', 'u'], '/': ['1', '\\div'], '\\div': ['/', '+', '-'],
+  }
+  const suggestionsFor = (tok, unc) => [...new Set([...(unc.find((u) => u.text === tok)?.alternatives || []), ...(CONFUSABLE[tok] || [])])].filter((s) => s !== tok).slice(0, 8)
+  function flaggedIdx(tokens, unc) {
+    const used = new Set()
+    for (const u of unc) { const i = tokens.findIndex((t, k) => t.text === u.text && !used.has(k)); if (i >= 0) used.add(i) }
+    return used
+  }
+  const replaceTok = (latex, t, rep) => latex.slice(0, t.start) + rep + (/^\\[a-zA-Z]+$/.test(rep) && /^[A-Za-z]/.test(latex.slice(t.end)) ? ' ' : '') + latex.slice(t.end)
+  const cleanUnc = (raw) => (Array.isArray(raw) ? raw : []).filter((u) => u && String(u.text || '').trim()).slice(0, 10).map((u) => ({ text: String(u.text).trim().slice(0, 20), alternatives: (Array.isArray(u.alternatives) ? u.alternatives : []).map((a) => String(a).trim().slice(0, 20)).filter(Boolean).slice(0, 4) }))
+
+  // ---------- per-line checks (math.js) ----------
+  function verifySteps(problem, answer, steps, verification) {
+    const matched = verification?.status === 'match'
+    let check = null
+    try {
+      if (problem?.kind === 'solve') {
+        const [l, r] = String(problem.equation).split('=')
+        const L = parse(l), R = parse(r), v = String(problem.variable || 'x')
+        const F = (x) => num(L, { [v]: x }) - num(R, { [v]: x })
+        let sols = matched ? (answer.values || []).map((s) => num(parse(s))) : realRoots(F)
+        sols = sols.filter((s) => !Number.isNaN(s))
+        if (sols.length) check = (e) => {
+          const [a, b] = String(e).split('='); if (b === undefined) return 'unchecked'
+          const A = parse(a), B = parse(b)
+          return sols.every((s) => Math.abs(num(A, { [v]: s }) - num(B, { [v]: s })) < 1e-6 * (1 + Math.abs(s))) ? 'ok' : 'bad'
+        }
+      } else if (problem?.kind === 'system' && matched) {
+        const vars = problem.variables.map(String)
+        const sols = (answer.solutions || []).map((s) => Object.fromEntries(vars.map((k) => [k, num(parse(s[k]))])))
+        if (sols.length && sols.every((s) => Object.values(s).every((x) => !Number.isNaN(x)))) check = (e) => {
+          const [a, b] = String(e).split('='); if (b === undefined) return 'unchecked'
+          const A = parse(a), B = parse(b)
+          return sols.every((s) => Math.abs(num(A, s) - num(B, s)) < 1e-6 * (1 + Math.max(...Object.values(s).map(Math.abs)))) ? 'ok' : 'bad'
+        }
+      } else if (problem?.kind === 'evaluate' || problem?.kind === 'simplify') {
+        check = (e) => { const r = checkValue({ kind: 'evaluate', expr: problem.expr }, { value: e }); return r.status === 'match' ? 'ok' : r.status === 'mismatch' ? 'bad' : 'unchecked' }
+      } else if (problem?.kind === 'derivative' || problem?.kind === 'integral') {
+        check = (e) => {
+          // a line that shows the finished result must pass the same test as the final answer
+          const truthCheck = checkValue(problem, { value: e })
+          return truthCheck.status === 'match' ? 'ok' : truthCheck.status === 'mismatch' ? 'bad' : 'unchecked'
+        }
+      }
+    } catch { check = null }
+    const wanted = problem?.kind === 'solve' || problem?.kind === 'system' ? 'equation' : problem?.kind === 'evaluate' || problem?.kind === 'simplify' ? 'expression' : 'result'
+    return steps.map((s) => {
+      const v = s.verify
+      if (!check || !v || v.type !== wanted || !v.expr) return 'unchecked'
+      try { return check(String(v.expr)) } catch { return 'unchecked' }
+    })
+  }
+
+  // ---------- graph data (re-evaluated here, so a point sits where the curve really is) ----------
+  function compileFn(expr) {
+    const src = String(expr ?? '').trim()
+    if (!src || !SAFE.test(src)) throw new Error('bad expression')
+    const node = math.parse(src).compile()
+    return (x) => {
+      try {
+        const v = node.evaluate({ x })
+        const n = typeof v === 'number' ? v : v && typeof v.re === 'number' && Math.abs(v.im) < 1e-9 ? v.re : NaN
+        return Number.isFinite(n) ? n : NaN
+      } catch { return NaN }
+    }
+  }
+  function niceStep(span) { const raw = span / 5, pow = 10 ** Math.floor(Math.log10(raw)), n = raw / pow; return (n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10) * pow }
+  function graphData(g, W = 360, H = 260) {
+    if (typeof math === 'undefined' || !g || !Array.isArray(g.series) || !g.series.length) return null
+    const fns = g.series.slice(0, 3).map((s) => compileFn(s.expr))
+    const constant = (e) => { const v = compileFn(e)(0); if (Number.isNaN(v)) throw new Error('nan'); return v }
+    const pts = (g.points || []).slice(0, 6).map((p) => { const x = constant(p.x), si = Number(p.series) || 0; return { x, y: fns[si]?.(x), label: String(p.label || ''), si } }).filter((p) => Number.isFinite(p.y))
+    const shade = g.shade && typeof g.shade === 'object' ? { a: constant(g.shade.from), b: constant(g.shade.to), si: Number(g.shade.series) || 0 } : null
+    let xmin = Number.isFinite(+g.xmin) && g.xmin !== null ? +g.xmin : -10, xmax = Number.isFinite(+g.xmax) && g.xmax !== null ? +g.xmax : 10
+    if (xmin >= xmax) { xmin = -10; xmax = 10 }
+    for (const x of [...pts.map((p) => p.x), ...(shade ? [shade.a, shade.b] : [])]) { const pad = (xmax - xmin) * 0.08; if (x < xmin + pad) xmin = x - pad; if (x > xmax - pad) xmax = x + pad }
+    const N = 480, xs = Array.from({ length: N + 1 }, (_, i) => xmin + ((xmax - xmin) * i) / N), ys = fns.map((f) => xs.map(f))
+    const finite = ys.flat().filter((v) => Number.isFinite(v) && Math.abs(v) < 1e6).sort((a, b) => a - b)
+    if (!finite.length) return null
+    let ymin = Math.min(finite[Math.floor(finite.length * 0.04)], 0, ...pts.map((p) => p.y)), ymax = Math.max(finite[Math.ceil(finite.length * 0.96) - 1], 0, ...pts.map((p) => p.y))
+    if (ymax - ymin < 1e-9) { ymin -= 1; ymax += 1 }
+    const pad = (ymax - ymin) * 0.12; ymin -= pad; ymax += pad
+    const L = 38, R = 12, T = 12, B = 26
+    const sx = (x) => L + ((x - xmin) / (xmax - xmin)) * (W - L - R), sy = (y) => H - B - ((y - ymin) / (ymax - ymin)) * (H - T - B)
+    const paths = ys.map((col) => {
+      let d = '', pen = false, prev = null
+      col.forEach((y, i) => {
+        if (!Number.isFinite(y) || y > ymax + (ymax - ymin) * 2 || y < ymin - (ymax - ymin) * 2) { pen = false; prev = null; return }
+        if (prev != null && Math.abs(y - prev) > (ymax - ymin) * 0.9) pen = false
+        d += (pen ? 'L' : 'M') + sx(xs[i]).toFixed(1) + ' ' + sy(y).toFixed(1); pen = true; prev = y
+      })
+      return d
+    })
+    let area = null
+    if (shade && fns[shade.si]) {
+      const a = Math.min(shade.a, shade.b), b = Math.max(shade.a, shade.b), top = []
+      for (let i = 0; i <= 160; i++) { const x = a + ((b - a) * i) / 160, y = fns[shade.si](x); if (Number.isFinite(y)) top.push(sx(x).toFixed(1) + ' ' + sy(y).toFixed(1)) }
+      if (top.length > 1) area = 'M' + sx(a).toFixed(1) + ' ' + sy(0).toFixed(1) + 'L' + top.join('L') + 'L' + sx(b).toFixed(1) + ' ' + sy(0).toFixed(1) + 'Z'
+    }
+    const ticks = (min, max) => { const st = niceStep(max - min), out = []; for (let v = Math.ceil(min / st) * st; v <= max + 1e-9; v += st) out.push(Math.abs(v) < st / 1e6 ? 0 : Number(v.toPrecision(6))); return out }
+    const COLORS = ['var(--accent)', 'var(--ok)', 'var(--warn)']
+    return {
+      W, H, L, R, T, B, area,
+      xT: ticks(xmin, xmax).map((v) => ({ v, p: sx(v) })), yT: ticks(ymin, ymax).map((v) => ({ v, p: sy(v) })),
+      axX: sy(Math.min(Math.max(0, ymin), ymax)), axY: sx(Math.min(Math.max(0, xmin), xmax)),
+      series: g.series.slice(0, 3).map((s, i) => ({ label: String(s.label || ''), color: COLORS[i], d: paths[i] })),
+      points: pts.map((p) => ({ ...p, px: sx(p.x), py: sy(p.y), color: COLORS[p.si % 3] })),
+    }
+  }
+  const NS = 'http://www.w3.org/2000/svg'
+  function svg(tag, attrs, ...kids) {
+    const el = document.createElementNS(NS, tag)
+    for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v)
+    for (const kid of kids) if (kid != null) el.append(kid.nodeType ? kid : document.createTextNode(kid))
+    return el
+  }
+  function vGraph(graph) {
+    let g = null
+    try { g = graphData(graph) } catch { g = null }
+    if (!g) return null
+    const f = (v) => (Math.abs(v) >= 1000 || (Math.abs(v) < 0.01 && v !== 0) ? v.toExponential(0) : String(v))
+    const label = (p) => p.label || '(' + f(Number(p.x.toFixed(2))) + ', ' + f(Number(p.y.toFixed(2))) + ')'
+    const root = svg('svg', { class: 'graph', viewBox: '0 0 ' + g.W + ' ' + g.H, role: 'img', 'aria-label': 'Graph of ' + g.series.map((s) => s.label).filter(Boolean).join(' and ') + (g.points.length ? ', with ' + g.points.map(label).join(', ') + ' marked' : '') })
+    g.xT.forEach((t) => root.append(svg('line', { x1: t.p, x2: t.p, y1: g.T, y2: g.H - g.B, class: 'g-grid' })))
+    g.yT.forEach((t) => root.append(svg('line', { y1: t.p, y2: t.p, x1: g.L, x2: g.W - g.R, class: 'g-grid' })))
+    root.append(svg('line', { x1: g.L, x2: g.W - g.R, y1: g.axX, y2: g.axX, class: 'g-axis' }), svg('line', { y1: g.T, y2: g.H - g.B, x1: g.axY, x2: g.axY, class: 'g-axis' }))
+    g.xT.forEach((t) => root.append(svg('text', { x: t.p, y: g.H - g.B + 14, class: 'g-tick', 'text-anchor': 'middle' }, f(t.v))))
+    g.yT.forEach((t) => root.append(svg('text', { x: g.L - 5, y: t.p + 3, class: 'g-tick', 'text-anchor': 'end' }, f(t.v))))
+    if (g.area) root.append(svg('path', { d: g.area, class: 'g-area' }))
+    g.series.forEach((s) => root.append(svg('path', { d: s.d, fill: 'none', stroke: s.color, 'stroke-width': '2.2', 'stroke-linejoin': 'round' })))
+    g.points.forEach((p) => root.append(svg('circle', { cx: p.px, cy: p.py, r: 5, fill: p.color, stroke: 'var(--surface)', 'stroke-width': 2 }), svg('text', { x: Math.min(Math.max(p.px, g.L + 20), g.W - g.R - 20), y: p.py - 10, class: 'g-label', 'text-anchor': 'middle' }, label(p))))
+    return h('div', { class: 'card stack' }, h('h2', {}, 'Graph'), root,
+      h('div', { class: 'legend' }, g.series.map((s) => s.label && h('span', {}, h('i', { style: 'background:' + s.color }), s.label))))
+  }
+
+  // ---------- practice grading ----------
+  const SPLIT_RE = /\s*(?:,|;|\bor\b|\band\b|\n)\s*/i
+  function parseUserAnswer(problem, text) {
+    text = String(text || '').trim().replace(/−/g, '-').replace(/[×·]/g, '*')
+    if (problem.kind === 'solve') {
+      if (/^(no (real )?solutions?|none|∅)$/i.test(text)) return { values: [] }
+      const v = String(problem.variable || 'x')
+      return { values: text.split(SPLIT_RE).map((p) => p.trim()).filter(Boolean).map((p) => { const m = p.match(new RegExp('^' + v + '\\s*=\\s*(.+)$')); return m ? m[1] : p }) }
+    }
+    if (problem.kind === 'system') {
+      const sol = {}
+      for (const part of text.replace(/^\(|\)$/g, '').split(SPLIT_RE)) { const m = part.trim().match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/); if (m) sol[m[1]] = m[2] }
+      return { solutions: [sol] }
+    }
+    let value = text.split('=').pop().trim()
+    if (problem.kind === 'integral' && !problem.bounds) value = value.replace(/\s*\+\s*[cC]\s*$/, '')
+    return { value }
+  }
+  function gradeAnswer(problem, text) {
+    const r = verify(problem, parseUserAnswer(problem, text))
+    return r.status === 'unverified' ? { correct: null, detail: r.detail } : { correct: r.status === 'match', detail: r.detail }
+  }
+
   // ---------- actions ----------
   function setError(msg) { S.error = msg || ''; render() }
   function go(screen) { S.error = ''; S.screen = screen; render() }
@@ -567,48 +870,198 @@ Writing the work:
     try {
       const blob = await blobOf(canvas)
       const r = await S.sample.json(READ_PROMPT, { images: blob, signal: S.ctl.signal, cache: false })
-      const latex = String(r?.latex || '').trim()
+      let list = (Array.isArray(r?.problems) ? r.problems : []).filter((p) => p && (String(p.latex || '').trim() || String(p.text || '').trim())).slice(0, 12).map((p) => {
+        const latex = String(p.latex || '').trim(), text = String(p.text || '').trim(), word = !latex && !!text
+        return { id: uid(), kind: word ? 'word' : 'math', latex, text: word ? text : '', uncertain: word ? [] : cleanUnc(p.uncertain), status: 'idle', result: null, error: '' }
+      })
+      if (!list.length && String(r?.latex || '').trim()) list = [{ id: uid(), kind: 'math', latex: String(r.latex).trim(), text: '', uncertain: cleanUnc(r.uncertain), status: 'idle', result: null, error: '' }]
       const message = String(r?.message || '').trim()
-      if (!r?.readable || !latex) {
+      if (!r?.readable || !list.length) {
         S.note = message || 'I couldn’t read that. Retake the photo with good light, held steady and close.'
         return go('unreadable')
       }
-      S.latex = latex; S.note = message; S.practice = false
-      go('edit')
+      S.problems = list
+      if (list.length === 1) { openProblem(0); if (message) { S.note = message; render() } } else { S.active = -1; go('problems') }
     } catch (e) {
       if (e?.code === 'cancelled') return go('home')
       S.screen = 'crop'; setError(errText(e))
     }
   }
 
-  async function solve(latex = S.latex, simple = S.simple) {
+  function openProblem(i) {
+    const p = S.problems[i]
+    S.active = i; S.result = null
+    if (p.kind === 'word') return startWord(p.text, i)
+    S.word = null; S.latex = p.latex; S.uncertain = p.uncertain; S.note = ''; S.fixIdx = null
+    go('edit')
+  }
+
+  async function startWord(text, idx = -1) {
+    S.active = idx
+    go('formulating')
+    S.ctl = new AbortController()
+    try {
+      const r = await S.sample.json(FORMULATE_PROMPT + '\n\nWord problem:\n' + text, { signal: S.ctl.signal })
+      S.word = { text, question: String(r?.question || ''), variables: (r?.variables || []).filter((v) => v && v.name).slice(0, 6).map((v) => ({ name: String(v.name).slice(0, 12), meaning: String(v.meaning || '').slice(0, 120) })) }
+      S.latex = String(r?.equation_latex || '').trim(); S.uncertain = []; S.fixIdx = null
+      S.note = String(r?.message || '').trim() || (S.latex ? '' : 'I couldn’t turn that into an equation. Add the missing numbers or rephrase it.')
+      go('edit')
+    } catch (e) {
+      S.word = null; S.latex = text; S.screen = 'edit'
+      if (e?.code === 'cancelled') return render()
+      setError(errText(e))
+    }
+  }
+
+  const wordContext = (w) => (w ? w.text + '\nVariables: ' + (w.variables.map((v) => v.name + ' = ' + v.meaning).join('; ') || 'n/a') + '\nAsks: ' + (w.question || 'n/a') : '')
+  const cleanSteps = (raw) => (Array.isArray(raw) ? raw : []).filter((s) => s && s.latex).map((s) => ({ latex: String(s.latex), explain: String(s.explain || ''), verify: s.verify && typeof s.verify === 'object' ? { type: String(s.verify.type), expr: String(s.verify.expr || '').slice(0, 300) } : null }))
+
+  async function solveCore(latex, simple, word, signal) {
+    const d = await S.sample.json(SOLVE_PROMPT + (simple ? SIMPLE_NOTE : '') + (word ? WORD_NOTE : '') + '\n\nProblem (LaTeX):\n' + latex + (word ? '\n\nWord problem context:\n' + wordContext(word) : ''), { signal, modelTier: 'default' })
+    const steps = cleanSteps(d.steps)
+    if (!steps.length || !d.answer_latex) throw { code: 'invalid_json' }
+    const chk = d.check || {}, problem = d.problem || {}, answer = d.answer || {}
+    const verification = verify(problem, answer)
+    const statuses = verifySteps(problem, answer, steps, verification)
+    steps.forEach((s, i) => { s.check = statuses[i]; delete s.verify })
+    return {
+      answer_latex: String(d.answer_latex), answer_text: word ? String(d.answer_text || '') : '', steps,
+      steps_summary: { checked: statuses.filter((x) => x !== 'unchecked').length, bad: statuses.flatMap((x, i) => (x === 'bad' ? [i] : [])) },
+      check: { steps: cleanSteps(chk.steps).map((s) => ({ latex: s.latex, explain: s.explain })), conclusion: String(chk.conclusion || '') },
+      verification, graph: d.graph && typeof d.graph === 'object' ? d.graph : null,
+    }
+  }
+  function remember(entry) { S.history = [entry, ...S.history].slice(0, 50); store.set('history', S.history) }
+
+  async function solve(latex = S.latex, simple = S.simple, word = S.word) {
     S.busy = true; S.error = ''; S.ctl = new AbortController(); render()
     try {
-      const d = await S.sample.json(SOLVE_PROMPT + (simple ? SIMPLE_NOTE : '') + '\n\nProblem (LaTeX):\n' + latex, { signal: S.ctl.signal, modelTier: 'default' })
-      const steps = (d.steps || []).filter((s) => s && s.latex).map((s) => ({ latex: String(s.latex), explain: String(s.explain || '') }))
-      if (!steps.length || !d.answer_latex) throw { code: 'invalid_json' }
-      const chk = d.check || {}
-      S.result = {
-        answer_latex: String(d.answer_latex), steps,
-        check: { steps: (chk.steps || []).filter((s) => s && s.latex).map((s) => ({ latex: String(s.latex), explain: String(s.explain || '') })), conclusion: String(chk.conclusion || '') },
-        verification: verify(d.problem || {}, d.answer || {}),
-      }
-      S.history = [{ id: Date.now().toString(36), ts: Date.now(), latex, result: S.result }, ...S.history].slice(0, 30)
-      store.set('history', S.history)
+      S.result = await solveCore(latex, simple, word, S.ctl.signal)
+      remember({ type: 'math', id: uid(), ts: Date.now(), latex, word, result: S.result })
+      if (S.active >= 0 && S.problems[S.active]) Object.assign(S.problems[S.active], { latex, status: 'done', result: S.result, error: '' })
       S.screen = 'result'
     } catch (e) {
       if (e?.code !== 'cancelled') S.error = errText(e)
     } finally { S.busy = false; render() }
   }
 
-  async function makePractice() {
-    S.busy = true; S.error = ''; render()
+  async function solveAll() {
+    S.running = true; S.error = ''; S.ctl = new AbortController(); render()
+    for (const p of S.problems) {
+      if (p.kind !== 'math' || p.status === 'done') continue
+      p.status = 'solving'; p.error = ''; render()
+      try {
+        p.result = await solveCore(p.latex, S.simple, null, S.ctl.signal); p.status = 'done'
+        remember({ type: 'math', id: uid(), ts: Date.now(), latex: p.latex, word: null, result: p.result })
+      } catch (e) { p.status = 'error'; p.error = e?.code === 'cancelled' ? 'Stopped.' : errText(e); if (e?.code === 'cancelled') break }
+    }
+    S.running = false; render()
+  }
+
+  // ---------- practice ----------
+  const prStats = () => store.get('practice.stats', { streak: 0, best: 0, solved: 0 })
+  function openPractice(seed = null) {
+    S.pr = { level: store.get('practice.level', 'medium'), topic: store.get('practice.topic', 'mixed'), seed, item: null, loading: false, answer: '', hint: false, fb: null, done: false, wrong: false, error: '' }
+    S.tab = 'solve'; go('practice'); nextPractice()
+  }
+  async function nextPractice() {
+    const P = S.pr
+    Object.assign(P, { loading: true, error: '', fb: null, done: false, wrong: false, hint: false, answer: '' }); render()
+    S.ctl = new AbortController()
     try {
-      const r = await S.sample.json('You write practice problems for a math student. Given the problem below in LaTeX, write ONE new problem of the same type and similar difficulty with different numbers and a clean, well-defined answer. Reply with ONLY JSON: {"latex": "the new problem in LaTeX"}\n\nOriginal problem:\n' + S.latex, { cache: false })
-      const latex = String(r?.latex || '').trim()
-      if (!latex) throw { code: 'invalid_json' }
-      S.latex = latex; S.note = ''; S.practice = true; S.result = null; S.screen = 'edit'
-    } catch (e) { S.error = errText(e) } finally { S.busy = false; render() }
+      let item = null
+      for (let k = 0; k < 2 && !item; k++) { // the stored answer has to agree with the calculator, or grading would be unfair
+        const r = await S.sample.json(PRACTICE_PROMPT + '\n\nDifficulty: ' + LEVELS[P.level] + '.\nTopic: ' + TOPICS[P.topic] + '.' + (P.seed ? '\nMake it similar in type to this problem, with different numbers:\n' + P.seed : ''), { signal: S.ctl.signal, cache: false })
+        if (r && r.latex && r.problem && verify(r.problem, r.answer || {}).status === 'match') item = { latex: String(r.latex), hint: String(r.hint || ''), problem: r.problem, answer_latex: String(r.answer_latex || '') }
+      }
+      if (!item) throw { code: 'invalid_json' }
+      P.item = item; P.seed = null
+    } catch (e) { if (e?.code !== 'cancelled') P.error = errText(e) }
+    P.loading = false; render()
+  }
+  function checkPractice() {
+    const P = S.pr, st = prStats()
+    if (!P.answer.trim()) return
+    const r = gradeAnswer(P.item.problem, P.answer)
+    P.fb = r
+    if (r.correct) {
+      P.done = true
+      const streak = P.hint ? st.streak : st.streak + 1
+      store.set('practice.stats', { streak, best: Math.max(st.best, streak), solved: st.solved + 1 })
+    } else if (r.correct === false && !P.wrong) { P.wrong = true; store.set('practice.stats', { ...st, streak: 0 }) }
+    render()
+  }
+  function revealPractice() {
+    const P = S.pr, st = prStats()
+    P.fb = { correct: false, revealed: true }; P.done = true
+    if (!P.wrong) { P.wrong = true; store.set('practice.stats', { ...st, streak: 0 }) }
+    render()
+  }
+
+  // ---------- save or share (needs the downloads capability) ----------
+  function vSheet(problem, r) {
+    const lines = (steps) => h('ol', { class: 'sheet-steps' }, steps.map((s, i) => h('li', {}, h('span', { class: 'sheet-num' }, String(i + 1)), h('div', {}, tex(s.latex, true), s.explain && h('p', {}, s.explain), s.check === 'bad' && h('p', { class: 'sheet-bad' }, '⚠ A calculator disagrees with this line')))))
+    const v = r.verification
+    return h('div', { class: 'sheet-wrap', 'aria-hidden': 'true' }, h('div', { class: 'sheet' },
+      h('div', { class: 'sheet-brand' }, 'SnapSolve'),
+      h('div', { class: 'sheet-label' }, 'Problem'), tex(problem, true),
+      h('div', { class: 'sheet-label' }, 'Answer'), h('div', { class: 'sheet-answer' }, tex(r.answer_latex, true)),
+      r.answer_text && h('p', { class: 'sheet-text' }, r.answer_text),
+      h('p', { class: 'sheet-verify' }, v.status === 'match' ? '✓ Verified independently by a calculator' : v.status === 'mismatch' ? '⚠ Double-check this one: the calculator disagreed' : 'Not independently verified'),
+      h('div', { class: 'sheet-label' }, 'Step by step'), lines(r.steps),
+      r.check.steps.length > 0 && h('div', {}, h('div', { class: 'sheet-label' }, 'Check'), lines(r.check.steps), r.check.conclusion && h('p', { class: 'sheet-text' }, r.check.conclusion)),
+      h('p', { class: 'sheet-foot' }, 'Made with SnapSolve · ' + new Date().toLocaleDateString())))
+  }
+  async function exportAs(kind) {
+    if (S.exporting) return
+    S.exporting = kind; S.exportMsg = ''; render()
+    const wrap = vSheet(S.latex, S.result)
+    document.body.append(wrap)
+    try {
+      await loadScript(LIBS.html2canvas)
+      const el = wrap.firstChild
+      const canvas = await window.html2canvas(el, { backgroundColor: getComputedStyle(el).backgroundColor, scale: 2, logging: false })
+      let blob, name
+      if (kind === 'png') { blob = await new Promise((res) => canvas.toBlob(res, 'image/png')); name = 'snapsolve.png' } else {
+        await loadScript(LIBS.jspdf)
+        const pdf = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' })
+        const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 28, w = pw - m * 2, hgt = (canvas.height * w) / canvas.width
+        const img = canvas.toDataURL('image/jpeg', 0.92), usable = ph - m * 2
+        const bg = getComputedStyle(el).backgroundColor.match(/\d+/g)?.map(Number) || [255, 255, 255]
+        for (let off = 0, page = 0; off < hgt - 1; off += usable, page++) {
+          if (page) pdf.addPage()
+          pdf.addImage(img, 'JPEG', m, m - off, w, hgt)
+          pdf.setFillColor(...bg.slice(0, 3)); pdf.rect(0, 0, pw, m, 'F'); pdf.rect(0, ph - m, pw, m, 'F')
+        }
+        blob = pdf.output('blob'); name = 'snapsolve.pdf'
+      }
+      await S.downloads.save({ filename: name, data: blob })
+      S.exportMsg = 'Saved ' + name + '.'
+    } catch (e) {
+      S.exportMsg = e?.code === 'declined' ? '' : 'Couldn’t create the file. Try again, or take a screenshot.'
+    } finally { wrap.remove(); S.exporting = ''; render() }
+  }
+
+  // ---------- barcode ----------
+  async function scanBarcode(file) {
+    if (!file || !file.type.startsWith('image/')) return setError('Please choose an image file.')
+    S.mode = 'buy'; S.tab = 'buy'; go('b-scanning')
+    const clean = (t) => { const d = String(t || '').replace(/\D/g, ''); return d.length >= 8 && d.length <= 14 ? d : null }
+    let code = null
+    if ('BarcodeDetector' in window) {
+      try { const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); code = clean((await new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] }).detect(bmp))[0]?.rawValue) } catch {}
+    }
+    if (!code) {
+      try {
+        await loadScript(LIBS.zxing)
+        const Z = window.ZXing, hints = new Map([[Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E]], [Z.DecodeHintType.TRY_HARDER, true]])
+        const url = URL.createObjectURL(file)
+        try { code = clean((await new Z.BrowserMultiFormatReader(hints).decodeFromImageUrl(url)).getText()) } finally { URL.revokeObjectURL(url) }
+      } catch { code = null }
+    }
+    if (!code) { S.screen = 'b-home'; return setError('Couldn’t read a barcode. Fill the frame with it, hold steady in good light, or type the product name.') }
+    S.barcode = code; S.product = null; S.photo = null; S.query = 'UPC ' + code
+    go('b-confirm')
   }
 
   // ---------- snap buy ----------
@@ -622,7 +1075,7 @@ Rules:
 - Never invent a model number you cannot see.`
 
   async function identifyCropped(canvas) {
-    S.photo = canvas.toDataURL('image/jpeg', 0.7)
+    S.photo = canvas.toDataURL('image/jpeg', 0.7); S.barcode = null
     go('b-identify')
     S.ctl = new AbortController()
     try {
@@ -658,6 +1111,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
       if (e?.code === 'cancelled') return go('b-confirm')
       // no recommendation is fine: the search links below still work
     }
+    remember({ type: 'buy', id: uid(), ts: Date.now(), query: S.query.trim(), stores: S.stores })
     go('b-results')
   }
 
@@ -682,13 +1136,14 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     return [
       h('div', { class: 'hero' },
         h('h1', {}, 'Snap it.', h('br'), 'Find the best price.'),
-        h('p', { class: 'muted' }, 'Photograph any product and jump straight to the stores that sell it, with each search sorted by price.')),
+        h('p', { class: 'muted' }, 'Photograph a product or scan its barcode and jump straight to the stores that sell it, with each search sorted by price.')),
       S.ready && !S.sample && h('div', { class: 'banner info' }, 'Claude isn’t available in this view, so photo recognition is off. You can still type a product name.'),
       noPhoto && S.sample && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view. You can still type a product name.'),
       h('label', { class: 'snap', for: 'cam2', 'aria-label': 'Snap Buy' }, h('i'), h('i'), h('i'), h('i'), camIcon(), 'Snap Buy'),
       h('div', { class: 'alt' },
+        h('label', { class: 'btn secondary', for: 'scan' }, 'Scan barcode'),
         h('label', { class: 'btn secondary', for: 'pick2' }, 'Upload image'),
-        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.product = null; S.query = ''; go('b-confirm') } }, 'Type it')),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.product = null; S.barcode = null; S.query = ''; go('b-confirm') } }, 'Type it')),
       h('p', { class: 'muted tiny' }, 'This version opens store searches for you. It can’t look up live prices itself, so check the price on the store’s page.'),
     ]
   }
@@ -700,8 +1155,8 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     const upd = () => { S.query = input.value; btn.disabled = S.query.trim().length < 2 }
     input.addEventListener('input', upd); upd()
     return [h('div', { class: 'card stack' },
-      h('h2', {}, 'Is this the right product?'),
-      h('p', { class: 'muted' }, 'Add the brand, model or size for a better match.'),
+      h('h2', {}, S.barcode ? 'Barcode found' : 'Is this the right product?'),
+      h('p', { class: 'muted' }, S.barcode ? 'Barcode ' + S.barcode + '. If you know the product name, replace the search with it for a better match.' : 'Add the brand, model or size for a better match.'),
       S.product?.message && h('div', { class: 'banner info' }, S.product.message),
       S.product && S.photo && h('img', { class: 'thumb2', src: S.photo, alt: 'Your photo' }),
       h('label', { class: 'eyebrow', for: 'bq' }, 'Search for'), input,
@@ -754,7 +1209,8 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
       h('label', { class: 'snap', for: 'cam', 'aria-label': 'Snap Equation' }, h('i'), h('i'), h('i'), h('i'), camIcon(), 'Snap Equation'),
       h('div', { class: 'alt' },
         h('label', { class: 'btn secondary', for: 'pick' }, 'Upload image'),
-        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.latex = ''; S.note = ''; S.practice = false; go('edit') } }, 'Type it')),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.latex = ''; S.note = ''; S.word = null; S.uncertain = []; S.active = -1; go('edit') } }, 'Type it'),
+        h('button', { class: 'btn ghost', type: 'button', disabled: !S.sample, onclick: () => openPractice(null) }, 'Practice')),
       drop,
     ]
   }
@@ -822,67 +1278,174 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   }
 
   const SNIPS = [['×', '\\times '], ['÷', '\\div '], ['xⁿ', '^{}', -1], ['a/b', '\\frac{}{}', -3], ['√', '\\sqrt{}', -1], ['π', '\\pi ']]
+
+  function vFixer(repaint, changed) {
+    const tokens = tokenize(S.latex)
+    if (!tokens.length) return h('div')
+    const flagged = flaggedIdx(tokens, S.uncertain)
+    const open = S.fixIdx != null && tokens[S.fixIdx] ? S.fixIdx : null
+    const tok = open != null ? tokens[open] : null
+    const apply = (value) => {
+      if (!tok || !value) return
+      S.latex = replaceTok(S.latex, tok, value)
+      const i = S.uncertain.findIndex((u) => u.text === tok.text); if (i >= 0) S.uncertain.splice(i, 1)
+      S.fixIdx = null; changed()
+    }
+    const alts = tok ? suggestionsFor(tok.text, S.uncertain) : []
+    const first = [...flagged][0]
+    const custom = h('input', { class: 'field', type: 'text', placeholder: 'Something else', 'aria-label': 'Replacement' })
+    return h('div', { class: 'fixer stack' },
+      h('div', { class: 'eyebrow' }, flagged.size ? 'Not sure about ' + (flagged.size === 1 ? 'one symbol' : flagged.size + ' symbols') + ': tap to check' : 'Tap a symbol to fix it'),
+      h('div', { class: 'tokens', role: 'group', 'aria-label': 'Symbols in the equation' }, tokens.map((t, i) =>
+        h('button', { type: 'button', class: 'tok' + (flagged.has(i) ? ' flag' : '') + (open === i ? ' sel' : '') + (/^[{}^_]$/.test(t.text) ? ' dim' : ''), 'aria-pressed': String(open === i), 'aria-label': 'Symbol ' + t.text + (flagged.has(i) ? ', not sure' : ''), onclick: () => { S.fixIdx = open === i ? null : i; repaint() } }, t.text))),
+      tok && h('div', { class: 'fix-panel' },
+        h('div', { class: 'fix-title' }, flagged.has(open) && alts.length ? ['Is ', h('code', {}, tok.text), ' really ', ...alts.slice(0, 2).flatMap((a, i) => [i ? ' or ' : '', h('code', {}, a)]), '?'] : ['Change ', h('code', {}, tok.text), ' to:']),
+        h('div', { class: 'chips' }, alts.map((a) => h('button', { type: 'button', class: 'chip', onclick: () => apply(a) }, a))),
+        h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); apply(custom.value.trim()) } }, custom, h('button', { class: 'btn secondary', type: 'submit' }, 'Apply'))),
+      first != null && open == null && h('button', { type: 'button', class: 'link', onclick: () => { S.fixIdx = first; repaint() } }, 'Check the first unsure symbol'))
+  }
+
   function vEdit() {
     const prev = h('div', { class: 'preview' })
     const ta = h('textarea', { id: 'latex', rows: '3', spellcheck: 'false', autocapitalize: 'off', autocorrect: 'off', 'aria-label': 'Equation in LaTeX' })
     ta.value = S.latex
+    const fixHost = h('div'), wordHint = h('div')
     const solveBtn = h('button', { class: 'btn primary grow', type: 'button', onclick: () => solve() }, S.busy ? 'Solving…' : 'Solve')
-    const paint = () => {
+    const paintFix = () => fixHost.replaceChildren(vFixer(paintFix, () => { ta.value = S.latex; paintAll() }))
+    const paintAll = () => {
       prev.replaceChildren(S.latex.trim() ? tex(S.latex, true) : h('span', { class: 'muted' }, 'Type an equation below'))
       solveBtn.disabled = !S.latex.trim() || S.busy || !S.sample
+      const words = /[A-Za-z]{3,}\s+[A-Za-z]{2,}\s+[A-Za-z]{2,}/.test(S.latex) && !/\\[a-z]+/.test(S.latex)
+      wordHint.replaceChildren(...(words ? [h('div', { class: 'banner info' }, 'This looks like a word problem. ', h('button', { class: 'link', type: 'button', onclick: () => startWord(S.latex, -1) }, 'Turn it into an equation'))] : []))
+      paintFix()
     }
-    ta.addEventListener('input', () => { S.latex = ta.value; paint() })
-    paint()
+    ta.addEventListener('input', () => { S.latex = ta.value; S.fixIdx = null; paintAll() })
+    paintAll()
     const insert = ([, text, back = 0]) => {
       const s = ta.selectionStart, e = ta.selectionEnd
-      ta.value = ta.value.slice(0, s) + text + ta.value.slice(e); S.latex = ta.value; paint(); ta.focus()
+      ta.value = ta.value.slice(0, s) + text + ta.value.slice(e); S.latex = ta.value; paintAll(); ta.focus()
       const pos = s + text.length + back; ta.setSelectionRange(pos, pos)
     }
+    const w = S.word
     return [h('div', { class: 'card stack' },
-      h('h2', {}, S.practice ? 'Practice problem' : 'Is this right?'),
-      h('p', { class: 'muted' }, S.practice ? 'Try it on paper first, then press Solve to see the answer and the work.' : 'Fix anything I misread (5 vs S, x vs ×) before solving.'),
+      h('h2', {}, w ? 'Does this equation match the story?' : 'Is this right?'),
+      h('p', { class: 'muted' }, w ? 'I turned the words into an equation. Fix anything that is off, then solve.' : 'Tap any symbol I misread (5 vs S, x vs ×), or edit the text, before solving.'),
+      w && h('div', { class: 'word-card' }, h('div', { class: 'eyebrow' }, 'Word problem'), h('p', { class: 'word-text' }, '“' + w.text + '”'),
+        w.variables.length > 0 && h('ul', { class: 'vars' }, w.variables.map((v) => h('li', {}, h('code', {}, v.name), ' = ' + v.meaning))), w.question && h('p', { class: 'muted' }, 'It asks: ' + w.question)),
       S.note && h('div', { class: 'banner info' }, S.note),
-      prev,
+      prev, fixHost,
       h('label', { class: 'eyebrow', for: 'latex' }, 'Edit (LaTeX)'), ta,
       h('div', { class: 'chips' }, SNIPS.map((s) => h('button', { class: 'chip', type: 'button', onclick: () => insert(s) }, s[0]))),
+      wordHint,
       h('div', { class: 'row' },
-        h('button', { class: 'btn ghost', type: 'button', onclick: () => go(S.result ? 'result' : 'home') }, 'Back'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => go(S.problems.length > 1 ? 'problems' : S.result ? 'result' : 'home') }, 'Back'),
         solveBtn))]
+  }
+
+  function vProblems() {
+    const todo = S.problems.filter((p) => p.kind === 'math' && p.status !== 'done').length
+    const label = { idle: 'Not solved yet', solving: 'Solving…', done: 'Solved', error: 'Couldn’t solve' }
+    return [
+      h('div', { class: 'card stack' }, h('h2', {}, S.problems.length + ' problems found'), h('p', { class: 'muted' }, 'Solve them one at a time, or all at once. Tap Edit to fix anything I misread.'),
+        h('div', { class: 'row wrap' },
+          h('button', { class: 'btn primary grow', type: 'button', disabled: S.running || todo === 0, onclick: solveAll }, S.running ? 'Solving…' : todo === 0 ? 'All solved' : 'Solve all (' + todo + ')'),
+          h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.problems = []; S.active = -1; go('home') } }, 'New photo'))),
+      ...S.problems.map((p, i) => h('div', { class: 'card stack' },
+        h('div', { class: 'row' }, h('span', { class: 'numchip' }, String(i + 1)), h('span', { class: 'status ' + p.status }, label[p.status])),
+        p.kind === 'math' ? h('div', { class: 'problem' }, tex(p.latex, true)) : h('p', { class: 'word-text' }, '“' + p.text + '”'),
+        p.status === 'done' && h('div', { class: 'answer small' }, tex(p.result.answer_latex)),
+        p.error && h('div', { class: 'banner warn' }, p.error),
+        h('div', { class: 'row wrap' },
+          p.status === 'done' && h('button', { class: 'btn secondary grow', type: 'button', onclick: () => { S.active = i; S.latex = p.latex; S.result = p.result; S.word = null; go('result') } }, 'View steps'),
+          h('button', { class: 'btn ' + (p.status === 'done' ? 'ghost' : 'primary') + ' grow', type: 'button', disabled: S.running, onclick: () => openProblem(i) }, p.kind === 'word' ? 'Turn into equation' : p.status === 'done' ? 'Edit' : 'Edit & solve')))),
+    ]
+  }
+
+  function vPractice() {
+    const P = S.pr, st = prStats(), item = P.item, kind = item?.problem?.kind
+    const FORMAT = { solve: 'e.g. x = 2 or x = 3', system: 'e.g. x = 1, y = 2', derivative: 'e.g. 3x^2', integral: 'e.g. x^2 + C' }
+    const input = h('input', { class: 'field', id: 'ans', type: 'text', placeholder: FORMAT[kind] || 'Type your answer', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': 'Your answer' })
+    input.value = P.answer
+    input.addEventListener('input', () => { P.answer = input.value; chk.disabled = !P.answer.trim() })
+    const chk = h('button', { class: 'btn primary grow', type: 'submit' }, 'Check answer')
+    chk.disabled = !P.answer.trim()
+    const pick = (k, v) => () => { P[k] = v; store.set('practice.' + (k === 'level' ? 'level' : 'topic'), v); nextPractice() }
+    return [
+      h('div', { class: 'card stack' },
+        h('div', { class: 'row spread' }, h('h2', {}, 'Practice'), h('div', { class: 'streak', 'aria-label': 'Streak ' + st.streak + ', best ' + st.best }, '🔥 ' + st.streak + ' ', h('span', { class: 'muted tiny' }, 'best ' + st.best + ' · ' + st.solved + ' solved'))),
+        h('div', { class: 'chips', role: 'group', 'aria-label': 'Difficulty' }, [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']].map(([id, name]) => h('button', { type: 'button', class: 'chip' + (P.level === id ? ' on' : ''), 'aria-pressed': String(P.level === id), disabled: P.loading, onclick: pick('level', id) }, name))),
+        h('label', { class: 'eyebrow', for: 'topic' }, 'Topic'),
+        (() => { const sel = h('select', { class: 'field', id: 'topic', disabled: P.loading }, [['mixed', 'Mixed'], ['arithmetic', 'Arithmetic'], ['linear', 'Linear equations'], ['quadratic', 'Quadratics'], ['system', 'Systems'], ['exponents', 'Exponents'], ['radicals', 'Radicals'], ['logs', 'Logarithms'], ['derivative', 'Derivatives'], ['integral', 'Integrals']].map(([id, name]) => h('option', { value: id }, name))); sel.value = P.topic; sel.addEventListener('change', () => pick('topic', sel.value)()); return sel })()),
+      P.error && h('div', { class: 'banner warn', role: 'alert' }, P.error),
+      P.loading && h('div', { class: 'card stack center' }, h('div', { class: 'spinner', role: 'status', 'aria-label': 'Writing a problem' }), h('p', { class: 'muted' }, 'Writing a problem…')),
+      item && !P.loading && h('div', { class: 'card stack' },
+        h('div', { class: 'eyebrow' }, 'Solve this'), h('div', { class: 'problem' }, tex(item.latex, true)),
+        P.hint && item.hint && h('div', { class: 'banner info' }, h('strong', {}, 'Hint'), h('span', {}, item.hint)),
+        !P.done && h('form', { class: 'stack', onsubmit: (e) => { e.preventDefault(); checkPractice() } },
+          h('label', { class: 'eyebrow', for: 'ans' }, 'Your answer'), input,
+          P.fb && P.fb.correct === false && !P.fb.revealed && h('div', { class: 'banner warn', role: 'alert' }, h('strong', {}, 'Not quite.'), h('span', {}, 'Try again, take a hint, or show the answer.')),
+          P.fb && P.fb.correct === null && h('div', { class: 'banner info' }, 'I couldn’t read that answer format. ' + P.fb.detail),
+          h('div', { class: 'row wrap' }, chk, !P.hint && item.hint && h('button', { class: 'btn secondary', type: 'button', onclick: () => { P.hint = true; render() } }, 'Show hint')),
+          h('button', { class: 'link', type: 'button', onclick: revealPractice }, 'Show the answer')),
+        P.done && h('div', { class: 'stack' },
+          P.fb?.revealed ? h('div', { class: 'banner info' }, h('strong', {}, 'The answer')) : h('div', { class: 'banner ok' }, '✓ Correct!' + (P.hint ? ' (with a hint, so the streak stays put)' : st.streak > 1 ? ' ' + st.streak + ' in a row.' : '')),
+          item.answer_latex && h('div', { class: 'answer' }, tex(item.answer_latex, true)),
+          h('div', { class: 'row wrap' }, h('button', { class: 'btn primary grow', type: 'button', onclick: nextPractice }, 'Next problem'), h('button', { class: 'btn secondary', type: 'button', onclick: () => { S.active = -1; S.word = null; S.uncertain = []; S.latex = item.latex; solve(item.latex, S.simple, null) } }, 'See the steps')))),
+      h('button', { class: 'link', type: 'button', onclick: () => { S.latex = ''; S.result = null; go('home') } }, 'Back'),
+    ]
   }
 
   function stepList(steps) {
     return h('ol', { class: 'steps' }, steps.map((s) =>
-      h('li', {}, h('div', { class: 'sb' }, h('div', { class: 'sm' }, tex(s.latex, true)), s.explain && h('p', { class: 'explain' }, s.explain)))))
+      h('li', { class: s.check === 'bad' ? 'step-bad' : '' }, h('div', { class: 'sb' }, h('div', { class: 'sm' }, tex(s.latex, true)), s.explain && h('p', { class: 'explain' }, s.explain),
+        s.check === 'ok' && h('span', { class: 'chk ok' }, '✓ checked'), s.check === 'bad' && h('span', { class: 'chk bad' }, '⚠ A calculator disagrees with this line')))))
   }
 
   function vResult() {
-    const r = S.result, v = r.verification
+    const r = S.result, v = r.verification, bad = r.steps_summary?.bad || [], checked = r.steps_summary?.checked || 0
     const banner = v.status === 'mismatch'
       ? h('div', { class: 'banner warn', role: 'alert' }, h('strong', {}, 'Double-check this one.'), h('span', {}, 'The AI’s answer and an independent math check disagree. ' + v.detail + '.'))
       : v.status === 'match' ? h('div', { class: 'banner ok' }, '✓ Verified independently with math.js')
       : h('div', { class: 'banner info' }, 'Couldn’t be verified automatically. ' + v.detail)
+    const graph = r.graph ? vGraph(r.graph) : null
     return [
       S.busy && h('div', { class: 'banner info' }, 'Rewriting the explanations…'),
+      S.problems.length > 1 && S.active >= 0 && h('button', { class: 'link left', type: 'button', onclick: () => go('problems') }, '← All problems'),
       h('div', { class: 'card stack' },
         h('div', { class: 'eyebrow' }, 'Problem'), h('div', { class: 'problem' }, tex(S.latex, true)),
-        h('div', { class: 'eyebrow' }, 'Answer'), h('div', { class: 'answer' }, tex(r.answer_latex, true)), banner),
-      h('div', { class: 'card' }, h('h2', {}, 'Step by step'), stepList(r.steps)),
+        h('div', { class: 'eyebrow' }, 'Answer'), h('div', { class: 'answer' }, tex(r.answer_latex, true)),
+        r.answer_text && h('p', { class: 'answer-text' }, r.answer_text), banner,
+        bad.length > 0 && h('div', { class: 'banner warn', role: 'alert' }, h('strong', {}, 'Check ' + (bad.length === 1 ? 'line ' + (bad[0] + 1) : 'lines ' + bad.map((i) => i + 1).join(', ')) + ' of the work.'), h('span', {}, 'A calculator tested each line and disagrees with ' + (bad.length === 1 ? 'it' : 'them') + '. The final answer may still be right, but that part of the explanation might not be.'))),
+      graph,
+      h('div', { class: 'card' }, h('h2', {}, 'Step by step'), checked > 0 && h('p', { class: 'muted tiny' }, checked + ' of ' + r.steps.length + ' lines checked by a calculator.'), stepList(r.steps)),
       (r.check.steps.length || r.check.conclusion) && h('div', { class: 'card' },
         h('h2', {}, 'Check'), h('p', { class: 'muted' }, 'Plugging the answer back in:'), stepList(r.check.steps),
         r.check.conclusion && h('p', { class: 'conclusion' }, r.check.conclusion)),
+      S.downloads && h('div', { class: 'card stack' }, h('h2', {}, 'Save or share'),
+        h('div', { class: 'row wrap' },
+          h('button', { class: 'btn secondary grow', type: 'button', disabled: !!S.exporting, onclick: () => exportAs('pdf') }, S.exporting === 'pdf' ? 'Making PDF…' : 'Save as PDF'),
+          h('button', { class: 'btn secondary grow', type: 'button', disabled: !!S.exporting, onclick: () => exportAs('png') }, S.exporting === 'png' ? 'Making image…' : 'Save as image')),
+        S.exportMsg && h('p', { class: 'muted tiny', role: 'status' }, S.exportMsg)),
       h('div', { class: 'row wrap' },
-        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.busy, onclick: makePractice }, S.busy ? 'Thinking…' : 'Practice a similar one'),
+        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.busy || !S.sample, onclick: () => openPractice(S.latex) }, 'Practice a similar one'),
         h('button', { class: 'btn ghost', type: 'button', onclick: () => go('edit') }, 'Edit problem')),
       h('label', { class: 'btn primary', for: 'cam' }, 'Snap another'),
     ]
   }
 
   function vHistory() {
-    if (!S.history.length) return [h('div', { class: 'card stack center' }, h('h2', {}, 'No problems yet'), h('p', { class: 'muted' }, 'Solved problems are saved here, on this device only.'))]
+    if (!S.history.length) return [h('div', { class: 'card stack center' }, h('h2', {}, 'Nothing here yet'), h('p', { class: 'muted' }, 'Solved problems and product searches are saved here, on this device only.'))]
+    const shown = S.history.filter((i) => S.hfilter === 'all' || i.type === S.hfilter)
     return [
-      ...S.history.map((it) => h('div', { class: 'card hitem' },
-        h('button', { class: 'hopen', type: 'button', onclick: () => { S.latex = it.latex; S.result = it.result; S.practice = false; S.tab = 'solve'; go('result') } },
-          h('div', { class: 'problem tiny' }, tex(it.latex)), h('div', { class: 'hans' }, '= ', tex(it.result.answer_latex)),
+      h('div', { class: 'chips', role: 'tablist', 'aria-label': 'History filter' }, [['all', 'All'], ['math', 'Math'], ['buy', 'Snap Buy']].map(([id, name]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(S.hfilter === id), class: 'chip' + (S.hfilter === id ? ' on' : ''), onclick: () => { S.hfilter = id; render() } }, name))),
+      !shown.length && h('div', { class: 'card center muted' }, 'No ' + (S.hfilter === 'buy' ? 'product searches' : 'math problems') + ' yet.'),
+      ...shown.map((it) => h('div', { class: 'card hitem' },
+        h('button', { class: 'hopen', type: 'button', onclick: () => {
+          if (it.type === 'buy') { S.tab = 'buy'; S.mode = 'buy'; S.query = it.query; S.stores = it.stores || []; return go('b-results') }
+          S.latex = it.latex; S.result = it.result; S.word = it.word || null; S.active = -1; S.tab = 'solve'; go('result') } },
+          h('span', { class: 'type-tag' }, it.type === 'buy' ? 'Snap Buy' : 'Math'),
+          it.type === 'buy' ? h('div', {}, h('div', { class: 'htitle' }, it.query), h('div', { class: 'hans' }, it.stores?.[0] ? 'Try ' + it.stores[0].name : 'Store searches'))
+            : h('div', {}, h('div', { class: 'problem tiny' }, tex(it.latex)), h('div', { class: 'hans' }, '= ', tex(it.result.answer_latex))),
           h('div', { class: 'muted tiny' }, new Date(it.ts).toLocaleString())),
         h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete', onclick: () => { S.history = S.history.filter((x) => x.id !== it.id); store.set('history', S.history); render() } }, '✕'))),
       h('button', { class: 'link danger', type: 'button', onclick: () => { S.history = []; store.set('history', []); render() } }, 'Clear history'),
@@ -899,12 +1462,15 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     if (S.tab === 'history') body = vHistory()
     else if (S.tab === 'buy') {
       const sc = S.screen.startsWith('b-') || S.screen === 'crop' ? S.screen : 'b-home'
-      body = sc === 'crop' ? vCrop() : sc === 'b-picking' ? vWait('Picking the best store\u2026', 'Thinking about who usually stocks this.') : sc === 'b-identify' ? vWait('Figuring out what this is\u2026', 'This can take a few seconds.') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
+      body = sc === 'crop' ? vCrop() : sc === 'b-picking' ? vWait('Picking the best store…', 'Thinking about who usually stocks this.') : sc === 'b-identify' ? vWait('Figuring out what this is…', 'This can take a few seconds.') : sc === 'b-scanning' ? vWait('Reading the barcode…', '') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
     }
     else if (S.screen === 'home') body = vHome()
     else if (S.screen === 'crop') body = vCrop()
     else if (S.screen === 'reading') body = vWait('Reading your handwriting…', 'This can take a few seconds.')
+    else if (S.screen === 'formulating') body = vWait('Turning the words into an equation…', 'This can take a few seconds.')
     else if (S.screen === 'unreadable') body = vUnreadable()
+    else if (S.screen === 'problems') body = vProblems()
+    else if (S.screen === 'practice' && S.pr) body = vPractice()
     else if (S.screen === 'edit') body = S.busy ? vWait('Solving…', 'Working it out, then checking it a second way.') : vEdit()
     else if (S.screen === 'result' && S.result) body = vResult()
     else body = vHome()
@@ -917,15 +1483,16 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; render() })
   $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
-  $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.latex = ''; S.result = null; S.practice = false; go('home') })
+  $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; S.latex = ''; S.result = null; S.word = null; S.problems = []; S.active = -1; go('home') })
   $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; if (S.screen.startsWith('b-')) S.screen = 'home'; render() })
   $('#tab-hist').addEventListener('click', () => { S.tab = 'history'; render() })
   $('#tab-buy').addEventListener('click', () => { S.tab = 'buy'; S.mode = 'buy'; if (!S.screen.startsWith('b-') && S.screen !== 'crop') S.screen = 'b-home'; render() })
+  $('#scan').addEventListener('change', (e) => { scanBarcode(e.target.files[0]); e.target.value = '' })
   $('#cam2').addEventListener('change', (e) => { onFile(e.target.files[0], 'buy'); e.target.value = '' })
   $('#pick2').addEventListener('change', (e) => { onFile(e.target.files[0], 'buy'); e.target.value = '' })
   $('#eli').addEventListener('change', (e) => {
     S.simple = e.target.checked; store.set('simple', S.simple)
-    if (S.tab === 'solve' && S.screen === 'result' && S.sample && !S.busy) solve(S.latex, S.simple); else render()
+    if (S.tab === 'solve' && S.screen === 'result' && S.sample && !S.busy) solve(S.latex, S.simple, S.word); else render()
   })
   applySkin()
   render()
