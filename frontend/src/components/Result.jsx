@@ -47,7 +47,7 @@ export default function Result({ problem, result, busy, onPractice, onNew, onEdi
     setExporting(kind)
     setExportMsg('')
     try {
-      const out = await (kind === 'png' ? saveImage : savePdf)(sheet.current, kind === 'png' ? 'snapsolve.png' : 'snapsolve.pdf')
+      const out = await (kind === 'png' ? saveImage : savePdf)(sheet.current, kind === 'png' ? 'hunter-scan.png' : 'hunter-scan.pdf')
       if (out === 'downloaded') setExportMsg(`Saved ${kind.toUpperCase()}. Check your downloads.`)
     } catch {
       setExportMsg("Couldn't create the file. Try again, or take a screenshot.")

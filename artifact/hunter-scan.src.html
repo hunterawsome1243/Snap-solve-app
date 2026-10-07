@@ -1,4 +1,4 @@
-<title>SnapSolve</title>
+<title>Hunter Scan</title>
 <style>
 /* Layout: one narrow column on graph paper; a big viewfinder button is the home screen, results read like worked homework. */
 :root {
@@ -242,6 +242,32 @@ select.field { appearance: auto; }
 @keyframes flicker { 0%, 100% { filter: brightness(1); } 8% { filter: brightness(1.5); } 12% { filter: brightness(.85); } 55% { filter: brightness(1.25); } 60% { filter: brightness(.9); } }
 @media (prefers-reduced-motion: reduce) { .pumpkins { display: none; } :root[data-skin="halloween"] .logo-mark::after { animation: none; } }
 
+/* hunter scan logo mark + science theme */
+.logo-mark svg { width: 20px; height: 20px; }
+:root[data-skin="halloween"] .logo-mark svg { display: none; }
+:root[data-skin="science"] {
+  --bg: #06121c; --surface: #0d2233; --ink: #e6fbff; --muted: #8fb4c4; --line: #17384d;
+  --accent: #22e6d4; --accent-ink: #03201f; --soft: #12354a; --grid: rgba(34, 230, 212, .10); --hi: #0b6b73;
+  --ok-bg: #0e3a2f; --ok: #5dffb0; --warn-bg: #3a2a0c; --warn: #ffd166; --warn-line: #a07a1a;
+  --info-bg: #11344d; --info: #8fd8ff; --shadow: 0 0 0 1px rgba(34, 230, 212, .13), 0 12px 32px rgba(0, 0, 0, .5);
+  --display: 'Space Grotesk', 'Bricolage Grotesque', system-ui, sans-serif; color-scheme: dark;
+}
+:root[data-skin="science"] h1, :root[data-skin="science"] h2, :root[data-skin="science"] .logo { letter-spacing: -.01em; }
+:root[data-skin="science"] .answer { text-shadow: 0 0 18px rgba(34, 230, 212, .45); }
+:root[data-skin="science"] .logo-mark { background: transparent; font-size: 0; }
+:root[data-skin="science"] .logo-mark svg { display: none; }
+:root[data-skin="science"] .logo-mark::after { content: '\269B\FE0E'; display: inline-block; font-size: 1.8rem; line-height: 1; color: var(--accent); text-shadow: 0 0 12px var(--accent); animation: atom-spin 10s linear infinite; }
+@keyframes atom-spin { to { transform: rotate(360deg); } }
+:root[data-skin="science"] .snap { overflow: hidden; box-shadow: 0 0 38px rgba(34, 230, 212, .4); }
+:root[data-skin="science"] .snap::after { content: ''; position: absolute; left: 0; right: 0; height: 3px; top: 12%; background: linear-gradient(90deg, transparent, #fff, transparent); box-shadow: 0 0 14px 4px rgba(255, 255, 255, .55); animation: laser 3.4s ease-in-out infinite; }
+@keyframes laser { 0%, 100% { top: 12%; opacity: 0; } 12% { opacity: .9; } 50% { top: 88%; opacity: .9; } 88% { opacity: .9; } }
+.elements { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.element { position: absolute; bottom: -64px; width: 38px; height: 42px; padding: 3px 5px; display: flex; flex-direction: column; justify-content: space-between; border: 1.5px solid var(--accent); border-radius: 6px; background: rgba(34, 230, 212, .06); color: var(--accent); font-family: var(--mono); opacity: 0; animation: element-rise linear infinite; will-change: transform; }
+.element small { font-size: .5rem; line-height: 1; opacity: .85; min-height: .5rem; }
+.element b { font-size: .95rem; line-height: 1; }
+@keyframes element-rise { 0% { transform: translateY(0) rotate(-6deg); opacity: 0; } 10% { opacity: .4; } 85% { opacity: .4; } 100% { transform: translateY(calc(-100vh - 120px)) rotate(8deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .elements { display: none; } :root[data-skin="science"] .logo-mark::after { animation: none; } :root[data-skin="science"] .snap::after { display: none; } }
+
 /* theme picker */
 .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
 .theme { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 10px; }
@@ -270,12 +296,12 @@ nav.tabs svg { width: 22px; height: 22px; }
 nav.tabs button[aria-current="true"] { color: var(--accent); }
 .katex { font-size: 1.1em; }
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&family=Creepster&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&family=Creepster&family=Space+Grotesk:wght@500;700&display=swap">
 <style>/*KATEX_CSS*/</style>
 
 <div class="app">
   <header class="top">
-    <button class="logo" id="logo" type="button"><span class="logo-mark">∑</span>SnapSolve</button>
+    <button class="logo" id="logo" type="button"><span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span>Hunter Scan</button>
     <div class="row"><button class="icon-btn" id="themebtn" type="button" aria-label="Choose theme" aria-expanded="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.7 1.8-1.7H17a4 4 0 0 0 4-4C21 6.2 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg></button>
     <label class="switch" title="Make the explanations simpler"><input type="checkbox" id="eli"><span class="track"></span>ELI12</label></div>
   </header>
@@ -321,13 +347,24 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
     { id: 'ocean', name: 'Ocean', colors: ['#eaf6f8', '#087f92', '#07313c'] },
     { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
     { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
+    { id: 'science', name: 'Science', colors: ['#06121c', '#22e6d4', '#e6fbff'] },
   ]
   function applySkin() {
     const root = document.documentElement
     if (S.skin === 'auto' || !SKINS.some((k) => k.id === S.skin)) root.removeAttribute('data-skin')
     else root.setAttribute('data-skin', S.skin)
-    document.querySelector('.pumpkins')?.remove()
+    document.querySelector('.pumpkins')?.remove(); document.querySelector('.elements')?.remove()
     if (S.skin === 'halloween') document.body.append(pumpkins())
+    if (S.skin === 'science') document.body.append(elements())
+  }
+  function elements() {
+    const box = h('div', { class: 'elements', 'aria-hidden': 'true' })
+    ;[['H', 1], ['He', 2], ['C', 6], ['N', 7], ['O', 8], ['Na', 11], ['Si', 14], ['Fe', 26], ['Cu', 29], ['Au', 79], ['\u03c0', ''], ['\u03a3', ''], ['U', 92]].forEach(([sym, n], i) => {
+      const t = h('span', { class: 'element' }, h('small', {}, String(n)), h('b', {}, sym))
+      t.style.cssText = 'left:' + ((i * 7.9 + 3) % 92) + '%;animation-duration:' + (20 + ((i * 7) % 11)) + 's;animation-delay:-' + ((i * 4.3) % 22) + 's'
+      box.append(t)
+    })
+    return box
   }
   function pumpkins() {
     const box = h('div', { class: 'pumpkins', 'aria-hidden': 'true' })
@@ -435,7 +472,7 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
   const SIMPLE_NOTE = `\nEXPLAIN LIKE I'M 12: write every "explain" and the check "conclusion" in very simple, friendly language a 12-year-old understands. Short words, tiny sentences, a quick everyday analogy when it helps. The math lines stay the same; only the wording changes.`
 
   const COPY = {
-    not_granted: 'Allow SnapSolve to use Claude when asked, then try again.',
+    not_granted: 'Allow Hunter Scan to use Claude when asked, then try again.',
     sampling_disabled: 'Claude isn’t available for this account.',
     rate_limited: 'Too many requests or your usage limit was reached. Wait a bit, then try again.',
     session_expired: 'Your session expired. Reload the page and sign in again.',
@@ -1002,14 +1039,14 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
     const lines = (steps) => h('ol', { class: 'sheet-steps' }, steps.map((s, i) => h('li', {}, h('span', { class: 'sheet-num' }, String(i + 1)), h('div', {}, tex(s.latex, true), s.explain && h('p', {}, s.explain), s.check === 'bad' && h('p', { class: 'sheet-bad' }, '⚠ A calculator disagrees with this line')))))
     const v = r.verification
     return h('div', { class: 'sheet-wrap', 'aria-hidden': 'true' }, h('div', { class: 'sheet' },
-      h('div', { class: 'sheet-brand' }, 'SnapSolve'),
+      h('div', { class: 'sheet-brand' }, 'Hunter Scan'),
       h('div', { class: 'sheet-label' }, 'Problem'), tex(problem, true),
       h('div', { class: 'sheet-label' }, 'Answer'), h('div', { class: 'sheet-answer' }, tex(r.answer_latex, true)),
       r.answer_text && h('p', { class: 'sheet-text' }, r.answer_text),
       h('p', { class: 'sheet-verify' }, v.status === 'match' ? '✓ Verified independently by a calculator' : v.status === 'mismatch' ? '⚠ Double-check this one: the calculator disagreed' : 'Not independently verified'),
       h('div', { class: 'sheet-label' }, 'Step by step'), lines(r.steps),
       r.check.steps.length > 0 && h('div', {}, h('div', { class: 'sheet-label' }, 'Check'), lines(r.check.steps), r.check.conclusion && h('p', { class: 'sheet-text' }, r.check.conclusion)),
-      h('p', { class: 'sheet-foot' }, 'Made with SnapSolve · ' + new Date().toLocaleDateString())))
+      h('p', { class: 'sheet-foot' }, 'Made with Hunter Scan · ' + new Date().toLocaleDateString())))
   }
   async function exportAs(kind) {
     if (S.exporting) return
@@ -1021,7 +1058,7 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
       const el = wrap.firstChild
       const canvas = await window.html2canvas(el, { backgroundColor: getComputedStyle(el).backgroundColor, scale: 2, logging: false })
       let blob, name
-      if (kind === 'png') { blob = await new Promise((res) => canvas.toBlob(res, 'image/png')); name = 'snapsolve.png' } else {
+      if (kind === 'png') { blob = await new Promise((res) => canvas.toBlob(res, 'image/png')); name = 'hunter-scan.png' } else {
         await loadScript(LIBS.jspdf)
         const pdf = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' })
         const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 28, w = pw - m * 2, hgt = (canvas.height * w) / canvas.width
@@ -1032,7 +1069,7 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
           pdf.addImage(img, 'JPEG', m, m - off, w, hgt)
           pdf.setFillColor(...bg.slice(0, 3)); pdf.rect(0, 0, pw, m, 'F'); pdf.rect(0, ph - m, pw, m, 'F')
         }
-        blob = pdf.output('blob'); name = 'snapsolve.pdf'
+        blob = pdf.output('blob'); name = 'hunter-scan.pdf'
       }
       await S.downloads.save({ filename: name, data: blob })
       S.exportMsg = 'Saved ' + name + '.'
@@ -1496,6 +1533,6 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   applySkin()
   render()
   initSample()
-  window.__snapsolve = { verify } // handy for debugging in the console
+  window.__hunterscan = { verify } // handy for debugging in the console
 })()
 </script>

@@ -1,4 +1,4 @@
-"""Build artifact/snapsolve.html: inlines KaTeX (CSS with fonts as data URIs, plus JS).
+"""Build artifact/hunter-scan.html: inlines KaTeX (CSS with fonts as data URIs, plus JS).
 
 Run from the repo root after `npm install --prefix frontend`:  python artifact/build.py
 The viewer's CSP only allows stylesheets from Google Fonts, so KaTeX's CSS and fonts must be inlined.
@@ -28,7 +28,7 @@ css = re.sub(
 assert "fonts/" not in css, "unreplaced font url in KaTeX css"
 
 js = (dist / "katex.min.js").read_text().replace("</script>", "<\\/script>")
-src = (root / "snapsolve.src.html").read_text()
+src = (root / "hunter-scan.src.html").read_text()
 out = src.replace("/*KATEX_CSS*/", css).replace("/*KATEX_JS*/", js)
-(root / "snapsolve.html").write_text(out)
-print(f"wrote {root / 'snapsolve.html'} ({len(out) / 1024:.0f} KB)")
+(root / "hunter-scan.html").write_text(out)
+print(f"wrote {root / 'hunter-scan.html'} ({len(out) / 1024:.0f} KB)")

@@ -10,7 +10,7 @@ async function deliver(blob, filename) {
   // phones: the share sheet has "Save Image", "Save to Files", AirDrop, Messages ...
   if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: 'SnapSolve solution' })
+      await navigator.share({ files: [file], title: 'Hunter Scan solution' })
       return 'shared'
     } catch (e) {
       if (e?.name === 'AbortError') return 'cancelled'
@@ -25,13 +25,13 @@ async function deliver(blob, filename) {
   return 'downloaded'
 }
 
-export async function saveImage(el, filename = 'snapsolve.png') {
+export async function saveImage(el, filename = 'hunter-scan.png') {
   const canvas = await captureSheet(el)
   const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'))
   return deliver(blob, filename)
 }
 
-export async function savePdf(el, filename = 'snapsolve.pdf') {
+export async function savePdf(el, filename = 'hunter-scan.pdf') {
   const canvas = await captureSheet(el)
   const { jsPDF } = await import('jspdf')
   const pdf = new jsPDF({ unit: 'pt', format: 'a4' })

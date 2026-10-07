@@ -22,7 +22,7 @@ const SolutionSheet = forwardRef(function SolutionSheet({ problem, result }, ref
   return (
     <div className="sheet-wrap" aria-hidden="true">
       <div className="sheet" ref={ref}>
-        <div className="sheet-brand">SnapSolve</div>
+        <div className="sheet-brand">Hunter Scan</div>
         <div className="sheet-label">Problem</div>
         <Math latex={problem} display />
         <div className="sheet-label">Answer</div>
@@ -40,7 +40,7 @@ const SolutionSheet = forwardRef(function SolutionSheet({ problem, result }, ref
             {result.check.conclusion && <p className="sheet-text">{result.check.conclusion}</p>}
           </>
         )}
-        <p className="sheet-foot">Made with SnapSolve · {new Date().toLocaleDateString()}</p>
+        <p className="sheet-foot">Made with Hunter Scan · {new Date().toLocaleDateString()}</p>
       </div>
     </div>
   )

@@ -10,6 +10,7 @@ import BuyFlow from './components/BuyFlow.jsx'
 import Problems from './components/Problems.jsx'
 import Practice from './components/Practice.jsx'
 import Pumpkins from './components/Pumpkins.jsx'
+import Elements from './components/Elements.jsx'
 
 const THEMES = [
   { id: 'auto', name: 'Match device', colors: ['#f4f5fb', '#4f46e5', '#0e1020'] },
@@ -19,8 +20,9 @@ const THEMES = [
   { id: 'ocean', name: 'Ocean', colors: ['#eaf6f8', '#087f92', '#07313c'] },
   { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
   { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
+  { id: 'science', name: 'Science', colors: ['#06121c', '#22e6d4', '#e6fbff'] },
 ]
-const SKINS = ['halloween', 'ocean', 'forest', 'sunset']
+const SKINS = ['halloween', 'ocean', 'forest', 'sunset', 'science']
 
 const uid = (p = 'h') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
 
@@ -251,9 +253,10 @@ export default function App() {
   return (
     <div className="app">
       {theme === 'halloween' && <Pumpkins />}
+      {theme === 'science' && <Elements />}
       <header className="top">
         <button className="logo" onClick={() => { setTab('solve'); startNew() }}>
-          <span className="logo-mark">∑</span> SnapSolve
+          <span className="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span> Hunter Scan
         </button>
         <div className="top-actions">
           <label className="switch" title="Make explanations simpler">

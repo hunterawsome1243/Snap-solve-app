@@ -1,5 +1,5 @@
 {
-  "name": "snapsolve",
+  "name": "hunter-scan",
   "private": true,
   "scripts": {
     "setup": "pip install -r backend/requirements.txt && npm install --prefix frontend && npm install",

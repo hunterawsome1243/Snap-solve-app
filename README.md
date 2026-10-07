@@ -1,4 +1,4 @@
-# SnapSolve
+# Hunter Scan
 
 Snap a photo of a handwritten math problem → crop → Claude reads it as LaTeX → you can fix it →
 step-by-step solution with a "Check" section. Every answer is re-checked with **SymPy**; if the two
@@ -95,7 +95,8 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
 - **Practice** with Easy / Medium / Hard and a topic, a hint on demand, and a streak. Answers are graded by
   SymPy, not by the model; a problem is only used if its stored answer agrees with SymPy.
 - "Explain like I'm 12" toggle, history on the device, and themes (Light, Dark, Halloween with falling
-  pumpkins, Ocean, Forest, Sunset). Pumpkins respect "reduce motion".
+  pumpkins, Ocean, Forest, Sunset, and **Science**: a lab-blue blueprint grid, a spinning atom logo, a laser that
+  sweeps across the camera button, and periodic-table tiles drifting up the screen). All motion respects "reduce motion".
 
 **Snap Buy** (see above)
 - **Barcode scanning** (EAN/UPC from a photo; built-in detector where available, ZXing elsewhere).

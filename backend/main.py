@@ -1,4 +1,4 @@
-"""SnapSolve backend: holds the Anthropic API key, talks to Claude, verifies with SymPy."""
+"""Hunter Scan backend: holds the Anthropic API key, talks to Claude, verifies with SymPy."""
 import base64
 import json
 import os
@@ -23,7 +23,7 @@ MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5-5")
 ALLOWED_MEDIA = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
-app = FastAPI(title="SnapSolve")
+app = FastAPI(title="Hunter Scan")
 _client: anthropic.Anthropic | None = None
 
 

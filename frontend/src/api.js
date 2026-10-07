@@ -7,7 +7,7 @@ async function post(path, body) {
       body: JSON.stringify(body),
     })
   } catch {
-    throw new Error("Can't reach the SnapSolve server. Is the backend running?")
+    throw new Error("Can't reach the Hunter Scan server. Is the backend running?")
   }
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`)
