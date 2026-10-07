@@ -1,0 +1,16 @@
+{
+  "name": "snapsolve",
+  "private": true,
+  "scripts": {
+    "setup": "pip install -r backend/requirements.txt && npm install --prefix frontend && npm install",
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm:api\" \"npm:web\"",
+    "api": "cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
+    "web": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "start": "npm run build && cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000",
+    "test": "cd backend && python -m pytest -q"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
