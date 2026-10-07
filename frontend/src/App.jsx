@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { loadPhoto } from './image.js'
+import { cleanUp, loadPhotoCanvas } from './image.js'
 import * as api from './api.js'
 import * as store from './storage.js'
 import Cropper from './components/Cropper.jsx'
+import LiveCamera from './components/LiveCamera.jsx'
 import Editor from './components/Editor.jsx'
 import Result from './components/Result.jsx'
 import History from './components/History.jsx'
@@ -34,6 +35,9 @@ export default function App() {
   const [tab, setTab] = useState('solve') // solve | buy | history
   const [screen, setScreen] = useState('home') // home | crop | reading | unreadable | problems | formulating | edit | result | practice
   const [photo, setPhoto] = useState(null)
+  const [shots, setShots] = useState(null) // { clean, original, found } while choosing a crop
+  const [shotMode, setShotMode] = useState('clean')
+  const [hint, setHint] = useState('')
   const [latex, setLatex] = useState('')
   const [note, setNote] = useState('')
   const [uncertain, setUncertain] = useState([])
@@ -70,16 +74,46 @@ export default function App() {
   }
   const fail = (e) => setError(e.message || 'Something went wrong.')
 
+  // A captured or chosen photo: find the page, flatten it, even out the light, then let the user trim it.
+  function takeShot(canvas) {
+    let cleaned = null
+    try {
+      cleaned = cleanUp(canvas)
+    } catch {
+      cleaned = null // cleaning is a bonus; the original photo always works
+    }
+    const original = canvas.toDataURL('image/jpeg', 0.92)
+    const clean = cleaned ? cleaned.canvas.toDataURL('image/jpeg', 0.92) : original
+    setShots({ clean, original, found: !!cleaned?.found, cleaned: !!cleaned })
+    setShotMode(cleaned ? 'clean' : 'original')
+    setPhoto(cleaned ? clean : original)
+    setTab('solve')
+    go('crop')
+  }
+
   async function onFile(file) {
     if (!file) return
     if (!file.type.startsWith('image/')) return fail(new Error('Please choose an image file.'))
     try {
-      setPhoto(await loadPhoto(file))
-      setTab('solve')
-      go('crop')
+      takeShot(await loadPhotoCanvas(file))
     } catch {
       fail(new Error("Couldn't open that image. Try a JPG or PNG."))
     }
+  }
+
+  // Live viewfinder needs a secure context (https or localhost). Otherwise use the phone's own camera app.
+  const liveOk = () => window.isSecureContext && !!navigator.mediaDevices?.getUserMedia
+  function startScan() {
+    setHint('')
+    if (liveOk()) return go('scan')
+    setHint('Live scanning needs a secure connection (https). Using your camera app instead.')
+    camRef.current.click()
+  }
+  function liveUnavailable(err) {
+    // err is null when the user chose the camera app, otherwise the camera could not start (permission, no camera)
+    if (err) setHint(err.name === 'NotAllowedError' ? 'Camera access was blocked. Using your camera app instead.' : 'Couldn’t start the camera. Using your camera app instead.')
+    go('home')
+    camRef.current.click()
   }
 
   async function startWord(text, idx = activeIdx) {
@@ -208,6 +242,7 @@ export default function App() {
   }
 
   const startNew = () => {
+    setShots(null)
     setLatex('')
     setResult(null)
     setWordCtx(null)
@@ -313,10 +348,11 @@ export default function App() {
           >
             <h1>Snap a problem.<br />Get the work.</h1>
             <p className="muted">Take a photo of any equation on paper and see it solved step by step.</p>
-            <button className="snap-btn" onClick={() => camRef.current.click()}>
+            <button className="snap-btn" onClick={startScan}>
               <span className="snap-icon">📷</span>
               Snap Equation
             </button>
+            {hint && <div className="banner info" role="status">{hint}</div>}
             <div className="row center-row wrap">
               <button className="btn secondary" onClick={() => fileRef.current.click()}>Upload image</button>
               <button className="btn ghost" onClick={() => { setLatex(''); setNote(''); setUncertain([]); setWordCtx(null); setActiveIdx(-1); go('edit') }}>Type it</button>
@@ -326,8 +362,19 @@ export default function App() {
           </div>
         )}
 
+        {tab === 'solve' && screen === 'scan' && (
+          <LiveCamera onCapture={takeShot} onCancel={() => go('home')} onUnavailable={liveUnavailable} />
+        )}
+
         {tab === 'solve' && screen === 'crop' && photo && (
-          <Cropper src={photo} onDone={onCropped} onCancel={() => go('home')} />
+          <Cropper
+            src={shots ? (shotMode === 'clean' ? shots.clean : shots.original) : photo}
+            onDone={onCropped}
+            onCancel={() => go('home')}
+            modes={shots?.cleaned ? [{ id: 'clean', label: shots.found ? 'Flattened and cleaned' : 'Lighting cleaned' }, { id: 'original', label: 'Original' }] : null}
+            mode={shotMode}
+            onMode={setShotMode}
+          />
         )}
 
         {tab === 'solve' && (screen === 'reading' || screen === 'formulating') && (
@@ -343,7 +390,7 @@ export default function App() {
             <div className="big-emoji">🔍</div>
             <h2>I couldn't read that</h2>
             <p>{note}</p>
-            <button className="btn primary" onClick={() => camRef.current.click()}>📷 Retake photo</button>
+            <button className="btn primary" onClick={startScan}>📷 Retake photo</button>
             <button className="btn ghost" onClick={() => { setLatex(''); go('edit') }}>Type it in instead</button>
           </div>
         )}

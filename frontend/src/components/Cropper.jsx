@@ -5,7 +5,7 @@ const MIN = 0.06
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 
 // Drag the box to move it, drag a corner to resize. Works with touch and mouse.
-export default function Cropper({ src, onDone, onCancel }) {
+export default function Cropper({ src, onDone, onCancel, modes, mode, onMode }) {
   const imgRef = useRef(null)
   const wrapRef = useRef(null)
   const drag = useRef(null)
@@ -47,6 +47,13 @@ export default function Cropper({ src, onDone, onCancel }) {
     <div className="card stack">
       <h2>Crop to the equation</h2>
       <p className="muted">Drag the box so only the problem is inside it.</p>
+      {modes && (
+        <div className="chips" role="group" aria-label="Photo version">
+          {modes.map((m) => (
+            <button key={m.id} className={`chip ${mode === m.id ? 'on' : ''}`} aria-pressed={mode === m.id} onClick={() => onMode(m.id)}>{m.label}</button>
+          ))}
+        </div>
+      )}
       <div className="crop-stage">
         <div className="crop-wrap" ref={wrapRef}>
           <img ref={imgRef} src={src} alt="Your photo" draggable={false} />

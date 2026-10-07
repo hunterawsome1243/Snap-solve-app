@@ -7,7 +7,7 @@ const COLORS = ['var(--brand)', 'var(--ok)', 'var(--warn)']
 
 function compile(expr) {
   const src = String(expr ?? '').trim()
-  if (!src || !SAFE.test(src)) throw new Error('bad expression')
+  if (!src || !SAFE.test(src) || src.includes('__')) throw new Error('bad expression')
   const node = parse(src).compile()
   return (x) => {
     try {

@@ -341,3 +341,18 @@ select.text-input { appearance: auto; }
 .element b { font-size: .95rem; line-height: 1; }
 @keyframes element-rise { 0% { transform: translateY(0) rotate(-6deg); opacity: 0; } 10% { opacity: .4; } 85% { opacity: .4; } 100% { transform: translateY(calc(-100vh - 120px)) rotate(8deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .elements { display: none; } :root[data-skin='science'] .logo-mark::after, :root[data-skin='science'] .snap-btn::after { animation: none; } :root[data-skin='science'] .snap-btn::after { display: none; } }
+
+/* live camera */
+.viewfinder { position: relative; width: min(100%, calc(66vh * var(--ar, 1.33))); aspect-ratio: var(--ar, 1.33); margin: 0 auto; background: #000; border-radius: 14px; overflow: hidden; }
+.viewfinder video, .viewfinder svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.viewfinder video { object-fit: cover; }
+.vf-quad { fill: color-mix(in srgb, var(--brand) 22%, transparent); stroke: var(--brand); stroke-width: 3; stroke-linejoin: round; }
+.vf-hint { position: absolute; left: 10px; right: 10px; bottom: 12px; text-align: center; background: rgba(0, 0, 0, .62); color: #fff; padding: 7px 12px; border-radius: 12px; font-size: .9rem; font-weight: 600; }
+.vf-hint.ok { background: color-mix(in srgb, var(--brand) 70%, #000); }
+.vf-bar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--brand); transition: width .14s linear; }
+.vf-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.shutter { width: 72px; height: 72px; border-radius: 50%; border: 4px solid var(--brand); background: var(--card); padding: 5px; flex: none; }
+.shutter span { display: block; width: 100%; height: 100%; border-radius: 50%; background: var(--brand); }
+.shutter:active span { transform: scale(.88); }
+.shutter:disabled { opacity: .5; }
+.scan-mode { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

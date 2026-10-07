@@ -4,13 +4,20 @@
   "scripts": {
     "setup": "pip install -r backend/requirements.txt && npm install --prefix frontend && npm install",
     "dev": "concurrently -k -n api,web -c blue,magenta \"npm:api\" \"npm:web\"",
+    "dev:https": "concurrently -k -n api,web -c blue,magenta \"npm:api\" \"npm:web:https\"",
+    "web:https": "cross-env HTTPS=1 npm run dev --prefix frontend",
     "api": "cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
     "web": "npm run dev --prefix frontend",
     "build": "npm run build --prefix frontend",
     "start": "npm run build && cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000",
-    "test": "cd backend && python -m pytest -q"
+    "test": "npm run test:backend && npm run test:unit",
+    "test:backend": "cd backend && python -m pytest -q",
+    "test:unit": "npm test --prefix frontend",
+    "test:e2e": "npm run test:e2e --prefix frontend",
+    "test:all": "npm test && npm run test:e2e"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "concurrently": "^9.0.0",
+    "cross-env": "^10.1.0"
   }
 }

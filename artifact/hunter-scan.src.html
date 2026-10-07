@@ -335,7 +335,7 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
-    history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
+    shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
     ctl: null,
   }
 
@@ -496,6 +496,8 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
   const blobOf = (canvas) => new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.88))
 
   // ---------- images ----------
+  /*SCANNER_JS*/
+
   async function loadPhoto(file, max = 2000) {
     let src, w, h2
     try {
@@ -508,8 +510,10 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
     const c = document.createElement('canvas')
     c.width = Math.round(w * k); c.height = Math.round(h2 * k)
     c.getContext('2d').drawImage(src, 0, 0, c.width, c.height)
-    return c.toDataURL('image/jpeg', 0.92)
+    return c
   }
+  const pixelsOf = (cv) => cv.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, cv.width, cv.height)
+  function canvasOf(img) { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').putImageData(new ImageData(img.data, img.width, img.height), 0, 0); return c }
   function cropToCanvas(img, c, max = 1600) {
     const sx = c.x * img.naturalWidth, sy = c.y * img.naturalHeight, sw = c.w * img.naturalWidth, sh = c.h * img.naturalHeight
     const k = Math.min(1, max / Math.max(sw, sh))
@@ -895,8 +899,20 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
     if (!file) return
     S.mode = mode
     if (!file.type.startsWith('image/')) return setError('Please choose an image file.')
-    try { S.photo = await loadPhoto(file); S.tab = mode === 'buy' ? 'buy' : 'solve'; go('crop') }
-    catch { setError('Couldn’t open that image. Try a JPG or PNG.') }
+    try {
+      const canvas = await loadPhoto(file)
+      const original = canvas.toDataURL('image/jpeg', 0.92)
+      S.shots = null; S.photo = original
+      if (mode === 'solve') {
+        // find the page, flatten it, even out the light; the original is one tap away
+        try {
+          const r = scanDocument(pixelsOf(canvas))
+          const clean = canvasOf(r.img).toDataURL('image/jpeg', 0.92)
+          S.shots = { clean, original, found: r.found }; S.shotMode = 'clean'
+        } catch { S.shots = null }
+      }
+      S.tab = mode === 'buy' ? 'buy' : 'solve'; go('crop')
+    } catch { setError('Couldn’t open that image. Try a JPG or PNG.') }
   }
 
   async function readCropped(canvas) {
@@ -1253,7 +1269,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
 
   function vCrop() {
     const crop = { x: 0.05, y: 0.2, w: 0.9, h: 0.6 }
-    const img = h('img', { src: S.photo, alt: 'Your photo', draggable: 'false' })
+    const img = h('img', { src: S.shots ? (S.shotMode === 'clean' ? S.shots.clean : S.shots.original) : S.photo, alt: 'Your photo', draggable: 'false' })
     const box = h('div', { class: 'cbox' }, ['tl', 'tr', 'bl', 'br'].map((k) => h('span', { class: 'hd ' + k, 'data-m': k })))
     const wrap = h('div', { class: 'cwrap' }, img, box)
     const paint = () => Object.assign(box.style, { left: crop.x * 100 + '%', top: crop.y * 100 + '%', width: crop.w * 100 + '%', height: crop.h * 100 + '%' })
@@ -1290,6 +1306,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     return [h('div', { class: 'card stack' },
       h('h2', {}, 'Crop to the equation'),
       h('p', { class: 'muted' }, 'Drag the box so only the problem is inside it.'),
+      S.shots && h('div', { class: 'chips', role: 'group', 'aria-label': 'Photo version' }, [['clean', S.shots.found ? 'Flattened and cleaned' : 'Lighting cleaned'], ['original', 'Original']].map(([id, label]) => h('button', { type: 'button', class: 'chip' + (S.shotMode === id ? ' on' : ''), 'aria-pressed': String(S.shotMode === id), onclick: () => { S.shotMode = id; render() } }, label))),
       h('div', { class: 'stage' }, wrap),
       h('div', { class: 'row' },
         h('button', { class: 'btn ghost', type: 'button', onclick: () => go(S.mode === 'buy' ? 'b-home' : 'home') }, 'Retake'),

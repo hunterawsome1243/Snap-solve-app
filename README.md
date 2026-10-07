@@ -46,10 +46,43 @@ have "client isolation" on (common on guest networks).
 
 Optional single-server mode: `npm start` builds the frontend and serves everything from port 8000.
 
-## Tests
+## Live scanning (phone)
 
-`npm test` — checks the SymPy verifier (arithmetic, quadratics incl. missing roots, systems, trig,
-derivatives, integrals) and the API behaviour with a stubbed AI.
+Tap **Snap Equation** and a viewfinder opens. It outlines the page it finds, flattens the perspective, evens out
+shadows, and takes the photo by itself once the page is steady and in focus (or tap the shutter). A photo you
+upload or take with your camera app gets the same cleanup, and the crop screen lets you flip between
+**Flattened and cleaned** and **Original**. It works best with a lighter page on a darker surface; if no page is
+found it keeps the whole frame and only fixes the lighting.
+
+Phones only allow the live camera on a secure connection. Over plain `http://<your-ip>:5173` the app automatically
+uses your camera app instead (still cleaned up). For the full viewfinder on your phone, run the HTTPS version:
+
+```bash
+npm run dev:https
+```
+
+and open `https://<your-ip>:5173`. The certificate is self-signed, so the phone shows a warning once (iPhone: Show
+Details, then visit this website). `localhost` on your computer is already secure and needs nothing.
+
+The page-finding code (`frontend/src/lib/scanner.js`) is plain JavaScript with no OpenCV, shared by the React app
+and the phone artifact. The artifact can't open a live camera (artifacts have no camera access), so it cleans up
+photos you take or upload.
+
+## Tests and CI
+
+```bash
+npm test            # backend tests (SymPy checks, API) + frontend unit tests (scanner, tokens, graphs, ...)
+npm run test:e2e    # browser tests (Playwright) for the React app and the phone artifact
+npm run test:all    # everything
+```
+
+The browser tests use a fake backend, a fake Claude for the artifact, and a fake camera that plays a video of a
+skewed sheet of paper, so they need no API key and no network. The first run needs
+`npx playwright install chromium` (inside `frontend/`).
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request: backend tests, frontend unit tests
+and build, the browser tests, and a check that `artifact/hunter-scan.html` is up to date with its source (rebuild it
+with `python artifact/build.py` after editing `artifact/hunter-scan.src.html` or `frontend/src/lib/scanner.js`).
 
 ## How verification works
 
@@ -81,6 +114,8 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
 ## Features
 
 **Solve**
+- **Live scanning**: a viewfinder outlines the page, flattens it, removes shadows, and takes the photo when it is
+  steady and sharp (see above). Uploaded photos get the same cleanup, with the original one tap away.
 - Photograph, crop, and review the recognized equation. **Tap any symbol to fix it**: symbols the model was unsure
   about are marked ("Is S really 5 or s?"), and every symbol offers look-alike suggestions (5/S, 1/l, x/×, 0/O, ...).
 - **Several problems in one photo** are listed separately; solve one at a time or all at once.

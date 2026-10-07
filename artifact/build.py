@@ -29,6 +29,10 @@ assert "fonts/" not in css, "unreplaced font url in KaTeX css"
 
 js = (dist / "katex.min.js").read_text().replace("</script>", "<\\/script>")
 src = (root / "hunter-scan.src.html").read_text()
+# the scanner (page detection, perspective flattening, shadow removal) is one tested module shared with the React app
+scanner = (root.parent / "frontend" / "src" / "lib" / "scanner.js").read_text()
+scanner = re.sub(r"^export ", "", scanner, flags=re.M)
+src = src.replace("/*SCANNER_JS*/", scanner)
 out = src.replace("/*KATEX_CSS*/", css).replace("/*KATEX_JS*/", js)
 (root / "hunter-scan.html").write_text(out)
 print(f"wrote {root / 'hunter-scan.html'} ({len(out) / 1024:.0f} KB)")
