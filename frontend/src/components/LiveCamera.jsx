@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { detectDocument, normalizeCorners, sharpness } from '../lib/scanner.js'
 import { pixelsOf } from '../image.js'
+import Icon from './Icon.jsx'
+import { buzz } from '../lib/haptics.js'
 
 const TICK_MS = 140
 const STABLE_TICKS = 8 // about a second of holding still
@@ -31,6 +33,7 @@ export default function LiveCamera({ onCapture, onCancel, onUnavailable }) {
     c.height = Math.round(v.videoHeight * k)
     c.getContext('2d').drawImage(v, 0, 0, c.width, c.height)
     stop()
+    buzz(18)
     onCapture(c)
   }
   shot.current = capture
@@ -129,10 +132,10 @@ export default function LiveCamera({ onCapture, onCancel, onUnavailable }) {
         {progress > 0 && <div className="vf-bar" style={{ width: `${progress * 100}%` }} />}
       </div>
       <div className="vf-controls">
-        <button className="btn ghost" onClick={() => { stop(); onCancel() }}>Cancel</button>
+        <button className="icon-btn lg" onClick={() => { stop(); onCancel() }} aria-label="Cancel"><Icon name="close" /></button>
         <button className="shutter" onClick={capture} disabled={!ready} aria-label="Take photo" data-testid="shutter"><span /></button>
         {torch.available ? (
-          <button className="btn ghost" onClick={toggleTorch} aria-pressed={torch.on}>🔦 {torch.on ? 'On' : 'Light'}</button>
+          <button className="icon-btn lg" onClick={toggleTorch} aria-pressed={torch.on} aria-label={torch.on ? 'Turn the light off' : 'Turn the light on'}><Icon name="torch" /></button>
         ) : <span />}
       </div>
       <label className="check">

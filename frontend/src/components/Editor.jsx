@@ -50,7 +50,7 @@ export default function Editor({ latex, onChange, onSolve, onBack, note, busy, t
         autoCorrect="off"
         onChange={(e) => onChange(e.target.value)}
       />
-      <div className="chips">
+      <div className="chips snippets">
         {SNIPPETS.map((s) => (
           <button key={s[0]} className="chip" type="button" onClick={() => insert(s)}>{s[0]}</button>
         ))}

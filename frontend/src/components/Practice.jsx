@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import * as api from '../api.js'
 import * as store from '../storage.js'
 import MathView from './Math.jsx'
+import Icon from './Icon.jsx'
+import Confetti from './Confetti.jsx'
+import { buzz } from '../lib/haptics.js'
 
 const LEVELS = [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']]
 const TOPICS = [
@@ -29,6 +32,7 @@ export default function Practice({ seed, onSteps, onExit }) {
   const [wrong, setWrong] = useState(false)
   const [error, setError] = useState('')
   const seedRef = useRef(seed)
+  const [party, setParty] = useState(0)
 
   const save = (next) => { setStats(next); store.setPref('practice.stats', next) }
 
@@ -54,6 +58,9 @@ export default function Practice({ seed, onSteps, onExit }) {
       setFb(r)
       if (r.correct) {
         setDone(true)
+        setParty((n) => n + 1)
+        buzz([20, 40, 20])
+        setTimeout(() => setParty(0), 1800)
         // no hint = the streak grows; with a hint the streak is kept but doesn't grow
         const streak = hint ? stats.streak : stats.streak + 1
         save({ streak, best: Math.max(stats.best, streak), solved: stats.solved + 1 })
@@ -84,7 +91,7 @@ export default function Practice({ seed, onSteps, onExit }) {
       <div className="card stack">
         <div className="row spread">
           <h2>Practice</h2>
-          <div className="streak" aria-label={`Streak ${stats.streak}, best ${stats.best}`}>🔥 {stats.streak} <span className="muted tiny">best {stats.best} · {stats.solved} solved</span></div>
+          <div className="streak" aria-label={`Streak ${stats.streak}, best ${stats.best}`}><Icon name="flame" className="flame" /><b>{stats.streak}</b> <span className="muted tiny">best {stats.best} · {stats.solved} solved</span></div>
         </div>
         <div className="chips" role="group" aria-label="Difficulty">
           {LEVELS.map(([id, name]) => (
@@ -127,7 +134,7 @@ export default function Practice({ seed, onSteps, onExit }) {
               {fb?.revealed ? (
                 <div className="banner info"><strong>The answer</strong></div>
               ) : (
-                <div className="banner ok">✓ Correct!{hint ? ' (with a hint, so the streak stays put)' : stats.streak > 1 ? ` ${stats.streak} in a row.` : ''}</div>
+                <div className="banner ok"><Icon name="check" className="b-ico" />Correct!{hint ? ' (with a hint, so the streak stays put)' : stats.streak > 1 ? ` ${stats.streak} in a row.` : ''}</div>
               )}
               {fb?.correct_latex && <div className="answer"><MathView latex={fb.correct_latex} display /></div>}
               <div className="row wrap">
@@ -138,6 +145,7 @@ export default function Practice({ seed, onSteps, onExit }) {
           )}
         </div>
       )}
+      {party > 0 && <Confetti key={party} />}
       <button className="link" onClick={onExit}>Back</button>
     </div>
   )

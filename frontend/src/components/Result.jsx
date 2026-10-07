@@ -1,6 +1,7 @@
 import { lazy, Suspense, useRef, useState } from 'react'
 import Math from './Math.jsx'
 import SolutionSheet from './SolutionSheet.jsx'
+import Icon from './Icon.jsx'
 import { saveImage, savePdf } from '../lib/exportSolution.js'
 
 const Graph = lazy(() => import('./Graph.jsx'))
@@ -9,12 +10,13 @@ function Verification({ v }) {
   if (v.status === 'mismatch') {
     return (
       <div className="banner warn" role="alert">
+        <Icon name="alert" className="b-ico" />
         <strong>Double-check this one.</strong>
         <span>The AI's answer and an independent math check disagree. {v.detail}.</span>
       </div>
     )
   }
-  if (v.status === 'match') return <div className="banner ok">✓ Verified independently with SymPy</div>
+  if (v.status === 'match') return <div className="banner ok"><Icon name="check" className="b-ico" />Verified independently with SymPy</div>
   return <div className="banner info">Couldn't be verified automatically. {v.detail}</div>
 }
 
@@ -27,8 +29,8 @@ function StepList({ steps }) {
           <div className="step-body">
             <div className="step-math"><Math latex={s.latex} display /></div>
             {s.explain && <p className="explain">{s.explain}</p>}
-            {s.check === 'ok' && <span className="chk ok" title="A calculator checked this line">✓ checked</span>}
-            {s.check === 'bad' && <span className="chk bad">⚠ A calculator disagrees with this line</span>}
+            {s.check === 'ok' && <span className="chk ok" title="A calculator checked this line"><Icon name="check" />checked</span>}
+            {s.check === 'bad' && <span className="chk bad"><Icon name="alert" />A calculator disagrees with this line</span>}
           </div>
         </li>
       ))}
@@ -58,7 +60,7 @@ export default function Result({ problem, result, busy, onPractice, onNew, onEdi
 
   return (
     <div className="stack">
-      {onBackToProblems && <button className="link left" onClick={onBackToProblems}>← All problems</button>}
+      {onBackToProblems && <button className="link left" onClick={onBackToProblems}><Icon name="back" />All problems</button>}
       <div className="card answer-card">
         <div className="label">Problem</div>
         <div className="problem-line"><Math latex={problem} display /></div>
@@ -98,17 +100,17 @@ export default function Result({ problem, result, busy, onPractice, onNew, onEdi
       <div className="card stack">
         <h2>Save or share</h2>
         <div className="row wrap">
-          <button className="btn secondary grow" onClick={() => exportAs('pdf')} disabled={!!exporting}>{exporting === 'pdf' ? 'Making PDF…' : '📄 Save as PDF'}</button>
-          <button className="btn secondary grow" onClick={() => exportAs('png')} disabled={!!exporting}>{exporting === 'png' ? 'Making image…' : '🖼️ Save as image'}</button>
+          <button className="btn secondary grow" onClick={() => exportAs('pdf')} disabled={!!exporting}><Icon name="pdf" />{exporting === 'pdf' ? 'Making PDF…' : 'Save as PDF'}</button>
+          <button className="btn secondary grow" onClick={() => exportAs('png')} disabled={!!exporting}><Icon name="image" />{exporting === 'png' ? 'Making image…' : 'Save as image'}</button>
         </div>
         {exportMsg && <p className="muted tiny" role="status">{exportMsg}</p>}
       </div>
 
       <div className="row wrap">
-        <button className="btn secondary grow" onClick={onPractice} disabled={busy}>✏️ Practice a similar one</button>
+        <button className="btn secondary grow" onClick={onPractice} disabled={busy}><Icon name="target" />Practice similar</button>
         <button className="btn ghost" onClick={onEdit}>Edit problem</button>
       </div>
-      <button className="btn primary" onClick={onNew}>📷 Snap another</button>
+      <button className="btn cta" onClick={onNew}><Icon name="camera" />Snap another</button>
 
       <SolutionSheet ref={sheet} problem={problem} result={result} />
     </div>

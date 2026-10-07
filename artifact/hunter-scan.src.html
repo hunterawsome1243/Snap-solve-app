@@ -1,28 +1,32 @@
 <title>Hunter Scan</title>
 <style>
 /* Layout: one narrow column on graph paper; a big viewfinder button is the home screen, results read like worked homework. */
+/* Hunter green for structure, blaze orange for the one action that matters. */
 :root {
-  --bg: #f2f5f7; --surface: #ffffff; --ink: #12203a; --muted: #5d6b82; --line: #dde4ec;
-  --accent: #1456d6; --accent-ink: #ffffff; --soft: #e8eff9; --grid: rgba(20, 86, 214, .06);
-  --hi: #ffe066; --ok-bg: #e3f6ea; --ok: #136a38; --warn-bg: #fff0dc; --warn: #8f4300; --warn-line: #f0b062;
-  --info-bg: #e8eefc; --info: #2a3f8f; --shadow: 0 1px 2px rgba(18, 32, 58, .06), 0 10px 28px rgba(18, 32, 58, .07);
-  --display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
-  --body: 'Figtree', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --bg: #f3f6f1; --surface: #ffffff; --ink: #15211a; --muted: #5d6c62; --line: #e0e8df;
+  --accent: #2c6e4d; --accent-ink: #ffffff; --soft: #e6f0e9; --grid: rgba(44, 110, 77, .07);
+  --cta: #f26a1b; --cta-2: #ff8a3d; --cta-ink: #ffffff;
+  --hi: rgba(242, 106, 27, .34); --ok-bg: #e1f4e8; --ok: #17703f; --warn-bg: #fff3d9; --warn: #8a5a00; --warn-line: #efc15b;
+  --info-bg: #e5f0ef; --info: #1f5a56; --shadow: 0 1px 2px rgba(21, 33, 26, .05), 0 10px 28px rgba(21, 33, 26, .07);
+  --display: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0c1322; --surface: #141d31; --ink: #e8eef8; --muted: #93a1ba; --line: #26324b;
-    --accent: #6ea2ff; --accent-ink: #08122a; --soft: #1b2742; --grid: rgba(110, 162, 255, .07);
-    --hi: #8a6d00; --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #3a2610; --warn: #ffc27a; --warn-line: #8a5a1c;
-    --info-bg: #1b2547; --info: #aab8ff; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
+    --bg: #0b130f; --surface: #131f18; --ink: #e8f1ea; --muted: #93a89a; --line: #223329;
+    --accent: #5fd39b; --accent-ink: #04200f; --soft: #1a2c21; --grid: rgba(95, 211, 155, .06);
+    --cta: #ff8a3d; --cta-2: #ffa35e; --cta-ink: #2a1100;
+    --hi: rgba(255, 138, 61, .4); --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #35280b; --warn: #ffd27a; --warn-line: #8a6a1c;
+    --info-bg: #173431; --info: #9fe0d6; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0c1322; --surface: #141d31; --ink: #e8eef8; --muted: #93a1ba; --line: #26324b;
-  --accent: #6ea2ff; --accent-ink: #08122a; --soft: #1b2742; --grid: rgba(110, 162, 255, .07);
-  --hi: #8a6d00; --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #3a2610; --warn: #ffc27a; --warn-line: #8a5a1c;
-  --info-bg: #1b2547; --info: #aab8ff; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
+  --bg: #0b130f; --surface: #131f18; --ink: #e8f1ea; --muted: #93a89a; --line: #223329;
+  --accent: #5fd39b; --accent-ink: #04200f; --soft: #1a2c21; --grid: rgba(95, 211, 155, .06);
+  --cta: #ff8a3d; --cta-2: #ffa35e; --cta-ink: #2a1100;
+  --hi: rgba(255, 138, 61, .4); --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #35280b; --warn: #ffd27a; --warn-line: #8a6a1c;
+  --info-bg: #173431; --info: #9fe0d6; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
 }
 
 /* Optional skins, chosen in the picker. They set every token and override the viewer's light/dark. */
@@ -51,6 +55,7 @@
   --ok-bg: #e3f6ea; --ok: #136a38; --warn-bg: #fff0dc; --warn: #8f4300; --warn-line: #f0b062;
   --info-bg: #fde7ef; --info: #8a2a52; --shadow: 0 1px 2px rgba(58, 22, 32, .06), 0 10px 28px rgba(58, 22, 32, .08); color-scheme: light;
 }
+:root[data-skin] { --cta: var(--accent); --cta-2: var(--accent); --cta-ink: var(--accent-ink); }
 :root[data-skin="halloween"] h1, :root[data-skin="halloween"] h2 { letter-spacing: .02em; font-weight: 400; }
 :root[data-skin="halloween"] h1 { font-size: 2.5rem; }
 :root[data-skin="halloween"] .logo { font-weight: 400; font-size: 1.5rem; letter-spacing: .03em; }
@@ -295,8 +300,110 @@ nav.tabs button { flex: 1; background: none; border: 0; padding: 10px 0 12px; di
 nav.tabs svg { width: 22px; height: 22px; }
 nav.tabs button[aria-current="true"] { color: var(--accent); }
 .katex { font-size: 1.1em; }
+
+/* ===== polish pass ===== */
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+h1 { font-size: clamp(1.95rem, 8vw, 2.4rem); line-height: 1.06; letter-spacing: -.035em; font-weight: 800; }
+h2 { font-weight: 750; letter-spacing: -.01em; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+input[type='checkbox'] { accent-color: var(--accent); }
+.ico-svg { width: 20px; height: 20px; flex: none; }
+.ico-svg.inline { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; }
+.logo-mark { border-radius: 11px; width: 34px; height: 34px; background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent)); box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .25); }
+.card { border-radius: 20px; }
+main > * { animation: rise .28s cubic-bezier(.2, .7, .2, 1) both; }
+main > *:nth-child(2) { animation-delay: .04s; } main > *:nth-child(3) { animation-delay: .08s; } main > *:nth-child(n+4) { animation-delay: .12s; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 12px 12px; border-radius: 14px; text-decoration: none; text-align: center; transition: transform .1s, filter .15s, background .15s; }
+.btn:active:not(:disabled) { transform: scale(.98); }
+.btn .ico-svg { width: 18px; height: 18px; }
+.btn.primary { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 6px 14px color-mix(in srgb, var(--accent) 26%, transparent); }
+.btn.cta { background: linear-gradient(135deg, var(--cta), var(--cta-2)); color: var(--cta-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 8px 18px color-mix(in srgb, var(--cta) 32%, transparent); }
+.btn.ghost { background: transparent; }
+.link { display: inline-flex; align-items: center; gap: 6px; text-underline-offset: 3px; padding: 8px; }
+.icon-btn { display: inline-grid; place-items: center; }
+.chip { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 16px; border-radius: 999px; transition: background .15s, color .15s, transform .1s; }
+.chip:active { transform: scale(.96); }
+.chips[role='tablist'] { background: var(--soft); border-radius: 999px; padding: 4px; gap: 4px; flex-wrap: nowrap; }
+.chips[role='tablist'] .chip { flex: 1; background: transparent; min-height: 40px; color: var(--muted); }
+.chips[role='tablist'] .chip.on { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.field:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.empty-ico { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--soft); color: var(--accent); margin: 4px auto; }
+.empty-ico .ico-svg { width: 32px; height: 32px; }
+
+/* home */
+.hero { position: relative; align-items: center; text-align: center; gap: 12px; padding-top: 20px; }
+.hero::before { content: ''; position: absolute; top: 120px; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--cta) 16%, transparent), transparent); pointer-events: none; z-index: -1; }
+.hero h1 { margin: 0; }
+.lead { max-width: 34ch; }
+.snap { position: relative; width: 196px; height: 196px; max-height: none; aspect-ratio: auto; border-radius: 50%; margin: 18px auto 8px; gap: 10px; font: 800 1.08rem var(--display); letter-spacing: -.01em;
+  color: var(--cta-ink); background: radial-gradient(circle at 30% 24%, var(--cta-2), var(--cta)); box-shadow: 0 20px 42px color-mix(in srgb, var(--cta) 38%, transparent), inset 0 2px 0 rgba(255, 255, 255, .35); }
+.snap i { display: none; }
+.snap::before { content: ''; position: absolute; inset: -12px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--cta) 50%, transparent); animation: ring 2.8s ease-out infinite; pointer-events: none; }
+@keyframes ring { 0% { transform: scale(.92); opacity: .9; } 100% { transform: scale(1.16); opacity: 0; } }
+.snap .ico-svg { width: 64px; height: 64px; stroke-width: 1.7; }
+.quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: 10px; }
+.tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 88px; padding: 12px 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); font-weight: 700; font-size: .86rem; color: var(--ink); text-decoration: none; cursor: pointer; transition: transform .1s; }
+.tile .ico-svg { width: 26px; height: 26px; color: var(--accent); }
+.tile:active { transform: scale(.97); }
+.tile:disabled { opacity: .5; }
+.perks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; list-style: none; margin: 8px 0 0; padding: 0; }
+.perks li { display: flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; color: var(--muted); background: var(--soft); padding: 6px 11px 6px 8px; border-radius: 999px; }
+.perks .ico-svg { width: 14px; height: 14px; color: var(--accent); stroke-width: 2.4; }
+.drop { border: 0; padding: 6px; }
+.drop.over { border: 2px dashed var(--accent); border-radius: 18px; }
+
+/* tabs */
+nav.tabs { background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(14px); padding: 4px 8px calc(env(safe-area-inset-bottom, 0px) + 4px); }
+nav.tabs button { padding: 6px 0 4px; gap: 3px; font: 700 .72rem var(--body); letter-spacing: .01em; }
+nav.tabs .ico { display: grid; place-items: center; width: 58px; height: 30px; border-radius: 15px; transition: background .2s; }
+nav.tabs button[aria-current="true"] .ico { background: var(--soft); }
+.switch { background: var(--soft); padding: 7px 11px 7px 9px; border-radius: 999px; }
+
+/* result: the work on a timeline */
+.answer { font-size: 2.05rem; color: var(--ink); }
+.steps { gap: 18px; }
+.steps li { position: relative; }
+.steps li:not(:last-child)::after { content: ''; position: absolute; left: 14px; top: 34px; bottom: -20px; width: 2px; border-radius: 1px; background: var(--line); }
+.steps li::before { width: 30px; height: 30px; border-radius: 50%; margin-top: 2px; z-index: 1; box-shadow: 0 0 0 4px var(--surface); }
+.step-bad::after { background: var(--warn-line) !important; }
+.chk { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px 2px 7px; border-radius: 999px; font-size: .72rem; margin-top: 6px; }
+.chk .ico-svg { width: 12px; height: 12px; stroke-width: 2.6; }
+.chk.ok { background: var(--ok-bg); } .chk.bad { background: var(--warn-bg); }
+.banner { position: relative; border-radius: 14px; padding: 11px 14px; }
+.banner:has(> .b-ico) { padding-left: 42px; }
+.banner > .b-ico { position: absolute; left: 14px; top: 12px; width: 18px; height: 18px; }
+
+/* loaders: the photo inside a scanning frame */
+.scan-card { padding: 22px 18px; }
+.scan-loader { position: relative; width: min(100%, 270px); aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--accent) 14%, var(--surface)); margin: 2px auto 4px; }
+.scan-loader img { width: 100%; height: 100%; object-fit: cover; opacity: .92; max-width: none; }
+.scan-frame { position: absolute; inset: 9px; pointer-events: none; --c: var(--cta);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 24px 3px no-repeat, linear-gradient(var(--c), var(--c)) top left / 3px 24px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 24px 3px no-repeat, linear-gradient(var(--c), var(--c)) top right / 3px 24px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 24px 3px no-repeat, linear-gradient(var(--c), var(--c)) bottom left / 3px 24px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 24px 3px no-repeat, linear-gradient(var(--c), var(--c)) bottom right / 3px 24px no-repeat; }
+.beam { position: absolute; left: 0; right: 0; top: 6%; height: 3px; background: linear-gradient(90deg, transparent, var(--cta), transparent); box-shadow: 0 0 16px 5px color-mix(in srgb, var(--cta) 50%, transparent); animation: beam 1.9s ease-in-out infinite; }
+@keyframes beam { 0%, 100% { top: 6%; } 50% { top: 92%; } }
+
+/* snap buy + practice */
+.rec { border-color: color-mix(in srgb, var(--cta) 55%, var(--line)); background: linear-gradient(180deg, color-mix(in srgb, var(--cta) 8%, var(--surface)), var(--surface) 60%); }
+.rec .tag { background: var(--cta); color: var(--cta-ink); }
+a.store { border-radius: 14px; }
+.streak { display: inline-flex; align-items: center; gap: 4px; }
+.streak .flame { width: 22px; height: 22px; color: var(--cta); fill: color-mix(in srgb, var(--cta) 35%, transparent); }
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 20; }
+.confetti i { position: absolute; top: 28%; width: 9px; height: 14px; border-radius: 2px; opacity: 0; animation: confetti 1.2s cubic-bezier(.15, .7, .3, 1) forwards; }
+@keyframes confetti { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(var(--dx), 70vh) rotate(var(--rot)); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  main > *, .snap::before, .beam, .confetti i { animation: none !important; }
+  .confetti { display: none; }
+  .btn, .chip, .tile { transition: none; }
+}
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&family=Creepster&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Creepster&family=Space+Grotesk:wght@500;700&display=swap">
 <style>/*KATEX_CSS*/</style>
 
 <div class="app">
@@ -313,9 +420,9 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
 <input class="sr" id="scan" type="file" accept="image/*" capture="environment" aria-label="Scan a barcode">
 <input class="sr" id="pick2" type="file" accept="image/*" aria-label="Choose a product image">
 <nav class="tabs"><div class="in">
-  <button type="button" id="tab-solve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Solve</button>
-  <button type="button" id="tab-buy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>Snap Buy</button>
-  <button type="button" id="tab-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
+  <button type="button" id="tab-solve"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>Solve</button>
+  <button type="button" id="tab-buy"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></span>Snap Buy</button>
+  <button type="button" id="tab-hist"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>History</button>
 </div></nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
@@ -380,6 +487,42 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
       h('div', { class: 'themes' }, SKINS.map((k) =>
         h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
           h('span', { class: 'dots' }, k.colors.map((c) => h('i', { style: 'background:' + c }))), h('b', {}, k.name)))))
+  }
+
+  // ---------- icons (one set, so every phone draws the same pictures) ----------
+  const ICON_PATHS = {
+    scan: '<path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>',
+    camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+    upload: '<path d="M12 16V4m0 0L8 8m4-4 4 4M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>',
+    text: '<path d="M8 4h8M12 4v16M8 20h8"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
+    bag: '<path d="M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0"/>',
+    history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 8v4l3 2"/>',
+    pdf: '<path d="M7 3h7l5 5v13H7zM14 3v5h5M10 14h6M10 17h4"/>',
+    image: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 16 5-5 4 4 3-3 4 4"/><circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none"/>',
+    barcode: '<path d="M4 5v14M7 5v14M11 5v14M14 5v14M18 5v14M20.5 5v14"/>',
+    flame: '<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.6-2.5 1.5-3.5C10 8 11.5 6 12 3z"/>',
+    check: '<path d="m5 12.5 4.5 4.5L19 7"/>',
+    alert: '<path d="M12 4 21 20H3zM12 10v4M12 17h.01"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+  }
+  function icon(name, cls = '') {
+    const t = document.createElement('span')
+    t.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico-svg ' + cls + '">' + (ICON_PATHS[name] || '') + '</svg>'
+    return t.firstChild
+  }
+  function burst() {
+    try { navigator.vibrate?.([20, 40, 20]) } catch {}
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden', 'true')
+    const colors = ['var(--cta)', 'var(--accent)', 'var(--cta-2)', '#ffd166']
+    for (let i = 0; i < 26; i++) {
+      const piece = document.createElement('i')
+      piece.style.cssText = 'left:' + (6 + ((i * 37) % 88)) + '%;background:' + colors[i % 4] + ';animation-delay:' + (i % 7) * 0.04 + 's;animation-duration:' + (0.9 + ((i * 13) % 6) / 10) + 's;--dx:' + (((i * 53) % 90) - 45) + 'px;--rot:' + ((i * 67) % 360) + 'deg'
+      box.append(piece)
+    }
+    document.body.append(box)
+    setTimeout(() => box.remove(), 1900)
   }
 
   // ---------- tiny DOM helper ----------
@@ -1037,7 +1180,7 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
     const r = gradeAnswer(P.item.problem, P.answer)
     P.fb = r
     if (r.correct) {
-      P.done = true
+      P.done = true; burst()
       const streak = P.hint ? st.streak : st.streak + 1
       store.set('practice.stats', { streak, best: Math.max(st.best, streak), solved: st.solved + 1 })
     } else if (r.correct === false && !P.wrong) { P.wrong = true; store.set('practice.stats', { ...st, streak: 0 }) }
@@ -1186,17 +1329,17 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   function vBuyHome() {
     const noPhoto = S.ready && !S.canReadImages
     return [
-      h('div', { class: 'hero' },
-        h('h1', {}, 'Snap it.', h('br'), 'Find the best price.'),
-        h('p', { class: 'muted' }, 'Photograph a product or scan its barcode and jump straight to the stores that sell it, with each search sorted by price.')),
       S.ready && !S.sample && h('div', { class: 'banner info' }, 'Claude isn’t available in this view, so photo recognition is off. You can still type a product name.'),
       noPhoto && S.sample && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view. You can still type a product name.'),
-      h('label', { class: 'snap', for: 'cam2', 'aria-label': 'Snap Buy' }, h('i'), h('i'), h('i'), h('i'), camIcon(), 'Snap Buy'),
-      h('div', { class: 'alt' },
-        h('label', { class: 'btn secondary', for: 'scan' }, 'Scan barcode'),
-        h('label', { class: 'btn secondary', for: 'pick2' }, 'Upload image'),
-        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.product = null; S.barcode = null; S.query = ''; go('b-confirm') } }, 'Type it')),
-      h('p', { class: 'muted tiny' }, 'This version opens store searches for you. It can’t look up live prices itself, so check the price on the store’s page.'),
+      h('div', { class: 'hero' },
+        h('h1', {}, 'Snap it.', h('br'), 'Find the best price.'),
+        h('p', { class: 'muted lead' }, 'Photograph a product or scan its barcode and jump straight to the stores that sell it, with each search sorted by price.'),
+        h('label', { class: 'snap', for: 'cam2', 'aria-label': 'Snap Buy' }, icon('bag'), 'Snap Buy'),
+        h('div', { class: 'quick' },
+          tile('label', { for: 'scan' }, 'barcode', 'Scan barcode'),
+          tile('label', { for: 'pick2' }, 'upload', 'Upload'),
+          tile('button', { type: 'button', onclick: () => { S.product = null; S.barcode = null; S.query = ''; go('b-confirm') } }, 'text', 'Type it')),
+        h('p', { class: 'muted tiny' }, 'This version opens store searches for you. It can’t look up live prices itself, so check the price on the store’s page.')),
     ]
   }
 
@@ -1226,26 +1369,27 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
         h('h2', {}, top.name),
         top.why && h('p', {}, top.why),
         S.stores.length > 1 && h('p', { class: 'muted' }, 'Also worth a look: ' + S.stores.slice(1).map((x) => x.name).join(', ') + '.'),
-        h('a', { class: 'btn primary', href: topUrl, target: '_blank', rel: 'noopener noreferrer' }, 'Search ' + top.name),
+        h('a', { class: 'btn cta', href: topUrl, target: '_blank', rel: 'noopener noreferrer' }, icon('search'), 'Search ' + top.name),
         h('p', { class: 'muted tiny' }, 'Based on the kind of product, not live stock or prices. Check the store\u2019s page before you buy.')),
       h('div', { class: 'card stack' },
       h('div', { class: 'eyebrow' }, 'Shop for'), h('h2', {}, S.query.trim()),
       h('p', { class: 'muted' }, 'Each link opens that store’s search for this product. Start with Google Shopping, which compares many stores at once.'),
       h('div', { class: 'links' }, links.map((l, i) => h('a', { class: 'store' + (i === 0 ? ' first' : ''), href: l.url, target: '_blank', rel: 'noopener noreferrer' }, l.name, h('span', {}, l.note)))),
       h('p', { class: 'muted tiny' }, 'These are searches, not verified prices. Check the price and seller on the store’s page before you buy.')),
-      h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('b-confirm') }, 'Edit search'), h('label', { class: 'btn primary grow', for: 'cam2' }, 'Snap another'))]
+      h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('b-confirm') }, 'Edit search'), h('label', { class: 'btn cta grow', for: 'cam2' }, icon('bag'), 'Snap another'))]
   }
 
   function vBuyUnreadable() {
     return [h('div', { class: 'card stack center' },
       h('h2', {}, 'I couldn’t tell what that is'), h('p', {}, S.product?.message || ''),
-      h('label', { class: 'btn primary', for: 'cam2' }, 'Retake photo'),
+      h('label', { class: 'btn cta', for: 'cam2' }, icon('camera'), 'Retake photo'),
       h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.query = ''; S.product = null; go('b-confirm') } }, 'Type the product instead'))]
   }
 
   // ---------- views ----------
   const camIcon = () => { const d = h('span'); d.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'; return d.firstChild }
 
+  const tile = (tag, attrs, name, label) => h(tag, { class: 'tile', ...attrs }, icon(name), label)
   function vHome() {
     const drop = h('div', { class: 'drop muted tiny' }, 'Or drag and drop a picture here')
     drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over') })
@@ -1253,17 +1397,18 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); onFile(e.dataTransfer.files?.[0]) })
     const noPhoto = S.ready && !S.canReadImages
     return [
-      h('div', { class: 'hero' },
-        h('h1', {}, 'Snap a problem.', h('br'), 'Get the work.'),
-        h('p', { class: 'muted' }, 'Photograph an equation on paper and see it solved one step at a time, then checked a second way.')),
       S.ready && !S.sample && h('div', { class: 'banner info' }, 'Claude isn’t available in this view, so solving is turned off. Open this page in the Claude app.'),
       noPhoto && S.sample && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view. You can still type an equation.'),
-      h('label', { class: 'snap', for: 'cam', 'aria-label': 'Snap Equation' }, h('i'), h('i'), h('i'), h('i'), camIcon(), 'Snap Equation'),
-      h('div', { class: 'alt' },
-        h('label', { class: 'btn secondary', for: 'pick' }, 'Upload image'),
-        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.latex = ''; S.note = ''; S.word = null; S.uncertain = []; S.active = -1; go('edit') } }, 'Type it'),
-        h('button', { class: 'btn ghost', type: 'button', disabled: !S.sample, onclick: () => openPractice(null) }, 'Practice')),
-      drop,
+      h('div', { class: 'hero' },
+        h('h1', {}, 'Snap a problem.', h('br'), 'Get the work.'),
+        h('p', { class: 'muted lead' }, 'Photograph any equation on paper. I flatten the page, read it, solve it step by step, and check every line.'),
+        h('label', { class: 'snap', for: 'cam', 'aria-label': 'Snap Equation' }, icon('scan'), 'Snap Equation'),
+        h('div', { class: 'quick' },
+          tile('label', { for: 'pick' }, 'upload', 'Upload'),
+          tile('button', { type: 'button', onclick: () => { S.latex = ''; S.note = ''; S.word = null; S.uncertain = []; S.active = -1; go('edit') } }, 'text', 'Type it'),
+          tile('button', { type: 'button', disabled: !S.sample, onclick: () => openPractice(null) }, 'target', 'Practice')),
+        h('ul', { class: 'perks' }, ['Fixes handwriting', 'Checks every line', 'Graphs and PDFs'].map((t) => h('li', {}, icon('check'), t))),
+        drop),
     ]
   }
 
@@ -1315,18 +1460,20 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   }
 
   function vWait(title, sub) {
-    return [h('div', { class: 'card stack center' },
-      h('div', { class: 'spinner', role: 'status', 'aria-label': title }),
+    const withPhoto = (S.screen === 'reading' || S.screen === 'b-identify') && S.photo
+    return [h('div', { class: 'card stack center scan-card', role: 'status', 'aria-live': 'polite' },
+      withPhoto ? h('div', { class: 'scan-loader' }, h('img', { src: S.photo, alt: '' }), h('div', { class: 'scan-frame' }), h('div', { class: 'beam' }))
+        : h('div', { class: 'spinner', 'aria-label': title }),
       h('h2', {}, title), sub && h('p', { class: 'muted' }, sub),
-      (S.screen === 'reading' || S.screen === 'b-identify') && S.photo && h('img', { class: 'thumb', src: S.photo, alt: '' }),
       h('button', { class: 'link', type: 'button', onclick: () => S.ctl?.abort() }, 'Stop'))]
   }
 
   function vUnreadable() {
     return [h('div', { class: 'card stack center' },
+      h('div', { class: 'empty-ico' }, icon('search')),
       h('h2', {}, 'I couldn’t read that'),
       h('p', {}, S.note),
-      h('label', { class: 'btn primary', for: 'cam' }, 'Retake photo'),
+      h('label', { class: 'btn cta', for: 'cam' }, icon('camera'), 'Retake photo'),
       h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.latex = ''; go('edit') } }, 'Type it in instead'))]
   }
 
@@ -1425,7 +1572,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     const pick = (k, v) => () => { P[k] = v; store.set('practice.' + (k === 'level' ? 'level' : 'topic'), v); nextPractice() }
     return [
       h('div', { class: 'card stack' },
-        h('div', { class: 'row spread' }, h('h2', {}, 'Practice'), h('div', { class: 'streak', 'aria-label': 'Streak ' + st.streak + ', best ' + st.best }, '🔥 ' + st.streak + ' ', h('span', { class: 'muted tiny' }, 'best ' + st.best + ' · ' + st.solved + ' solved'))),
+        h('div', { class: 'row spread' }, h('h2', {}, 'Practice'), h('div', { class: 'streak', 'aria-label': 'Streak ' + st.streak + ', best ' + st.best }, icon('flame', 'flame'), h('b', {}, String(st.streak)), ' ', h('span', { class: 'muted tiny' }, 'best ' + st.best + ' · ' + st.solved + ' solved'))),
         h('div', { class: 'chips', role: 'group', 'aria-label': 'Difficulty' }, [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']].map(([id, name]) => h('button', { type: 'button', class: 'chip' + (P.level === id ? ' on' : ''), 'aria-pressed': String(P.level === id), disabled: P.loading, onclick: pick('level', id) }, name))),
         h('label', { class: 'eyebrow', for: 'topic' }, 'Topic'),
         (() => { const sel = h('select', { class: 'field', id: 'topic', disabled: P.loading }, [['mixed', 'Mixed'], ['arithmetic', 'Arithmetic'], ['linear', 'Linear equations'], ['quadratic', 'Quadratics'], ['system', 'Systems'], ['exponents', 'Exponents'], ['radicals', 'Radicals'], ['logs', 'Logarithms'], ['derivative', 'Derivatives'], ['integral', 'Integrals']].map(([id, name]) => h('option', { value: id }, name))); sel.value = P.topic; sel.addEventListener('change', () => pick('topic', sel.value)()); return sel })()),
@@ -1441,7 +1588,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
           h('div', { class: 'row wrap' }, chk, !P.hint && item.hint && h('button', { class: 'btn secondary', type: 'button', onclick: () => { P.hint = true; render() } }, 'Show hint')),
           h('button', { class: 'link', type: 'button', onclick: revealPractice }, 'Show the answer')),
         P.done && h('div', { class: 'stack' },
-          P.fb?.revealed ? h('div', { class: 'banner info' }, h('strong', {}, 'The answer')) : h('div', { class: 'banner ok' }, '✓ Correct!' + (P.hint ? ' (with a hint, so the streak stays put)' : st.streak > 1 ? ' ' + st.streak + ' in a row.' : '')),
+          P.fb?.revealed ? h('div', { class: 'banner info' }, h('strong', {}, 'The answer')) : h('div', { class: 'banner ok' }, icon('check', 'b-ico'), 'Correct!' + (P.hint ? ' (with a hint, so the streak stays put)' : st.streak > 1 ? ' ' + st.streak + ' in a row.' : '')),
           item.answer_latex && h('div', { class: 'answer' }, tex(item.answer_latex, true)),
           h('div', { class: 'row wrap' }, h('button', { class: 'btn primary grow', type: 'button', onclick: nextPractice }, 'Next problem'), h('button', { class: 'btn secondary', type: 'button', onclick: () => { S.active = -1; S.word = null; S.uncertain = []; S.latex = item.latex; solve(item.latex, S.simple, null) } }, 'See the steps')))),
       h('button', { class: 'link', type: 'button', onclick: () => { S.latex = ''; S.result = null; go('home') } }, 'Back'),
@@ -1451,14 +1598,14 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   function stepList(steps) {
     return h('ol', { class: 'steps' }, steps.map((s) =>
       h('li', { class: s.check === 'bad' ? 'step-bad' : '' }, h('div', { class: 'sb' }, h('div', { class: 'sm' }, tex(s.latex, true)), s.explain && h('p', { class: 'explain' }, s.explain),
-        s.check === 'ok' && h('span', { class: 'chk ok' }, '✓ checked'), s.check === 'bad' && h('span', { class: 'chk bad' }, '⚠ A calculator disagrees with this line')))))
+        s.check === 'ok' && h('span', { class: 'chk ok' }, icon('check'), 'checked'), s.check === 'bad' && h('span', { class: 'chk bad' }, icon('alert'), 'A calculator disagrees with this line')))))
   }
 
   function vResult() {
     const r = S.result, v = r.verification, bad = r.steps_summary?.bad || [], checked = r.steps_summary?.checked || 0
     const banner = v.status === 'mismatch'
-      ? h('div', { class: 'banner warn', role: 'alert' }, h('strong', {}, 'Double-check this one.'), h('span', {}, 'The AI’s answer and an independent math check disagree. ' + v.detail + '.'))
-      : v.status === 'match' ? h('div', { class: 'banner ok' }, '✓ Verified independently with math.js')
+      ? h('div', { class: 'banner warn', role: 'alert' }, icon('alert', 'b-ico'), h('strong', {}, 'Double-check this one.'), h('span', {}, 'The AI’s answer and an independent math check disagree. ' + v.detail + '.'))
+      : v.status === 'match' ? h('div', { class: 'banner ok' }, icon('check', 'b-ico'), 'Verified independently with math.js')
       : h('div', { class: 'banner info' }, 'Couldn’t be verified automatically. ' + v.detail)
     const graph = r.graph ? vGraph(r.graph) : null
     return [
@@ -1476,18 +1623,18 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
         r.check.conclusion && h('p', { class: 'conclusion' }, r.check.conclusion)),
       S.downloads && h('div', { class: 'card stack' }, h('h2', {}, 'Save or share'),
         h('div', { class: 'row wrap' },
-          h('button', { class: 'btn secondary grow', type: 'button', disabled: !!S.exporting, onclick: () => exportAs('pdf') }, S.exporting === 'pdf' ? 'Making PDF…' : 'Save as PDF'),
-          h('button', { class: 'btn secondary grow', type: 'button', disabled: !!S.exporting, onclick: () => exportAs('png') }, S.exporting === 'png' ? 'Making image…' : 'Save as image')),
+          h('button', { class: 'btn secondary grow', type: 'button', disabled: !!S.exporting, onclick: () => exportAs('pdf') }, icon('pdf'), S.exporting === 'pdf' ? 'Making PDF…' : 'Save as PDF'),
+          h('button', { class: 'btn secondary grow', type: 'button', disabled: !!S.exporting, onclick: () => exportAs('png') }, icon('image'), S.exporting === 'png' ? 'Making image…' : 'Save as image')),
         S.exportMsg && h('p', { class: 'muted tiny', role: 'status' }, S.exportMsg)),
       h('div', { class: 'row wrap' },
-        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.busy || !S.sample, onclick: () => openPractice(S.latex) }, 'Practice a similar one'),
+        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.busy || !S.sample, onclick: () => openPractice(S.latex) }, icon('target'), 'Practice similar'),
         h('button', { class: 'btn ghost', type: 'button', onclick: () => go('edit') }, 'Edit problem')),
-      h('label', { class: 'btn primary', for: 'cam' }, 'Snap another'),
+      h('label', { class: 'btn cta', for: 'cam' }, icon('camera'), 'Snap another'),
     ]
   }
 
   function vHistory() {
-    if (!S.history.length) return [h('div', { class: 'card stack center' }, h('h2', {}, 'Nothing here yet'), h('p', { class: 'muted' }, 'Solved problems and product searches are saved here, on this device only.'))]
+    if (!S.history.length) return [h('div', { class: 'card stack center' }, h('div', { class: 'empty-ico' }, icon('history')), h('h2', {}, 'Nothing here yet'), h('p', { class: 'muted' }, 'Solved problems and product searches are saved here, on this device only.'))]
     const shown = S.history.filter((i) => S.hfilter === 'all' || i.type === S.hfilter)
     return [
       h('div', { class: 'chips', role: 'tablist', 'aria-label': 'History filter' }, [['all', 'All'], ['math', 'Math'], ['buy', 'Snap Buy']].map(([id, name]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(S.hfilter === id), class: 'chip' + (S.hfilter === id ? ' on' : ''), onclick: () => { S.hfilter = id; render() } }, name))),

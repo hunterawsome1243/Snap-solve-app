@@ -91,7 +91,7 @@ test('word problem: shows the equation next to the story, then answers in words'
 
 test('practice: hint on demand, wrong answer resets the streak, a clean solve grows it', async ({ page }) => {
   await editFirstAndSolve(page)
-  await page.getByRole('button', { name: /Practice a similar one/ }).click()
+  await page.getByRole('button', { name: /Practice similar/ }).click()
   await page.locator('#ans').waitFor()
   expect(calls.find((c) => c[0] === 'practice')).toEqual(['practice', 'medium', 'mixed', '2x+5=11'])
   await expect(page.getByText('Try factoring.')).toHaveCount(0)
@@ -104,7 +104,7 @@ test('practice: hint on demand, wrong answer resets the streak, a clean solve gr
   await page.locator('#ans').fill('x = 2 or x = 3')
   await page.getByRole('button', { name: 'Check answer' }).click()
   await expect(page.getByText(/Correct/)).toBeVisible()
-  await expect(page.locator('.streak')).toContainText('🔥 0')
+  await expect(page.locator('.streak b')).toHaveText('0')
 
   await page.getByRole('button', { name: 'Hard' }).click()
   await page.locator('#ans').waitFor()
@@ -112,5 +112,5 @@ test('practice: hint on demand, wrong answer resets the streak, a clean solve gr
   await page.locator('#ans').fill('2, 3')
   await page.getByRole('button', { name: 'Check answer' }).click()
   await expect(page.getByText(/Correct/)).toBeVisible()
-  await expect(page.locator('.streak')).toContainText('🔥 1')
+  await expect(page.locator('.streak b')).toHaveText('1')
 })

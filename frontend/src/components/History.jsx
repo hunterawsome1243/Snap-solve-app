@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Math from './Math.jsx'
 import { ago, isStale } from '../lib/time.js'
+import Icon from './Icon.jsx'
 
 const FILTERS = [['all', 'All'], ['math', 'Math'], ['buy', 'Snap Buy']]
 
@@ -19,7 +20,7 @@ export default function History({ items, onOpen, onRemove, onClear }) {
   if (!items.length) {
     return (
       <div className="card center">
-        <div className="big-emoji">🗂️</div>
+        <div className="empty-ico"><Icon name="history" /></div>
         <h2>Nothing here yet</h2>
         <p className="muted">Solved problems and product searches are saved here, on this device only.</p>
       </div>
@@ -45,7 +46,7 @@ export default function History({ items, onOpen, onRemove, onClear }) {
                   <div className="history-answer">
                     {rec?.kind === 'offer' ? `${money(rec.price, rec.currency)} at ${rec.retailer}` : rec ? `Try ${rec.retailer}` : 'No prices found'}
                   </div>
-                  <div className={`tiny ${isStale(it.ts) ? 'stale' : 'muted'}`}>{isStale(it.ts) ? '⚠ ' : ''}Prices checked {ago(it.ts)}{isStale(it.ts) ? ', may be out of date' : ''}</div>
+                  <div className={`tiny ${isStale(it.ts) ? 'stale' : 'muted'}`}>{isStale(it.ts) ? <Icon name="alert" className="inline" /> : null}Prices checked {ago(it.ts)}{isStale(it.ts) ? ', may be out of date' : ''}</div>
                 </>
               ) : (
                 <>
@@ -55,7 +56,7 @@ export default function History({ items, onOpen, onRemove, onClear }) {
                 </>
               )}
             </button>
-            <button className="icon-btn" aria-label="Delete" onClick={() => onRemove(it.id)}>✕</button>
+            <button className="icon-btn" aria-label="Delete" onClick={() => onRemove(it.id)}><Icon name="close" /></button>
           </div>
         )
       })}

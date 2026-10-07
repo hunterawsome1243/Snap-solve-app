@@ -5,6 +5,8 @@ import * as store from '../storage.js'
 import { decodeBarcode } from '../lib/barcode.js'
 import { ago, isStale } from '../lib/time.js'
 import Cropper from './Cropper.jsx'
+import Icon from './Icon.jsx'
+import ScanLoader from './ScanLoader.jsx'
 
 const NO_FILTERS = { new_only: false, free_shipping: false, max_price: null, preferred_store: '' }
 const isDefault = (f) => !f.new_only && !f.free_shipping && f.max_price == null && !f.preferred_store.trim()
@@ -67,8 +69,8 @@ function Recommendation({ r }) {
         {offer && <div className="offer-price">{money(r.price, r.currency)}</div>}
       </div>
       <p>{r.reason}</p>
-      <a className="btn primary" href={r.url} target="_blank" rel="noopener noreferrer nofollow">
-        {offer ? `Buy at ${r.retailer}` : `Search ${r.retailer}`}
+      <a className="btn cta" href={r.url} target="_blank" rel="noopener noreferrer nofollow">
+        <Icon name={offer ? 'bag' : 'search'} />{offer ? `Buy at ${r.retailer}` : `Search ${r.retailer}`}
       </a>
     </div>
   )
@@ -259,7 +261,7 @@ export default function BuyFlow({ initial, onHistory }) {
         <div className="stack">
           {tracked.length === 0 && (
             <div className="card center stack">
-              <div className="big-emoji">📉</div>
+              <div className="empty-ico"><Icon name="trend" /></div>
               <h2>Nothing tracked yet</h2>
               <p className="muted">Search for a product, then tap “Track this price”. Re-check it later to see if it dropped.</p>
             </div>
@@ -298,7 +300,7 @@ export default function BuyFlow({ initial, onHistory }) {
                   </div>
                 </div>
                 {t.note && <div className="banner info">{t.note}</div>}
-                <div className={`tiny ${stale ? 'stale' : 'muted'}`}>{stale ? '⚠ ' : ''}Checked {ago(t.last.at)}{stale ? '. Prices may have changed.' : ''}</div>
+                <div className={`tiny ${stale ? 'stale' : 'muted'}`}>{stale ? <Icon name="alert" className="inline" /> : null}Checked {ago(t.last.at)}{stale ? '. Prices may have changed.' : ''}</div>
                 <div className="row">
                   <label className="muted tiny" htmlFor={`tg${t.id}`}>Alert me below</label>
                   <input id={`tg${t.id}`} className="text-input small" type="number" min="0" step="0.01" inputMode="decimal" placeholder={t.last.currency} value={t.target ?? ''} onChange={(e) => setTarget(t.id, e.target.value)} />
@@ -317,39 +319,45 @@ export default function BuyFlow({ initial, onHistory }) {
       {view === 'search' && (
         <>
           {screen === 'home' && (
-            <div className="hero card">
+            <div className="hero">
               <h1>Snap it.<br />Find the best price.</h1>
-              <p className="muted">Take a photo of a product, or scan its barcode, and get the store most likely to have it for the best deal.</p>
+              <p className="muted lead">Photograph a product or scan its barcode. I find the store most likely to have it for the best deal.</p>
               <label className="snap-btn" htmlFor="buy-cam">
-                <span className="snap-icon">🛍️</span>
+                <Icon name="bag" />
                 Snap Buy
               </label>
-              <div className="row center-row wrap">
-                <label className="btn secondary" htmlFor="buy-scan">▥ Scan barcode</label>
-                <label className="btn secondary" htmlFor="buy-pick">Upload image</label>
-                <button className="btn ghost" onClick={() => { setProduct(null); setBarcode(null); setQuery(''); setScreen('confirm') }}>Type it</button>
+              <div className="quick">
+                <label className="tile" htmlFor="buy-scan"><Icon name="barcode" />Scan barcode</label>
+                <label className="tile" htmlFor="buy-pick"><Icon name="upload" />Upload</label>
+                <button className="tile" onClick={() => { setProduct(null); setBarcode(null); setQuery(''); setScreen('confirm') }}><Icon name="text" />Type it</button>
               </div>
+              <ul className="perks">
+                <li><Icon name="check" />Picks one store for you</li>
+                <li><Icon name="check" />Shows how old each price is</li>
+                <li><Icon name="check" />Tracks price drops</li>
+              </ul>
             </div>
           )}
 
           {screen === 'crop' && photo && <Cropper src={photo} onDone={onCropped} onCancel={reset} />}
 
-          {(screen === 'identifying' || screen === 'searching' || screen === 'scanning') && (
-            <div className="card center stack">
+          {screen === 'identifying' && <ScanLoader photo={photo} title="Figuring out what this is…" sub="Looking for the brand and model." />}
+          {screen === 'scanning' && <ScanLoader title="Reading the barcode…" />}
+          {screen === 'searching' && (
+            <div className="card center stack scan-card" role="status">
               <div className="spinner" />
-              <h2>{screen === 'identifying' ? 'Figuring out what this is…' : screen === 'scanning' ? 'Reading the barcode…' : 'Comparing prices…'}</h2>
-              {screen === 'searching' && <p className="muted">Searching stores. This can take up to a minute.</p>}
-              {photo && screen !== 'searching' && <img className="thumb" src={photo} alt="" />}
+              <h2>Comparing prices…</h2>
+              <p className="muted">Searching stores. This can take up to a minute.</p>
             </div>
           )}
 
           {screen === 'unreadable' && product && (
             <div className="card stack center">
-              <div className="big-emoji">🔍</div>
+              <div className="empty-ico"><Icon name="search" /></div>
               <h2>I couldn't tell what that is</h2>
               <p>{product.message}</p>
-              <label className="btn primary" htmlFor="buy-cam">📷 Retake photo</label>
-              <label className="btn secondary" htmlFor="buy-scan">▥ Scan the barcode instead</label>
+              <label className="btn cta" htmlFor="buy-cam"><Icon name="camera" />Retake photo</label>
+              <label className="btn secondary" htmlFor="buy-scan"><Icon name="barcode" />Scan the barcode instead</label>
               <button className="btn ghost" onClick={() => { setQuery(''); setScreen('confirm') }}>Type the product instead</button>
             </div>
           )}
@@ -377,25 +385,7 @@ export default function BuyFlow({ initial, onHistory }) {
                 <div className="banner warn" role="alert">
                   <strong>These prices are over a day old.</strong>
                   <span>Stock and prices change fast. Re-check before you buy.</span>
-                  <button className="btn primary" onClick={() => runSearch(raw.query, true)}>Re-check now</button>
-                </div>
-              )}
-
-              {raw.offers.length > 0 && (
-                <div className="card stack">
-                  <h2>Filters</h2>
-                  <div className="chips">
-                    <button className={`chip ${filters.new_only ? 'on' : ''}`} aria-pressed={filters.new_only} onClick={() => setFilters({ ...filters, new_only: !filters.new_only })}>New only</button>
-                    <button className={`chip ${filters.free_shipping ? 'on' : ''}`} aria-pressed={filters.free_shipping} onClick={() => setFilters({ ...filters, free_shipping: !filters.free_shipping })}>Free shipping</button>
-                  </div>
-                  <div className="row">
-                    <label className="muted tiny" htmlFor="maxp">Max price</label>
-                    <input id="maxp" className="text-input small" type="number" min="0" step="1" inputMode="decimal" value={filters.max_price ?? ''} onChange={(e) => setFilters({ ...filters, max_price: e.target.value === '' ? null : Number(e.target.value) })} />
-                    <label className="muted tiny" htmlFor="pref">Prefer</label>
-                    <input id="pref" className="text-input small" list="stores" placeholder="a store" value={filters.preferred_store} onChange={(e) => setFilters({ ...filters, preferred_store: e.target.value })} />
-                    <datalist id="stores">{stores.map((s) => <option key={s} value={s} />)}</datalist>
-                  </div>
-                  {ranked.hidden > 0 && <p className="muted tiny">{ranked.hidden} offer{ranked.hidden === 1 ? '' : 's'} hidden by your filters.</p>}
+                  <button className="btn primary" onClick={() => runSearch(raw.query, true)}><Icon name="retake" />Re-check now</button>
                 </div>
               )}
 
@@ -411,6 +401,26 @@ export default function BuyFlow({ initial, onHistory }) {
                 </div>
               )}
 
+              {raw.offers.length > 0 && (
+                <details className="card filters" open={!isDefault(filters)}>
+                  <summary><Icon name="sliders" /><span>Filters</span>{!isDefault(filters) && <b className="pill">on</b>}</summary>
+                  <div className="stack">
+                  <div className="chips">
+                    <button className={`chip ${filters.new_only ? 'on' : ''}`} aria-pressed={filters.new_only} onClick={() => setFilters({ ...filters, new_only: !filters.new_only })}>New only</button>
+                    <button className={`chip ${filters.free_shipping ? 'on' : ''}`} aria-pressed={filters.free_shipping} onClick={() => setFilters({ ...filters, free_shipping: !filters.free_shipping })}>Free shipping</button>
+                  </div>
+                  <div className="row">
+                    <label className="muted tiny" htmlFor="maxp">Max price</label>
+                    <input id="maxp" className="text-input small" type="number" min="0" step="1" inputMode="decimal" value={filters.max_price ?? ''} onChange={(e) => setFilters({ ...filters, max_price: e.target.value === '' ? null : Number(e.target.value) })} />
+                    <label className="muted tiny" htmlFor="pref">Prefer</label>
+                    <input id="pref" className="text-input small" list="stores" placeholder="a store" value={filters.preferred_store} onChange={(e) => setFilters({ ...filters, preferred_store: e.target.value })} />
+                    <datalist id="stores">{stores.map((s) => <option key={s} value={s} />)}</datalist>
+                  </div>
+                  {ranked.hidden > 0 && <p className="muted tiny">{ranked.hidden} offer{ranked.hidden === 1 ? '' : 's'} hidden by your filters.</p>}
+                  </div>
+                </details>
+              )}
+
               <div className="card stack">
                 <h2>Search more stores</h2>
                 <p className="muted tiny">These open a store search, sorted by price where the store allows it.</p>
@@ -420,14 +430,14 @@ export default function BuyFlow({ initial, onHistory }) {
               </div>
 
               <div className="row wrap">
-                <button className="btn secondary grow" disabled={isTracked || !trackPrice(raw.offers)} onClick={track}>{isTracked ? '✓ Tracking this price' : '📉 Track this price'}</button>
+                <button className="btn secondary grow" disabled={isTracked || !trackPrice(raw.offers)} onClick={track}><Icon name={isTracked ? 'check' : 'trend'} />{isTracked ? 'Tracking this price' : 'Track this price'}</button>
                 <button className="btn ghost" onClick={() => runSearch(raw.query, true)}>Re-check</button>
               </div>
               <p className="muted tiny center-text">
                 Prices came from a web search on {new Date(raw.checked_at * 1000).toLocaleString()} and can change.
                 Check the price on the store&apos;s page before you buy.
               </p>
-              <button className="btn primary" onClick={reset}>🛍️ Snap another</button>
+              <button className="btn cta" onClick={reset}><Icon name="bag" />Snap another</button>
             </div>
           )}
         </>

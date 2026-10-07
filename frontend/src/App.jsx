@@ -12,11 +12,14 @@ import Problems from './components/Problems.jsx'
 import Practice from './components/Practice.jsx'
 import Pumpkins from './components/Pumpkins.jsx'
 import Elements from './components/Elements.jsx'
+import Icon from './components/Icon.jsx'
+import ScanLoader from './components/ScanLoader.jsx'
+import { buzz } from './lib/haptics.js'
 
 const THEMES = [
-  { id: 'auto', name: 'Match device', colors: ['#f4f5fb', '#4f46e5', '#0e1020'] },
-  { id: 'light', name: 'Light', colors: ['#f4f5fb', '#4f46e5', '#171a2b'] },
-  { id: 'dark', name: 'Dark', colors: ['#0e1020', '#8b83ff', '#eceefa'] },
+  { id: 'auto', name: 'Match device', colors: ['#f3f6f1', '#2c6e4d', '#0b130f'] },
+  { id: 'light', name: 'Light', colors: ['#f3f6f1', '#2c6e4d', '#15211a'] },
+  { id: 'dark', name: 'Dark', colors: ['#0b130f', '#5fd39b', '#e8f1ea'] },
   { id: 'halloween', name: 'Halloween', colors: ['#150c20', '#ff8a1f', '#f7ead9'] },
   { id: 'ocean', name: 'Ocean', colors: ['#eaf6f8', '#087f92', '#07313c'] },
   { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
@@ -84,6 +87,7 @@ export default function App() {
     }
     const original = canvas.toDataURL('image/jpeg', 0.92)
     const clean = cleaned ? cleaned.canvas.toDataURL('image/jpeg', 0.92) : original
+    buzz(18)
     setShots({ clean, original, found: !!cleaned?.found, cleaned: !!cleaned })
     setShotMode(cleaned ? 'clean' : 'original')
     setPhoto(cleaned ? clean : original)
@@ -291,7 +295,7 @@ export default function App() {
       {theme === 'science' && <Elements />}
       <header className="top">
         <button className="logo" onClick={() => { setTab('solve'); startNew() }}>
-          <span className="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span> Hunter Scan
+          <span className="logo-mark"><Icon name="scan" /></span> Hunter Scan
         </button>
         <div className="top-actions">
           <label className="switch" title="Make explanations simpler">
@@ -305,7 +309,7 @@ export default function App() {
             aria-expanded={themeOpen}
             onClick={() => setThemeOpen((o) => !o)}
           >
-            🎨
+            <Icon name="palette" />
           </button>
         </div>
       </header>
@@ -341,24 +345,29 @@ export default function App() {
 
         {tab === 'solve' && screen === 'home' && (
           <div
-            className={`hero card ${dragOver ? 'drag' : ''}`}
+            className={`hero ${dragOver ? 'drag' : ''}`}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
             onDragLeave={() => setDragOver(false)}
             onDrop={onDrop}
           >
             <h1>Snap a problem.<br />Get the work.</h1>
-            <p className="muted">Take a photo of any equation on paper and see it solved step by step.</p>
+            <p className="muted lead">Photograph any equation on paper. I flatten the page, read it, solve it step by step, and check every line.</p>
             <button className="snap-btn" onClick={startScan}>
-              <span className="snap-icon">📷</span>
+              <Icon name="scan" />
               Snap Equation
             </button>
             {hint && <div className="banner info" role="status">{hint}</div>}
-            <div className="row center-row wrap">
-              <button className="btn secondary" onClick={() => fileRef.current.click()}>Upload image</button>
-              <button className="btn ghost" onClick={() => { setLatex(''); setNote(''); setUncertain([]); setWordCtx(null); setActiveIdx(-1); go('edit') }}>Type it</button>
-              <button className="btn ghost" onClick={() => openPractice(null)}>✏️ Practice</button>
+            <div className="quick">
+              <button className="tile" onClick={() => fileRef.current.click()}><Icon name="upload" />Upload</button>
+              <button className="tile" onClick={() => { setLatex(''); setNote(''); setUncertain([]); setWordCtx(null); setActiveIdx(-1); go('edit') }}><Icon name="text" />Type it</button>
+              <button className="tile" onClick={() => openPractice(null)}><Icon name="target" />Practice</button>
             </div>
-            <p className="muted tiny drop-hint">…or drag & drop a picture here</p>
+            <ul className="perks">
+              <li><Icon name="check" />Fixes handwriting</li>
+              <li><Icon name="check" />Checks every line</li>
+              <li><Icon name="check" />Graphs and PDFs</li>
+            </ul>
+            <p className="muted tiny drop-hint">Or drag and drop a picture anywhere here</p>
           </div>
         )}
 
@@ -377,20 +386,23 @@ export default function App() {
           />
         )}
 
-        {tab === 'solve' && (screen === 'reading' || screen === 'formulating') && (
-          <div className="card center">
+        {tab === 'solve' && screen === 'reading' && (
+          <ScanLoader photo={photo} title="Reading your handwriting…" sub="Finding every symbol." />
+        )}
+
+        {tab === 'solve' && screen === 'formulating' && (
+          <div className="card center stack scan-card" role="status">
             <div className="spinner" />
-            <h2>{screen === 'reading' ? 'Reading your handwriting…' : 'Turning the words into an equation…'}</h2>
-            {screen === 'reading' && photo && <img className="thumb" src={photo} alt="" />}
+            <h2>Turning the words into an equation…</h2>
           </div>
         )}
 
         {tab === 'solve' && screen === 'unreadable' && (
           <div className="card stack center">
-            <div className="big-emoji">🔍</div>
+            <div className="empty-ico"><Icon name="search" /></div>
             <h2>I couldn't read that</h2>
             <p>{note}</p>
-            <button className="btn primary" onClick={startScan}>📷 Retake photo</button>
+            <button className="btn cta" onClick={startScan}><Icon name="camera" />Retake photo</button>
             <button className="btn ghost" onClick={() => { setLatex(''); go('edit') }}>Type it in instead</button>
           </div>
         )}
@@ -449,13 +461,13 @@ export default function App() {
 
       <nav className="tabs">
         <button className={tab === 'solve' ? 'on' : ''} onClick={() => setTab('solve')}>
-          <span>📷</span> Solve
+          <span className="ico"><Icon name="camera" /></span> Solve
         </button>
         <button className={tab === 'buy' ? 'on' : ''} onClick={() => setTab('buy')}>
-          <span>🛍️</span> Snap Buy
+          <span className="ico"><Icon name="bag" /></span> Snap Buy
         </button>
         <button className={tab === 'history' ? 'on' : ''} onClick={() => setTab('history')}>
-          <span>🕘</span> History
+          <span className="ico"><Icon name="history" /></span> History
         </button>
       </nav>
     </div>

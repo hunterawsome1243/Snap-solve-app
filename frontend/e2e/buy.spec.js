@@ -40,6 +40,7 @@ test('filters re-rank the offers without searching again', async ({ page }) => {
   await search(page)
   const searches = () => calls.filter((c) => c[0] === 'prices').length
   const list = page.locator('.card', { has: page.getByRole('heading', { name: 'All offers, cheapest first' }) }).locator('.offer-name')
+  await page.locator('summary', { hasText: 'Filters' }).click()
   await page.getByRole('button', { name: 'New only' }).click()
   await expect(list).not.toContainText(['ebay.com'])
   await page.locator('#maxp').fill('290')
