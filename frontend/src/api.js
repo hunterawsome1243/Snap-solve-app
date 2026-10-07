@@ -1,13 +1,24 @@
-async function post(path, body) {
-  let res
+// A hosted copy asks for an access code (ACCESS_CODE on the server). It is asked once and remembered on this device.
+const getCode = () => { try { return localStorage.getItem('hs-code') || '' } catch { return '' } }
+const setCode = (c) => { try { localStorage.setItem('hs-code', c) } catch {} }
+
+async function send(path, body) {
   try {
-    res = await fetch(path, {
+    return await fetch(path, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'X-Access-Code': getCode() },
       body: JSON.stringify(body),
     })
   } catch {
     throw new Error("Can't reach the Hunter Scan server. Is the backend running?")
+  }
+}
+
+async function post(path, body) {
+  let res = await send(path, body)
+  if (res.status === 401) {
+    const code = window.prompt('Enter the Hunter Scan access code')
+    if (code) { setCode(code.trim()); res = await send(path, body) }
   }
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`)

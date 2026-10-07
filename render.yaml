@@ -1,0 +1,14 @@
+# One-click deploy: Render dashboard > New > Blueprint > pick this repository.
+services:
+  - type: web
+    name: hunter-scan
+    runtime: docker
+    plan: free            # free sleeps after 15 min idle (first open is slow); use "starter" to keep it awake
+    healthCheckPath: /api/health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false       # you paste this in the Render dashboard; it is never stored in the repo
+      - key: ACCESS_CODE
+        generateValue: true   # Render makes a random code; read it under Environment, type it once on your phone
+      - key: RATE_PER_HOUR
+        value: "60"       # AI calls per visitor per hour

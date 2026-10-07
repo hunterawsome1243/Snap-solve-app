@@ -1,5 +1,6 @@
 """Hunter Scan backend: holds the Anthropic API key, talks to Claude, verifies with SymPy."""
 import base64
+import hmac
 import json
 import os
 import re
@@ -9,8 +10,8 @@ from urllib.parse import quote_plus, urlparse
 
 import anthropic
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -24,6 +25,37 @@ ALLOWED_MEDIA = {"image/jpeg", "image/png", "image/webp", "image/gif"}
 MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
 app = FastAPI(title="Hunter Scan")
+
+
+# ---------------------------------------------- protecting a public deployment
+# Anyone who finds a hosted URL could spend your Anthropic credits, so a hosted copy asks for an access code
+# (ACCESS_CODE) and limits how many AI calls one visitor can make per hour (RATE_PER_HOUR). Both are off locally.
+ACCESS_CODE = os.getenv("ACCESS_CODE", "").strip()
+RATE_PER_HOUR = int(os.getenv("RATE_PER_HOUR", "0") or 0)
+_hits: dict[str, list[float]] = {}
+OPEN_PATHS = {"/api/health", "/api/config"}
+
+
+@app.middleware("http")
+async def guard(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and path not in OPEN_PATHS:
+        if ACCESS_CODE and not hmac.compare_digest(request.headers.get("x-access-code", ""), ACCESS_CODE):
+            return JSONResponse({"detail": "That access code is missing or wrong."}, status_code=401)
+        if RATE_PER_HOUR and request.method == "POST":
+            who = request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0].strip()
+            now = time.time()
+            recent = [t for t in _hits.get(who, []) if now - t < 3600]
+            if len(recent) >= RATE_PER_HOUR:
+                return JSONResponse({"detail": "Too many scans this hour. Try again a bit later."}, status_code=429)
+            recent.append(now)
+            _hits[who] = recent
+    return await call_next(request)
+
+
+@app.get("/api/config")
+def config():
+    return {"needs_code": bool(ACCESS_CODE)}
 _client: anthropic.Anthropic | None = None
 
 
@@ -768,5 +800,6 @@ if DIST.is_dir():
     def spa(path: str):
         f = (DIST / path).resolve()
         if path and f.is_file() and DIST in f.parents:
-            return FileResponse(f)
+            # the service worker and manifest must always be re-fetched so updates reach installed copies
+            return FileResponse(f, headers={"Cache-Control": "no-cache"} if path in ("sw.js", "manifest.webmanifest") else None)
         return FileResponse(DIST / "index.html")

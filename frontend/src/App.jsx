@@ -13,6 +13,7 @@ import Practice from './components/Practice.jsx'
 import Pumpkins from './components/Pumpkins.jsx'
 import Elements from './components/Elements.jsx'
 import Fruits from './components/Fruits.jsx'
+import InstallHint from './components/InstallHint.jsx'
 import Icon from './components/Icon.jsx'
 import ScanLoader from './components/ScanLoader.jsx'
 import { buzz } from './lib/haptics.js'
@@ -334,6 +335,7 @@ export default function App() {
           </div>
         )}
         {error && <div className="banner warn" role="alert">{error}</div>}
+        {tab === 'solve' && screen === 'home' && <InstallHint />}
 
         {tab === 'buy' && <BuyFlow initial={buyInitial} onHistory={(e) => setHistory(store.addHistory(e))} />}
 

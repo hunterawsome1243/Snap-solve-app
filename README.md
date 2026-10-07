@@ -46,6 +46,28 @@ have "client isolation" on (common on guest networks).
 
 Optional single-server mode: `npm start` builds the frontend and serves everything from port 8000.
 
+## Host it on Render and install it on your iPhone
+
+This puts the whole app (website + API) on a public HTTPS address, so the live camera works on your phone and your
+computer doesn't need to be on.
+
+1. Push this repository to GitHub (it already is).
+2. On <https://render.com>: **New > Blueprint**, choose this repository, and Render reads `render.yaml`.
+3. When asked, paste your **`ANTHROPIC_API_KEY`**. Render makes a random **`ACCESS_CODE`** for you automatically.
+4. Wait for the first build (a few minutes), then open the `https://hunter-scan-xxxx.onrender.com` address it gives you.
+5. The first time you scan, the app asks for the access code once. Read it in the Render dashboard under
+   **Environment > ACCESS_CODE**. It is remembered on that device.
+6. **iPhone:** open the address in Safari, tap **Share**, then **Add to Home Screen**. It opens full screen with its own icon.
+   **Android/Chrome:** menu, then **Install app**.
+
+Notes:
+- The access code and `RATE_PER_HOUR` (60 AI calls per visitor per hour, in `render.yaml`) are there because anyone who finds a
+  public address could otherwise spend your Anthropic credits. Locally both are off.
+- Render's free plan sleeps after 15 minutes without visits, so the first open after a break takes about a minute. The
+  `starter` plan keeps it awake.
+- Once opened, the app itself loads offline (history and the screens work), but reading and solving need a connection.
+- After a new deploy, installed copies pick up the update the next time they are opened online.
+
 ## Live scanning (phone)
 
 Tap **Snap Equation** and a viewfinder opens. It outlines the page it finds, flattens the perspective, evens out
