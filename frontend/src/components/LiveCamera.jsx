@@ -6,7 +6,8 @@ import { buzz } from '../lib/haptics.js'
 
 const TICK_MS = 140
 const STABLE_TICKS = 8 // about a second of holding still
-const MOVE_LIMIT = 0.02 // corners may drift 2% of the frame between checks
+const MOVE_LIMIT = 0.04 // a hand-held phone drifts a little: corners may move 4% of the frame between checks
+const GIVE_UP_TICKS = 40 // after about 6 seconds without a steady page, point at the shutter instead
 
 const maxMove = (a, b) => Math.max(...a.map((p, i) => Math.hypot(p[0] - b[i][0], p[1] - b[i][1])))
 
@@ -50,6 +51,7 @@ export default function LiveCamera({ onCapture, onCancel, onUnavailable }) {
     let still = 0
     let best = 1
     let smooth = null
+    let seen = 0
 
     async function start() {
       try {
@@ -87,16 +89,18 @@ export default function LiveCamera({ onCapture, onCancel, onUnavailable }) {
         if (det) {
           const q = normalizeCorners(det.corners, w, h)
           smooth = smooth ? smooth.map((p, i) => [p[0] * 0.5 + q[i][0] * 0.5, p[1] * 0.5 + q[i][1] * 0.5]) : q
-          still = prev && maxMove(prev, q) < MOVE_LIMIT ? still + 1 : 0
-          prev = q
+          // compare the smoothed outline, and let one shaky check cost a little progress instead of all of it
+          seen += 1
+          still = prev ? (maxMove(prev, smooth) < MOVE_LIMIT ? still + 1 : Math.max(0, still - 2)) : 0
+          prev = smooth
           setQuad(smooth)
           if (!focused) { still = Math.max(0, still - 2); setHint('Too blurry. Hold steady') }
-          else if (still < STABLE_TICKS) setHint(still > 2 ? 'Hold still…' : 'Hold steady')
+          else if (still < STABLE_TICKS) setHint(seen > GIVE_UP_TICKS ? 'Tap the round button to take it' : still > 2 ? 'Hold still…' : 'Hold steady')
           else setHint(auto.current ? 'Capturing…' : 'Tap the button')
           setProgress(Math.min(1, still / STABLE_TICKS))
           if (auto.current && still >= STABLE_TICKS && focused) return shot.current()
         } else {
-          prev = null; smooth = null; still = 0
+          prev = null; smooth = null; still = 0; seen = 0
           setQuad(null); setProgress(0)
           setHint('Point at the page. A lighter page on a darker surface works best')
         }
