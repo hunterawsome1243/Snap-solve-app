@@ -12,6 +12,7 @@ import Problems from './components/Problems.jsx'
 import Practice from './components/Practice.jsx'
 import Pumpkins from './components/Pumpkins.jsx'
 import Elements from './components/Elements.jsx'
+import Fruits from './components/Fruits.jsx'
 import Icon from './components/Icon.jsx'
 import ScanLoader from './components/ScanLoader.jsx'
 import { buzz } from './lib/haptics.js'
@@ -25,8 +26,9 @@ const THEMES = [
   { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
   { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
   { id: 'science', name: 'Science', colors: ['#06121c', '#22e6d4', '#e6fbff'] },
+  { id: 'tropical', name: 'Tropical', colors: ['#fff6e0', '#d6246e', '#ff9a1f'] },
 ]
-const SKINS = ['halloween', 'ocean', 'forest', 'sunset', 'science']
+const SKINS = ['halloween', 'ocean', 'forest', 'sunset', 'science', 'tropical']
 
 const uid = (p = 'h') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
 
@@ -293,6 +295,7 @@ export default function App() {
     <div className="app">
       {theme === 'halloween' && <Pumpkins />}
       {theme === 'science' && <Elements />}
+      {theme === 'tropical' && <Fruits />}
       <header className="top">
         <button className="logo" onClick={() => { setTab('solve'); startNew() }}>
           <span className="logo-mark"><Icon name="scan" /></span> Hunter Scan

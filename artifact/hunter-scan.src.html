@@ -273,6 +273,34 @@ select.field { appearance: auto; }
 @keyframes element-rise { 0% { transform: translateY(0) rotate(-6deg); opacity: 0; } 10% { opacity: .4; } 85% { opacity: .4; } 100% { transform: translateY(calc(-100vh - 120px)) rotate(8deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .elements { display: none; } :root[data-skin="science"] .logo-mark::after { animation: none; } :root[data-skin="science"] .snap::after { display: none; } }
 
+/* tropical fruit theme */
+:root[data-skin="tropical"] {
+  --bg: #fff6e0; --surface: #fffdf7; --ink: #3b1b33; --muted: #8a6378; --line: #f5d8b4;
+  --accent: #d6246e; --accent-ink: #ffffff; --soft: #ffe8d0; --grid: rgba(255, 154, 31, .12); --hi: #ffe3a3;
+  --ok-bg: #e0f5dd; --ok: #1b7a3d; --warn-bg: #fff0c7; --warn: #8a5300; --warn-line: #f0b84a;
+  --info-bg: #dcf4f1; --info: #0a7a80; --shadow: 0 10px 28px rgba(214, 36, 110, .12);
+  --display: 'Fredoka', 'Inter', system-ui, sans-serif; color-scheme: light;
+  --cta: #f26a1b; --cta-2: #e11d74; --cta-ink: #ffffff;
+}
+:root[data-skin="tropical"] body {
+  background-image: radial-gradient(520px 380px at 100% 0%, rgba(255, 154, 31, .28), transparent 70%), radial-gradient(480px 420px at 0% 100%, rgba(32, 201, 166, .22), transparent 70%), radial-gradient(360px 300px at 0% 18%, rgba(255, 61, 127, .13), transparent 70%);
+  background-attachment: fixed;
+}
+:root[data-skin="tropical"] h1, :root[data-skin="tropical"] h2, :root[data-skin="tropical"] .logo { letter-spacing: 0; font-weight: 600; }
+:root[data-skin="tropical"] .card { border-color: #f7d3a8; }
+:root[data-skin="tropical"] .logo-mark { background: transparent; font-size: 0; }
+:root[data-skin="tropical"] .logo-mark svg { display: none; }
+:root[data-skin="tropical"] .logo-mark::after { content: '\1F34D'; display: inline-block; font-size: 1.7rem; line-height: 1; transform-origin: 50% 90%; animation: pine-sway 3.6s ease-in-out infinite alternate; }
+@keyframes pine-sway { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+:root[data-skin="tropical"] .snap { background: conic-gradient(from 210deg at 50% 50%, #ff9a1f, #ff3d7f, #d6246e, #ff7a1a, #ffc233, #ff9a1f); box-shadow: 0 18px 40px rgba(255, 61, 127, .38), 0 0 0 6px rgba(255, 255, 255, .6), inset 0 2px 0 rgba(255, 255, 255, .45); }
+.fruits { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.fruit { position: absolute; top: -56px; opacity: .6; animation: fruit-fall linear infinite; will-change: transform; }
+.fruit i { display: block; font-style: normal; filter: drop-shadow(0 3px 3px rgba(150, 40, 80, .22)); animation: pumpkin-sway ease-in-out infinite alternate; animation-duration: 4s; }
+.fruit:nth-child(2n) i { animation-duration: 5.2s; }
+.fruit:nth-child(3n) i { animation-duration: 6.1s; animation-direction: alternate-reverse; }
+@keyframes fruit-fall { to { transform: translateY(calc(100vh + 110px)) rotate(150deg); } }
+@media (prefers-reduced-motion: reduce) { .fruits { display: none; } :root[data-skin="tropical"] .logo-mark::after { animation: none; } }
+
 /* theme picker */
 .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
 .theme { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 10px; }
@@ -403,7 +431,7 @@ a.store { border-radius: 14px; }
   .btn, .chip, .tile { transition: none; }
 }
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Creepster&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Creepster&family=Fredoka:wght@500;600&family=Space+Grotesk:wght@500;700&display=swap">
 <style>/*KATEX_CSS*/</style>
 
 <div class="app">
@@ -455,20 +483,31 @@ a.store { border-radius: 14px; }
     { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
     { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
     { id: 'science', name: 'Science', colors: ['#06121c', '#22e6d4', '#e6fbff'] },
+    { id: 'tropical', name: 'Tropical', colors: ['#fff6e0', '#d6246e', '#ff9a1f'] },
   ]
   function applySkin() {
     const root = document.documentElement
     if (S.skin === 'auto' || !SKINS.some((k) => k.id === S.skin)) root.removeAttribute('data-skin')
     else root.setAttribute('data-skin', S.skin)
-    document.querySelector('.pumpkins')?.remove(); document.querySelector('.elements')?.remove()
+    document.querySelector('.pumpkins')?.remove(); document.querySelector('.elements')?.remove(); document.querySelector('.fruits')?.remove()
     if (S.skin === 'halloween') document.body.append(pumpkins())
     if (S.skin === 'science') document.body.append(elements())
+    if (S.skin === 'tropical') document.body.append(fruits())
   }
   function elements() {
     const box = h('div', { class: 'elements', 'aria-hidden': 'true' })
     ;[['H', 1], ['He', 2], ['C', 6], ['N', 7], ['O', 8], ['Na', 11], ['Si', 14], ['Fe', 26], ['Cu', 29], ['Au', 79], ['\u03c0', ''], ['\u03a3', ''], ['U', 92]].forEach(([sym, n], i) => {
       const t = h('span', { class: 'element' }, h('small', {}, String(n)), h('b', {}, sym))
       t.style.cssText = 'left:' + ((i * 7.9 + 3) % 92) + '%;animation-duration:' + (20 + ((i * 7) % 11)) + 's;animation-delay:-' + ((i * 4.3) % 22) + 's'
+      box.append(t)
+    })
+    return box
+  }
+  function fruits() {
+    const box = h('div', { class: 'fruits', 'aria-hidden': 'true' })
+    ;['\ud83c\udf4d', '\ud83e\udd6d', '\ud83c\udf49', '\ud83e\udd65', '\ud83c\udf4c', '\ud83e\udd5d', '\ud83c\udf4a', '\ud83c\udf3a', '\ud83c\udf4b', '\ud83c\udf53', '\ud83c\udf34'].forEach((f, i) => {
+      const t = h('span', { class: 'fruit' }, h('i', {}, f))
+      t.style.cssText = 'left:' + ((i * 9.1 + 5) % 94) + '%;font-size:' + (22 + ((i * 7) % 5) * 5) + 'px;animation-duration:' + (16 + ((i * 5) % 9)) + 's;animation-delay:-' + ((i * 3.9) % 17) + 's;--sway:' + (14 + ((i * 11) % 22)) + 'px'
       box.append(t)
     })
     return box

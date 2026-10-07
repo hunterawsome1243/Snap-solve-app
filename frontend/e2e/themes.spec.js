@@ -40,6 +40,19 @@ test('science: element tiles rise, the camera button has a laser, the logo is an
   expect(await page.evaluate(() => getComputedStyle(document.querySelector('.logo-mark'), '::after').content)).toContain('⚛')
 })
 
+test('tropical: fruit drifts down, the logo is a pineapple, and it goes away on another theme', async ({ page }) => {
+  await pick(page, 'Tropical')
+  expect(await page.evaluate(() => document.documentElement.dataset.skin)).toBe('tropical')
+  await expect(page.locator('.fruit')).toHaveCount(11)
+  const top = () => page.evaluate(() => document.querySelector('.fruit').getBoundingClientRect().top)
+  const before = await top()
+  await page.waitForTimeout(1200)
+  expect(await top()).toBeGreaterThan(before)
+  expect(await page.evaluate(() => getComputedStyle(document.querySelector('.logo-mark'), '::after').content)).toContain('🍍')
+  await pick(page, 'Ocean')
+  await expect(page.locator('.fruit')).toHaveCount(0)
+})
+
 test('motion is switched off for people who ask for less of it', async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 390, height: 844 } })
   const page = await ctx.newPage()

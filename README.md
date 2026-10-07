@@ -130,7 +130,7 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
 - **Practice** with Easy / Medium / Hard and a topic, a hint on demand, and a streak. Answers are graded by
   SymPy, not by the model; a problem is only used if its stored answer agrees with SymPy.
 - "Explain like I'm 12" toggle, history on the device, and themes (Light, Dark, Halloween with falling
-  pumpkins, Ocean, Forest, Sunset, and **Science**: a lab-blue blueprint grid, a spinning atom logo, a laser that
+  pumpkins, Ocean, Forest, Sunset, **Science**, and **Tropical** (a sunny mango-and-dragonfruit palette with a swaying pineapple logo and fruit drifting down the screen), plus Science: a lab-blue blueprint grid, a spinning atom logo, a laser that
   sweeps across the camera button, and periodic-table tiles drifting up the screen). All motion respects "reduce motion".
 
 **Snap Buy** (see above)
