@@ -1,0 +1,1741 @@
+<title>Hunter Scan</title>
+<style>
+/* Layout: one narrow column on graph paper; a big viewfinder button is the home screen, results read like worked homework. */
+/* Hunter green for structure, blaze orange for the one action that matters. */
+:root {
+  --bg: #f3f6f1; --surface: #ffffff; --ink: #15211a; --muted: #5d6c62; --line: #e0e8df;
+  --accent: #2c6e4d; --accent-ink: #ffffff; --soft: #e6f0e9; --grid: rgba(44, 110, 77, .07);
+  --cta: #f26a1b; --cta-2: #ff8a3d; --cta-ink: #ffffff;
+  --hi: rgba(242, 106, 27, .34); --ok-bg: #e1f4e8; --ok: #17703f; --warn-bg: #fff3d9; --warn: #8a5a00; --warn-line: #efc15b;
+  --info-bg: #e5f0ef; --info: #1f5a56; --shadow: 0 1px 2px rgba(21, 33, 26, .05), 0 10px 28px rgba(21, 33, 26, .07);
+  --display: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b130f; --surface: #131f18; --ink: #e8f1ea; --muted: #93a89a; --line: #223329;
+    --accent: #5fd39b; --accent-ink: #04200f; --soft: #1a2c21; --grid: rgba(95, 211, 155, .06);
+    --cta: #ff8a3d; --cta-2: #ffa35e; --cta-ink: #2a1100;
+    --hi: rgba(255, 138, 61, .4); --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #35280b; --warn: #ffd27a; --warn-line: #8a6a1c;
+    --info-bg: #173431; --info: #9fe0d6; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b130f; --surface: #131f18; --ink: #e8f1ea; --muted: #93a89a; --line: #223329;
+  --accent: #5fd39b; --accent-ink: #04200f; --soft: #1a2c21; --grid: rgba(95, 211, 155, .06);
+  --cta: #ff8a3d; --cta-2: #ffa35e; --cta-ink: #2a1100;
+  --hi: rgba(255, 138, 61, .4); --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #35280b; --warn: #ffd27a; --warn-line: #8a6a1c;
+  --info-bg: #173431; --info: #9fe0d6; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
+}
+
+/* Optional skins, chosen in the picker. They set every token and override the viewer's light/dark. */
+:root[data-skin="halloween"] {
+  --bg: #150c20; --surface: #201331; --ink: #f7ead9; --muted: #bba6cc; --line: #3b2657;
+  --accent: #ff8a1f; --accent-ink: #1c0b00; --soft: #2d1b44; --grid: rgba(255, 138, 31, .07); --hi: #7a3f00;
+  --ok-bg: #16301a; --ok: #9be564; --warn-bg: #3d1d0a; --warn: #ffb35c; --warn-line: #9a4d12;
+  --info-bg: #27193d; --info: #d3b8ff; --shadow: 0 10px 28px rgba(0, 0, 0, .5);
+  --display: 'Creepster', 'Bricolage Grotesque', 'Avenir Next', system-ui, sans-serif; color-scheme: dark;
+}
+:root[data-skin="ocean"] {
+  --bg: #eaf6f8; --surface: #ffffff; --ink: #07313c; --muted: #53727b; --line: #cfe6ea;
+  --accent: #087f92; --accent-ink: #ffffff; --soft: #daf0f3; --grid: rgba(8, 127, 146, .08); --hi: #ffe28a;
+  --ok-bg: #dff5ea; --ok: #12683a; --warn-bg: #fff0dc; --warn: #8f4300; --warn-line: #f0b062;
+  --info-bg: #dff0f8; --info: #1d5875; --shadow: 0 1px 2px rgba(7, 49, 60, .06), 0 10px 28px rgba(7, 49, 60, .08); color-scheme: light;
+}
+:root[data-skin="forest"] {
+  --bg: #0e1913; --surface: #15251c; --ink: #e5f0e7; --muted: #9ab3a1; --line: #254132;
+  --accent: #6fcf8c; --accent-ink: #06180c; --soft: #1c3226; --grid: rgba(111, 207, 140, .07); --hi: #6b5a00;
+  --ok-bg: #163824; --ok: #8ff0ae; --warn-bg: #3a2a10; --warn: #ffcb7a; --warn-line: #8a6a1c;
+  --info-bg: #1a3030; --info: #9fe0d0; --shadow: 0 10px 28px rgba(0, 0, 0, .45); color-scheme: dark;
+}
+:root[data-skin="sunset"] {
+  --bg: #fff3ee; --surface: #ffffff; --ink: #3a1620; --muted: #86616a; --line: #f5d9d3;
+  --accent: #d93f57; --accent-ink: #ffffff; --soft: #ffe4e0; --grid: rgba(217, 63, 87, .07); --hi: #ffd27a;
+  --ok-bg: #e3f6ea; --ok: #136a38; --warn-bg: #fff0dc; --warn: #8f4300; --warn-line: #f0b062;
+  --info-bg: #fde7ef; --info: #8a2a52; --shadow: 0 1px 2px rgba(58, 22, 32, .06), 0 10px 28px rgba(58, 22, 32, .08); color-scheme: light;
+}
+:root[data-skin] { --cta: var(--accent); --cta-2: var(--accent); --cta-ink: var(--accent-ink); }
+:root[data-skin="halloween"] h1, :root[data-skin="halloween"] h2 { letter-spacing: .02em; font-weight: 400; }
+:root[data-skin="halloween"] h1 { font-size: 2.5rem; }
+:root[data-skin="halloween"] .logo { font-weight: 400; font-size: 1.5rem; letter-spacing: .03em; }
+:root[data-skin="halloween"] .logo-mark { background: transparent; font-size: 0; }
+:root[data-skin="halloween"] .logo-mark::after { content: '\1F383'; font-size: 1.7rem; }
+:root[data-skin="halloween"] body::before {
+  content: ''; position: fixed; top: 0; right: 0; width: 140px; height: 140px; z-index: -1; pointer-events: none; opacity: .28;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23f7ead9' stroke-width='.7'%3E%3Cpath d='M100 0L0 0M100 0L0 28M100 0L0 60M100 0L28 100M100 0L60 100M100 0L100 100'/%3E%3Cpath d='M72 0Q74 24 100 28M44 0Q50 44 100 56M16 0Q26 68 100 86'/%3E%3C/svg%3E") no-repeat top right / contain;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  background-color: var(--bg); color: var(--ink); font: 16px/1.5 var(--body);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px; padding-inline: 16px;
+}
+h1, h2 { font-family: var(--display); margin: 0; letter-spacing: -.02em; text-wrap: balance; }
+h1 { font-size: 2.1rem; line-height: 1.08; }
+h2 { font-size: 1.2rem; }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.app { max-width: 560px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+header.top { display: flex; justify-content: space-between; align-items: center; padding-block: 12px; }
+.logo { display: flex; align-items: center; gap: 9px; font: 800 1.2rem var(--display); background: none; border: 0; padding: 0; letter-spacing: -.02em; }
+.logo-mark { width: 32px; height: 32px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 1.1rem; }
+main { flex: 1; display: flex; flex-direction: column; gap: 14px; padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.center { text-align: center; align-items: center; }
+.row { display: flex; gap: 10px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.grow { flex: 1; min-width: 0; }
+.muted { color: var(--muted); }
+.tiny { font-size: .8rem; }
+.eyebrow { font: 600 .72rem var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+
+.btn { border: 1px solid transparent; border-radius: 14px; padding: 13px 18px; font-weight: 700; background: none; }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.secondary { background: var(--soft); color: var(--accent); }
+.btn.ghost { border-color: var(--line); background: var(--surface); }
+.link { background: none; border: 0; color: var(--muted); text-decoration: underline; padding: 6px; align-self: center; }
+.link.danger { color: var(--warn); }
+.icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+
+/* home */
+.hero { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; }
+.hero p { max-width: 38ch; }
+.snap {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  aspect-ratio: 1 / 1; width: 100%; max-height: 330px; margin-top: 10px; border-radius: 26px; cursor: pointer;
+  background: var(--accent); color: var(--accent-ink); font: 800 1.35rem var(--display);
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.snap:active { transform: scale(.985); }
+.snap svg { width: 64px; height: 64px; }
+.snap i { position: absolute; width: 30px; height: 30px; border: 4px solid currentColor; opacity: .55; }
+.snap i:nth-of-type(1) { top: 18px; left: 18px; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
+.snap i:nth-of-type(2) { top: 18px; right: 18px; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
+.snap i:nth-of-type(3) { bottom: 18px; left: 18px; border-right: 0; border-top: 0; border-bottom-left-radius: 10px; }
+.snap i:nth-of-type(4) { bottom: 18px; right: 18px; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
+.drop { border: 2px dashed var(--line); border-radius: 18px; padding: 16px; text-align: center; }
+.drop.over { border-color: var(--accent); background: var(--soft); }
+.alt { display: flex; gap: 10px; }
+.alt > * { flex: 1; text-align: center; }
+label.btn { cursor: pointer; display: block; }
+
+/* crop */
+.stage { display: flex; justify-content: center; background: #000; border-radius: 12px; overflow: hidden; }
+.cwrap { position: relative; line-height: 0; touch-action: none; user-select: none; -webkit-user-select: none; max-width: 100%; overflow: hidden; }
+.cwrap img { display: block; max-width: 100%; max-height: 56vh; width: auto; height: auto; -webkit-user-drag: none; }
+.cbox { position: absolute; border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .55); cursor: move; touch-action: none; }
+.hd { position: absolute; width: 30px; height: 30px; border: 3px solid #fff; border-radius: 50%; background: var(--accent); touch-action: none; }
+.hd.tl { left: -15px; top: -15px; } .hd.tr { right: -15px; top: -15px; }
+.hd.bl { left: -15px; bottom: -15px; } .hd.br { right: -15px; bottom: -15px; }
+
+.spinner { width: 40px; height: 40px; border-radius: 50%; border: 4px solid var(--line); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+.thumb { max-width: 100%; max-height: 120px; border-radius: 10px; opacity: .85; }
+
+/* editor */
+.preview { background: var(--soft); border-radius: 14px; padding: 16px 10px; text-align: center; overflow-x: auto; min-height: 72px; display: grid; place-items: center; }
+textarea { width: 100%; font: 15px/1.4 var(--mono); padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); resize: vertical; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background: var(--soft); color: var(--accent); border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 700; min-width: 44px; }
+
+/* result */
+.problem { overflow-x: auto; }
+.answer { font-size: 1.8rem; overflow-x: auto; padding: 4px 0 8px; }
+.answer .katex-display { margin: .15em 0; }
+.answer .katex-display > .katex { display: inline-block; background: linear-gradient(transparent 62%, var(--hi) 62%, var(--hi) 92%, transparent 92%); padding: 0 .15em; }
+.steps { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 16px; counter-reset: s; }
+.steps li { display: flex; gap: 12px; align-items: flex-start; }
+.steps li::before { counter-increment: s; content: counter(s); flex: none; width: 26px; height: 26px; border-radius: 8px; background: var(--soft); color: var(--accent); font: 700 .8rem var(--mono); display: grid; place-items: center; margin-top: 4px; }
+.sb { min-width: 0; flex: 1; }
+.sm { overflow-x: auto; overflow-y: hidden; }
+.sm .katex-display { margin: .2em 0; text-align: left; }
+.sm .katex-display > .katex { text-align: left; }
+.explain { color: var(--muted); font-size: .95rem; }
+.conclusion { margin-top: 12px; font-weight: 600; }
+.banner { border-radius: 12px; padding: 10px 14px; font-size: .92rem; display: flex; flex-direction: column; gap: 2px; }
+.banner.ok { background: var(--ok-bg); color: var(--ok); font-weight: 600; }
+.banner.info { background: var(--info-bg); color: var(--info); }
+.banner.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-line); }
+.banner.warn strong { font-size: 1.05rem; }
+
+/* snap buy */
+.field { width: 100%; font: inherit; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.links { display: flex; flex-direction: column; gap: 10px; }
+a.store { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); color: var(--ink); text-decoration: none; font-weight: 700; }
+a.store.first { border-color: var(--accent); background: var(--soft); }
+a.store span { color: var(--muted); font: 500 .75rem var(--mono); }
+.thumb2 { max-width: 100%; max-height: 120px; border-radius: 10px; align-self: flex-start; }
+
+a.btn { text-decoration: none; text-align: center; }
+.tag { align-self: flex-start; font: 700 .7rem var(--mono); text-transform: uppercase; letter-spacing: .06em; padding: 4px 9px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); }
+.rec { border-color: var(--accent); }
+
+/* handwriting fixer */
+.fixer { gap: 10px; }
+.tokens { display: flex; flex-wrap: wrap; gap: 6px; }
+.tok { font: 600 .95rem var(--mono); min-width: 38px; height: 38px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); position: relative; }
+.tok.dim { opacity: .55; }
+.tok.flag { border-color: var(--warn-line); background: var(--warn-bg); color: var(--warn); }
+.tok.flag::after { content: '?'; position: absolute; top: -7px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--warn-line); color: #000; font-size: .7rem; display: grid; place-items: center; }
+.tok.sel { outline: 2px solid var(--accent); }
+.fix-panel { background: var(--soft); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.fix-panel .chip { background: var(--surface); border: 1px solid var(--line); }
+.fix-title code { font-weight: 800; }
+.chip.on { background: var(--accent); color: var(--accent-ink); }
+select.field { appearance: auto; }
+
+/* graph */
+.graph { width: 100%; height: auto; background: var(--bg); border-radius: 14px; }
+.g-grid { stroke: var(--line); stroke-width: 1; }
+.g-axis { stroke: var(--muted); stroke-width: 1.4; }
+.g-tick { fill: var(--muted); font-size: 9px; }
+.g-label { fill: var(--ink); font-size: 10px; font-weight: 700; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
+.g-area { fill: var(--accent); opacity: .22; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .85rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; vertical-align: -1px; }
+
+/* step checks, problems list, word problems, practice, history */
+.chk { display: inline-block; font-size: .75rem; font-weight: 700; margin-top: 4px; }
+.chk.ok { color: var(--ok); } .chk.bad { color: var(--warn); }
+.step-bad::before { background: var(--warn-bg) !important; color: var(--warn) !important; }
+.step-bad .sm { border-left: 3px solid var(--warn-line); padding-left: 8px; }
+.answer-text { font-weight: 600; }
+.link.left { align-self: flex-start; padding-left: 0; }
+.numchip { width: 26px; height: 26px; border-radius: 8px; background: var(--soft); color: var(--accent); font: 700 .8rem var(--mono); display: grid; place-items: center; }
+.status { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.status.done { color: var(--ok); } .status.error { color: var(--warn); } .status.solving { color: var(--accent); }
+.word-text { font-style: italic; }
+.word-card { background: var(--soft); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.vars { margin: 0; padding-left: 18px; } .vars code { font-weight: 800; }
+.answer.small { font-size: 1.15rem; padding: 0; color: var(--accent); }
+.row.spread { justify-content: space-between; }
+.streak { font-weight: 800; font-size: 1.1rem; text-align: right; }
+.type-tag { display: inline-block; font: 800 .68rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); background: var(--soft); padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; }
+.htitle { font-weight: 700; overflow-wrap: anywhere; }
+
+/* export sheet (off-screen, plain styles so it exports cleanly) */
+.sheet-wrap { position: fixed; left: -10000px; top: 0; width: 720px; pointer-events: none; }
+.sheet { width: 720px; padding: 32px; background: var(--surface); color: var(--ink); font: 16px/1.5 var(--body); }
+.sheet-brand { font-weight: 800; font-size: 1.1rem; color: var(--accent); margin-bottom: 8px; }
+.sheet-label { margin-top: 18px; font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.sheet-answer { font-size: 1.6rem; }
+.sheet-verify, .sheet-text { margin: 6px 0 0; } .sheet-verify { color: var(--muted); font-size: .9rem; }
+.sheet-steps { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.sheet-steps li { display: flex; gap: 12px; }
+.sheet-steps li > div { flex: 1; min-width: 0; }
+.sheet-num { flex: none; width: 24px; height: 24px; border-radius: 12px; background: var(--soft); color: var(--accent); font-weight: 800; font-size: .8rem; display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+.sheet-steps p { margin: 0; color: var(--muted); font-size: .92rem; } .sheet-steps p.sheet-bad { color: var(--warn); font-weight: 700; }
+.sheet .katex-display { margin: .25em 0; text-align: left; } .sheet .katex-display > .katex { text-align: left; }
+.sheet-foot { margin-top: 24px; color: var(--muted); font-size: .8rem; }
+
+/* halloween pumpkins */
+.pumpkins { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.pumpkin { position: absolute; top: -48px; opacity: .55; animation: pumpkin-fall linear infinite; will-change: transform; }
+.pumpkin i { display: block; font-style: normal; animation: pumpkin-sway ease-in-out infinite alternate; animation-duration: 3.4s; filter: drop-shadow(0 0 6px rgba(255, 138, 31, .55)); }
+.pumpkin:nth-child(2n) i { animation-duration: 4.6s; }
+.pumpkin:nth-child(3n) i { animation-duration: 5.4s; animation-direction: alternate-reverse; }
+@keyframes pumpkin-fall { to { transform: translateY(calc(100vh + 96px)) rotate(200deg); } }
+@keyframes pumpkin-sway { from { transform: translateX(calc(var(--sway) * -1)); } to { transform: translateX(var(--sway)); } }
+:root[data-skin="halloween"] .logo-mark::after { animation: flicker 3.2s infinite; }
+@keyframes flicker { 0%, 100% { filter: brightness(1); } 8% { filter: brightness(1.5); } 12% { filter: brightness(.85); } 55% { filter: brightness(1.25); } 60% { filter: brightness(.9); } }
+@media (prefers-reduced-motion: reduce) { .pumpkins { display: none; } :root[data-skin="halloween"] .logo-mark::after { animation: none; } }
+
+/* hunter scan logo mark + science theme */
+.logo-mark svg { width: 20px; height: 20px; }
+:root[data-skin="halloween"] .logo-mark svg { display: none; }
+:root[data-skin="science"] {
+  --bg: #06121c; --surface: #0d2233; --ink: #e6fbff; --muted: #8fb4c4; --line: #17384d;
+  --accent: #22e6d4; --accent-ink: #03201f; --soft: #12354a; --grid: rgba(34, 230, 212, .10); --hi: #0b6b73;
+  --ok-bg: #0e3a2f; --ok: #5dffb0; --warn-bg: #3a2a0c; --warn: #ffd166; --warn-line: #a07a1a;
+  --info-bg: #11344d; --info: #8fd8ff; --shadow: 0 0 0 1px rgba(34, 230, 212, .13), 0 12px 32px rgba(0, 0, 0, .5);
+  --display: 'Space Grotesk', 'Bricolage Grotesque', system-ui, sans-serif; color-scheme: dark;
+}
+:root[data-skin="science"] h1, :root[data-skin="science"] h2, :root[data-skin="science"] .logo { letter-spacing: -.01em; }
+:root[data-skin="science"] .answer { text-shadow: 0 0 18px rgba(34, 230, 212, .45); }
+:root[data-skin="science"] .logo-mark { background: transparent; font-size: 0; }
+:root[data-skin="science"] .logo-mark svg { display: none; }
+:root[data-skin="science"] .logo-mark::after { content: '\269B\FE0E'; display: inline-block; font-size: 1.8rem; line-height: 1; color: var(--accent); text-shadow: 0 0 12px var(--accent); animation: atom-spin 10s linear infinite; }
+@keyframes atom-spin { to { transform: rotate(360deg); } }
+:root[data-skin="science"] .snap { overflow: hidden; box-shadow: 0 0 38px rgba(34, 230, 212, .4); }
+:root[data-skin="science"] .snap::after { content: ''; position: absolute; left: 0; right: 0; height: 3px; top: 12%; background: linear-gradient(90deg, transparent, #fff, transparent); box-shadow: 0 0 14px 4px rgba(255, 255, 255, .55); animation: laser 3.4s ease-in-out infinite; }
+@keyframes laser { 0%, 100% { top: 12%; opacity: 0; } 12% { opacity: .9; } 50% { top: 88%; opacity: .9; } 88% { opacity: .9; } }
+.elements { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.element { position: absolute; bottom: -64px; width: 38px; height: 42px; padding: 3px 5px; display: flex; flex-direction: column; justify-content: space-between; border: 1.5px solid var(--accent); border-radius: 6px; background: rgba(34, 230, 212, .06); color: var(--accent); font-family: var(--mono); opacity: 0; animation: element-rise linear infinite; will-change: transform; }
+.element small { font-size: .5rem; line-height: 1; opacity: .85; min-height: .5rem; }
+.element b { font-size: .95rem; line-height: 1; }
+@keyframes element-rise { 0% { transform: translateY(0) rotate(-6deg); opacity: 0; } 10% { opacity: .4; } 85% { opacity: .4; } 100% { transform: translateY(calc(-100vh - 120px)) rotate(8deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .elements { display: none; } :root[data-skin="science"] .logo-mark::after { animation: none; } :root[data-skin="science"] .snap::after { display: none; } }
+
+/* tropical fruit theme */
+:root[data-skin="tropical"] {
+  --bg: #fff6e0; --surface: #fffdf7; --ink: #3b1b33; --muted: #8a6378; --line: #f5d8b4;
+  --accent: #d6246e; --accent-ink: #ffffff; --soft: #ffe8d0; --grid: rgba(255, 154, 31, .12); --hi: #ffe3a3;
+  --ok-bg: #e0f5dd; --ok: #1b7a3d; --warn-bg: #fff0c7; --warn: #8a5300; --warn-line: #f0b84a;
+  --info-bg: #dcf4f1; --info: #0a7a80; --shadow: 0 10px 28px rgba(214, 36, 110, .12);
+  --display: 'Fredoka', 'Inter', system-ui, sans-serif; color-scheme: light;
+  --cta: #f26a1b; --cta-2: #e11d74; --cta-ink: #ffffff;
+}
+:root[data-skin="tropical"] body {
+  background-image: radial-gradient(520px 380px at 100% 0%, rgba(255, 154, 31, .28), transparent 70%), radial-gradient(480px 420px at 0% 100%, rgba(32, 201, 166, .22), transparent 70%), radial-gradient(360px 300px at 0% 18%, rgba(255, 61, 127, .13), transparent 70%);
+  background-attachment: fixed;
+}
+:root[data-skin="tropical"] h1, :root[data-skin="tropical"] h2, :root[data-skin="tropical"] .logo { letter-spacing: 0; font-weight: 600; }
+:root[data-skin="tropical"] .card { border-color: #f7d3a8; }
+:root[data-skin="tropical"] .logo-mark { background: transparent; font-size: 0; }
+:root[data-skin="tropical"] .logo-mark svg { display: none; }
+:root[data-skin="tropical"] .logo-mark::after { content: '\1F34D'; display: inline-block; font-size: 1.7rem; line-height: 1; transform-origin: 50% 90%; animation: pine-sway 3.6s ease-in-out infinite alternate; }
+@keyframes pine-sway { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+:root[data-skin="tropical"] .snap { background: conic-gradient(from 210deg at 50% 50%, #ff9a1f, #ff3d7f, #d6246e, #ff7a1a, #ffc233, #ff9a1f); box-shadow: 0 18px 40px rgba(255, 61, 127, .38), 0 0 0 6px rgba(255, 255, 255, .6), inset 0 2px 0 rgba(255, 255, 255, .45); }
+.fruits { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.fruit { position: absolute; top: -56px; opacity: .6; animation: fruit-fall linear infinite; will-change: transform; }
+.fruit i { display: block; font-style: normal; filter: drop-shadow(0 3px 3px rgba(150, 40, 80, .22)); animation: pumpkin-sway ease-in-out infinite alternate; animation-duration: 4s; }
+.fruit:nth-child(2n) i { animation-duration: 5.2s; }
+.fruit:nth-child(3n) i { animation-duration: 6.1s; animation-direction: alternate-reverse; }
+@keyframes fruit-fall { to { transform: translateY(calc(100vh + 110px)) rotate(150deg); } }
+@media (prefers-reduced-motion: reduce) { .fruits { display: none; } :root[data-skin="tropical"] .logo-mark::after { animation: none; } }
+
+/* theme picker */
+.themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.theme { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 10px; }
+.theme[aria-pressed="true"] { border-color: var(--accent); }
+.theme .dots { display: flex; }
+.theme .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); margin-right: -6px; }
+.theme b { font: 700 .85rem var(--body); }
+
+/* history */
+.hitem { display: flex; gap: 8px; align-items: center; padding: 14px 16px; }
+.hopen { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 0; }
+.hans { color: var(--accent); font-weight: 600; overflow-x: auto; }
+
+.switch { display: flex; align-items: center; gap: 7px; cursor: pointer; font: 600 .75rem var(--mono); color: var(--muted); }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.track { width: 38px; height: 22px; border-radius: 11px; background: var(--line); position: relative; transition: background .15s; }
+.track::after { content: ''; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(16px); }
+.switch input:focus-visible + .track { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 5; }
+nav.tabs .in { display: flex; width: min(560px, 100%); }
+nav.tabs button { flex: 1; background: none; border: 0; padding: 10px 0 12px; display: flex; flex-direction: column; align-items: center; gap: 3px; font: 700 .72rem var(--mono); color: var(--muted); }
+nav.tabs svg { width: 22px; height: 22px; }
+nav.tabs button[aria-current="true"] { color: var(--accent); }
+.katex { font-size: 1.1em; }
+
+/* ===== polish pass ===== */
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+h1 { font-size: clamp(1.95rem, 8vw, 2.4rem); line-height: 1.06; letter-spacing: -.035em; font-weight: 800; }
+h2 { font-weight: 750; letter-spacing: -.01em; }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+input[type='checkbox'] { accent-color: var(--accent); }
+.ico-svg { width: 20px; height: 20px; flex: none; }
+.ico-svg.inline { width: 14px; height: 14px; vertical-align: -2px; margin-right: 4px; }
+.logo-mark { border-radius: 11px; width: 34px; height: 34px; background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent)); box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .25); }
+.card { border-radius: 20px; }
+main > * { animation: rise .28s cubic-bezier(.2, .7, .2, 1) both; }
+main > *:nth-child(2) { animation-delay: .04s; } main > *:nth-child(3) { animation-delay: .08s; } main > *:nth-child(n+4) { animation-delay: .12s; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 12px 12px; border-radius: 14px; text-decoration: none; text-align: center; transition: transform .1s, filter .15s, background .15s; }
+.btn:active:not(:disabled) { transform: scale(.98); }
+.btn .ico-svg { width: 18px; height: 18px; }
+.btn.primary { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 6px 14px color-mix(in srgb, var(--accent) 26%, transparent); }
+.btn.cta { background: linear-gradient(135deg, var(--cta), var(--cta-2)); color: var(--cta-ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 8px 18px color-mix(in srgb, var(--cta) 32%, transparent); }
+.btn.ghost { background: transparent; }
+.link { display: inline-flex; align-items: center; gap: 6px; text-underline-offset: 3px; padding: 8px; }
+.icon-btn { display: inline-grid; place-items: center; }
+.chip { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 16px; border-radius: 999px; transition: background .15s, color .15s, transform .1s; }
+.chip:active { transform: scale(.96); }
+.chips[role='tablist'] { background: var(--soft); border-radius: 999px; padding: 4px; gap: 4px; flex-wrap: nowrap; }
+.chips[role='tablist'] .chip { flex: 1; background: transparent; min-height: 40px; color: var(--muted); }
+.chips[role='tablist'] .chip.on { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.field:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.empty-ico { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--soft); color: var(--accent); margin: 4px auto; }
+.empty-ico .ico-svg { width: 32px; height: 32px; }
+
+/* home */
+.hero { position: relative; align-items: center; text-align: center; gap: 12px; padding-top: 20px; }
+.hero::before { content: ''; position: absolute; top: 120px; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--cta) 16%, transparent), transparent); pointer-events: none; z-index: -1; }
+.hero h1 { margin: 0; }
+.lead { max-width: 34ch; }
+.snap { position: relative; width: 196px; height: 196px; max-height: none; aspect-ratio: auto; border-radius: 50%; margin: 18px auto 8px; gap: 10px; font: 800 1.08rem var(--display); letter-spacing: -.01em;
+  color: var(--cta-ink); background: radial-gradient(circle at 30% 24%, var(--cta-2), var(--cta)); box-shadow: 0 20px 42px color-mix(in srgb, var(--cta) 38%, transparent), inset 0 2px 0 rgba(255, 255, 255, .35); }
+.snap i { display: none; }
+.snap::before { content: ''; position: absolute; inset: -12px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--cta) 50%, transparent); animation: ring 2.8s ease-out infinite; pointer-events: none; }
+@keyframes ring { 0% { transform: scale(.92); opacity: .9; } 100% { transform: scale(1.16); opacity: 0; } }
+.snap .ico-svg { width: 64px; height: 64px; stroke-width: 1.7; }
+.quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: 10px; }
+.tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 88px; padding: 12px 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); font-weight: 700; font-size: .86rem; color: var(--ink); text-decoration: none; cursor: pointer; transition: transform .1s; }
+.tile .ico-svg { width: 26px; height: 26px; color: var(--accent); }
+.tile:active { transform: scale(.97); }
+.tile:disabled { opacity: .5; }
+.perks { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; list-style: none; margin: 8px 0 0; padding: 0; }
+.perks li { display: flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; color: var(--muted); background: var(--soft); padding: 6px 11px 6px 8px; border-radius: 999px; }
+.perks .ico-svg { width: 14px; height: 14px; color: var(--accent); stroke-width: 2.4; }
+.drop { border: 0; padding: 6px; }
+.drop.over { border: 2px dashed var(--accent); border-radius: 18px; }
+
+/* tabs */
+nav.tabs { background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(14px); padding: 4px 8px calc(env(safe-area-inset-bottom, 0px) + 4px); }
+nav.tabs button { padding: 6px 0 4px; gap: 3px; font: 700 .72rem var(--body); letter-spacing: .01em; }
+nav.tabs .ico { display: grid; place-items: center; width: 58px; height: 30px; border-radius: 15px; transition: background .2s; }
+nav.tabs button[aria-current="true"] .ico { background: var(--soft); }
+.switch { background: var(--soft); padding: 7px 11px 7px 9px; border-radius: 999px; }
+
+/* result: the work on a timeline */
+.answer { font-size: 2.05rem; color: var(--ink); }
+.steps { gap: 18px; }
+.steps li { position: relative; }
+.steps li:not(:last-child)::after { content: ''; position: absolute; left: 14px; top: 34px; bottom: -20px; width: 2px; border-radius: 1px; background: var(--line); }
+.steps li::before { width: 30px; height: 30px; border-radius: 50%; margin-top: 2px; z-index: 1; box-shadow: 0 0 0 4px var(--surface); }
+.step-bad::after { background: var(--warn-line) !important; }
+.chk { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px 2px 7px; border-radius: 999px; font-size: .72rem; margin-top: 6px; }
+.chk .ico-svg { width: 12px; height: 12px; stroke-width: 2.6; }
+.chk.ok { background: var(--ok-bg); } .chk.bad { background: var(--warn-bg); }
+.banner { position: relative; border-radius: 14px; padding: 11px 14px; }
+.banner:has(> .b-ico) { padding-left: 42px; }
+.banner > .b-ico { position: absolute; left: 14px; top: 12px; width: 18px; height: 18px; }
+
+/* loaders: the photo inside a scanning frame */
+.scan-card { padding: 22px 18px; }
+.scan-loader { position: relative; width: min(100%, 270px); aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--accent) 14%, var(--surface)); margin: 2px auto 4px; }
+.scan-loader img { width: 100%; height: 100%; object-fit: cover; opacity: .92; max-width: none; }
+.scan-frame { position: absolute; inset: 9px; pointer-events: none; --c: var(--cta);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 24px 3px no-repeat, linear-gradient(var(--c), var(--c)) top left / 3px 24px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 24px 3px no-repeat, linear-gradient(var(--c), var(--c)) top right / 3px 24px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 24px 3px no-repeat, linear-gradient(var(--c), var(--c)) bottom left / 3px 24px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 24px 3px no-repeat, linear-gradient(var(--c), var(--c)) bottom right / 3px 24px no-repeat; }
+.beam { position: absolute; left: 0; right: 0; top: 6%; height: 3px; background: linear-gradient(90deg, transparent, var(--cta), transparent); box-shadow: 0 0 16px 5px color-mix(in srgb, var(--cta) 50%, transparent); animation: beam 1.9s ease-in-out infinite; }
+@keyframes beam { 0%, 100% { top: 6%; } 50% { top: 92%; } }
+
+/* snap buy + practice */
+.rec { border-color: color-mix(in srgb, var(--cta) 55%, var(--line)); background: linear-gradient(180deg, color-mix(in srgb, var(--cta) 8%, var(--surface)), var(--surface) 60%); }
+.rec .tag { background: var(--cta); color: var(--cta-ink); }
+a.store { border-radius: 14px; }
+.streak { display: inline-flex; align-items: center; gap: 4px; }
+.streak .flame { width: 22px; height: 22px; color: var(--cta); fill: color-mix(in srgb, var(--cta) 35%, transparent); }
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 20; }
+.confetti i { position: absolute; top: 28%; width: 9px; height: 14px; border-radius: 2px; opacity: 0; animation: confetti 1.2s cubic-bezier(.15, .7, .3, 1) forwards; }
+@keyframes confetti { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(var(--dx), 70vh) rotate(var(--rot)); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  main > *, .snap::before, .beam, .confetti i { animation: none !important; }
+  .confetti { display: none; }
+  .btn, .chip, .tile { transition: none; }
+}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Creepster&family=Fredoka:wght@500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>/*KATEX_CSS*/</style>
+
+<div class="app">
+  <header class="top">
+    <button class="logo" id="logo" type="button"><span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></span>Hunter Scan</button>
+    <div class="row"><button class="icon-btn" id="themebtn" type="button" aria-label="Choose theme" aria-expanded="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.7 1.8-1.7H17a4 4 0 0 0 4-4C21 6.2 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg></button>
+    <label class="switch" title="Make the explanations simpler"><input type="checkbox" id="eli"><span class="track"></span>ELI12</label></div>
+  </header>
+  <main id="view"></main>
+</div>
+<input class="sr" id="cam" type="file" accept="image/*" capture="environment" aria-label="Take a photo">
+<input class="sr" id="pick" type="file" accept="image/*" aria-label="Choose an image">
+<input class="sr" id="cam2" type="file" accept="image/*" capture="environment" aria-label="Take a photo of a product">
+<input class="sr" id="scan" type="file" accept="image/*" capture="environment" aria-label="Scan a barcode">
+<input class="sr" id="pick2" type="file" accept="image/*" aria-label="Choose a product image">
+<nav class="tabs"><div class="in">
+  <button type="button" id="tab-solve"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>Solve</button>
+  <button type="button" id="tab-buy"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></span>Snap Buy</button>
+  <button type="button" id="tab-hist"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>History</button>
+</div></nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+<script>/*KATEX_JS*/</script>
+<script>
+(() => {
+  'use strict'
+  const $ = (s) => document.querySelector(s)
+  const view = $('#view')
+
+  // ---------- storage (per-device conveniences; always guarded) ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('snapsolve.' + k); return v === null ? d : JSON.parse(v) } catch { return d } },
+    set(k, v) { try { localStorage.setItem('snapsolve.' + k, JSON.stringify(v)) } catch {} },
+  }
+
+  const S = {
+    tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
+    result: null, busy: false, error: '', simple: store.get('simple', false),
+    shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
+    ctl: null,
+  }
+
+
+  // ---------- themes ----------
+  const SKINS = [
+    { id: 'auto', name: 'Match device', colors: ['#f2f5f7', '#1456d6', '#0c1322'] },
+    { id: 'halloween', name: 'Halloween', colors: ['#150c20', '#ff8a1f', '#f7ead9'] },
+    { id: 'ocean', name: 'Ocean', colors: ['#eaf6f8', '#087f92', '#07313c'] },
+    { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
+    { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
+    { id: 'science', name: 'Science', colors: ['#06121c', '#22e6d4', '#e6fbff'] },
+    { id: 'tropical', name: 'Tropical', colors: ['#fff6e0', '#d6246e', '#ff9a1f'] },
+  ]
+  function applySkin() {
+    const root = document.documentElement
+    if (S.skin === 'auto' || !SKINS.some((k) => k.id === S.skin)) root.removeAttribute('data-skin')
+    else root.setAttribute('data-skin', S.skin)
+    document.querySelector('.pumpkins')?.remove(); document.querySelector('.elements')?.remove(); document.querySelector('.fruits')?.remove()
+    if (S.skin === 'halloween') document.body.append(pumpkins())
+    if (S.skin === 'science') document.body.append(elements())
+    if (S.skin === 'tropical') document.body.append(fruits())
+  }
+  function elements() {
+    const box = h('div', { class: 'elements', 'aria-hidden': 'true' })
+    ;[['H', 1], ['He', 2], ['C', 6], ['N', 7], ['O', 8], ['Na', 11], ['Si', 14], ['Fe', 26], ['Cu', 29], ['Au', 79], ['\u03c0', ''], ['\u03a3', ''], ['U', 92]].forEach(([sym, n], i) => {
+      const t = h('span', { class: 'element' }, h('small', {}, String(n)), h('b', {}, sym))
+      t.style.cssText = 'left:' + ((i * 7.9 + 3) % 92) + '%;animation-duration:' + (20 + ((i * 7) % 11)) + 's;animation-delay:-' + ((i * 4.3) % 22) + 's'
+      box.append(t)
+    })
+    return box
+  }
+  function fruits() {
+    const box = h('div', { class: 'fruits', 'aria-hidden': 'true' })
+    ;['\ud83c\udf4d', '\ud83e\udd6d', '\ud83c\udf49', '\ud83e\udd65', '\ud83c\udf4c', '\ud83e\udd5d', '\ud83c\udf4a', '\ud83c\udf3a', '\ud83c\udf4b', '\ud83c\udf53', '\ud83c\udf34'].forEach((f, i) => {
+      const t = h('span', { class: 'fruit' }, h('i', {}, f))
+      t.style.cssText = 'left:' + ((i * 9.1 + 5) % 94) + '%;font-size:' + (22 + ((i * 7) % 5) * 5) + 'px;animation-duration:' + (16 + ((i * 5) % 9)) + 's;animation-delay:-' + ((i * 3.9) % 17) + 's;--sway:' + (14 + ((i * 11) % 22)) + 'px'
+      box.append(t)
+    })
+    return box
+  }
+  function pumpkins() {
+    const box = h('div', { class: 'pumpkins', 'aria-hidden': 'true' })
+    for (let i = 0; i < 11; i++) {
+      const s = h('span', { class: 'pumpkin' }, h('i', {}, '\ud83c\udf83'))
+      s.style.cssText = 'left:' + ((i * 9.3 + 4) % 96) + '%;font-size:' + (18 + ((i * 7) % 5) * 5) + 'px;animation-duration:' + (13 + ((i * 5) % 8)) + 's;animation-delay:-' + ((i * 3.7) % 14) + 's;--sway:' + (14 + ((i * 11) % 22)) + 'px'
+      box.append(s)
+    }
+    return box
+  }
+  function vThemes() {
+    return h('div', { class: 'card stack' }, h('h2', {}, 'Theme'),
+      h('div', { class: 'themes' }, SKINS.map((k) =>
+        h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
+          h('span', { class: 'dots' }, k.colors.map((c) => h('i', { style: 'background:' + c }))), h('b', {}, k.name)))))
+  }
+
+  // ---------- icons (one set, so every phone draws the same pictures) ----------
+  const ICON_PATHS = {
+    scan: '<path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>',
+    camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+    upload: '<path d="M12 16V4m0 0L8 8m4-4 4 4M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>',
+    text: '<path d="M8 4h8M12 4v16M8 20h8"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>',
+    bag: '<path d="M5 8h14l-1 12H6zM9 8a3 3 0 0 1 6 0"/>',
+    history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 8v4l3 2"/>',
+    pdf: '<path d="M7 3h7l5 5v13H7zM14 3v5h5M10 14h6M10 17h4"/>',
+    image: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 16 5-5 4 4 3-3 4 4"/><circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none"/>',
+    barcode: '<path d="M4 5v14M7 5v14M11 5v14M14 5v14M18 5v14M20.5 5v14"/>',
+    flame: '<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.6-2.5 1.5-3.5C10 8 11.5 6 12 3z"/>',
+    check: '<path d="m5 12.5 4.5 4.5L19 7"/>',
+    alert: '<path d="M12 4 21 20H3zM12 10v4M12 17h.01"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+  }
+  function icon(name, cls = '') {
+    const t = document.createElement('span')
+    t.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="ico-svg ' + cls + '">' + (ICON_PATHS[name] || '') + '</svg>'
+    return t.firstChild
+  }
+  function burst() {
+    try { navigator.vibrate?.([20, 40, 20]) } catch {}
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const box = document.createElement('div'); box.className = 'confetti'; box.setAttribute('aria-hidden', 'true')
+    const colors = ['var(--cta)', 'var(--accent)', 'var(--cta-2)', '#ffd166']
+    for (let i = 0; i < 26; i++) {
+      const piece = document.createElement('i')
+      piece.style.cssText = 'left:' + (6 + ((i * 37) % 88)) + '%;background:' + colors[i % 4] + ';animation-delay:' + (i % 7) * 0.04 + 's;animation-duration:' + (0.9 + ((i * 13) % 6) / 10) + 's;--dx:' + (((i * 53) % 90) - 45) + 'px;--rot:' + ((i * 67) % 360) + 'deg'
+      box.append(piece)
+    }
+    document.body.append(box)
+    setTimeout(() => box.remove(), 1900)
+  }
+
+  // ---------- tiny DOM helper ----------
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag)
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'class') el.className = v
+      else if (k.startsWith('on')) el.addEventListener(k.slice(2), v)
+      else if (v === true) el.setAttribute(k, '')
+      else if (v !== false && v != null) el.setAttribute(k, v)
+    }
+    for (const kid of kids.flat()) if (kid != null && kid !== false) el.append(kid.nodeType ? kid : document.createTextNode(kid))
+    return el
+  }
+  function tex(latex, display = false) {
+    const s = h('span')
+    try { s.innerHTML = katex.renderToString(latex || '', { throwOnError: false, displayMode: display, strict: 'ignore' }) }
+    catch { s.textContent = latex }
+    return s
+  }
+
+  // ---------- Claude (via the viewer's own account) ----------
+  const READ_PROMPT = `You transcribe handwritten or printed math from the attached photo into LaTeX.
+Reply with ONLY a JSON object:
+{"readable": boolean, "problems": [{"kind": "math" or "word", "latex": string, "text": string, "uncertain": [{"text": string, "alternatives": [string]}]}], "message": string}
+Rules:
+- Transcribe exactly what is written. Never solve it, never "fix" it, never guess.
+- If the image is blurry, too dark, cut off, has no math, or you are not confident about the symbols, set "readable": false, "problems": [] and write a short, friendly "message" saying what is wrong and asking the user to retake the photo (better light, closer, hold steady).
+- If the photo holds several separate problems (numbered, or clearly separate lines that are not parts of one system), return each as its own entry in reading order. One system of equations is ONE problem.
+- A math problem has "kind": "math", its LaTeX in "latex", and "text": "". A system of equations is one entry: join its lines with \\\\ inside \\begin{cases} ... \\end{cases}.
+- A problem written in words (a story or sentence problem) has "kind": "word", the full wording as plain text in "text", and "latex": "".
+- Use \\times for multiplication signs and the letter x for the variable. Use \\frac, \\sqrt, ^, _, \\int, \\frac{d}{dx}, \\sin, \\log, \\ln as appropriate.
+- "uncertain": list each symbol you are unsure about, "text" being the exact characters as they appear in your latex and "alternatives" up to 3 other things it could be (e.g. {"text": "5", "alternatives": ["S", "s"]}). Use [] when you are confident.
+- "message" is an empty string unless something needs saying.`
+
+  const SHAPES = `Pick ONE shape:
+ - arithmetic / simplify an expression: problem {"kind": "evaluate" or "simplify", "expr": "2+3*4"}  answer {"value": "14"}
+ - one equation: problem {"kind": "solve", "equation": "x^2-5*x+6=0", "variable": "x"}  answer {"values": ["2", "3"]}  (list EVERY real solution; [] if none)
+ - system of equations: problem {"kind": "system", "equations": ["x+y=3", "x-y=1"], "variables": ["x", "y"]}  answer {"solutions": [{"x": "2", "y": "1"}]}
+ - derivative: problem {"kind": "derivative", "expr": "x^3", "variable": "x"}  answer {"value": "3*x^2"}
+ - integral: problem {"kind": "integral", "expr": "2*x", "variable": "x"}  answer {"value": "x^2"}  (definite: add "bounds": ["0", "1"]; leave out + C in "value")`
+
+  const SOLVE_PROMPT = `You are a careful math tutor. Solve the problem given in LaTeX.
+Reply with ONLY one JSON object (no prose, no code fences) with these keys:
+{
+ "answer_latex": "final answer in LaTeX, e.g. x = 2 \\\\text{ or } x = 3",
+ "answer_text": "only for a word problem, see below; otherwise omit",
+ "steps": [{"latex": "one line of work", "explain": "one short sentence on what was done", "verify": {"type": "...", "expr": "..."}}],
+ "check": {"steps": [{"latex": "...", "explain": "..."}], "conclusion": "one sentence"},
+ "problem": { machine-readable version of the problem, see below },
+ "answer": { machine-readable version of your final answer, see below },
+ "graph": { optional picture of the problem, see below }
+}
+"problem" and "answer" are re-checked by a calculator library (math.js), so write every expression as a math.js-parsable string: use ^ for powers, * for EVERY multiplication (write 2*x, never 2x), sqrt(), log(x) is the NATURAL log, log(x, 10) is base 10, sin/cos/tan/asin/acos/atan, pi, e. Trig is in radians; for degrees write sin(30*pi/180).
+${SHAPES}
+ - anything else: problem {"kind": "other"}  answer {"value": "..."}
+Writing the work:
+- "steps": one line per step, in order; each "latex" is one clean line of math (prose only inside \\text{}); each "explain" is one short sentence.
+- "verify" on a step lets a calculator test that very line. Add it when the line is testable, and omit it otherwise:
+    solve / system problems: {"type": "equation", "expr": "2*x=8"}, the single equation that line shows (one equation that every true solution satisfies; never "x=2 or x=3", never text).
+    evaluate / simplify problems: {"type": "expression", "expr": "2+12"}, the expression that line shows, equal in value to the original expression.
+    derivative / integral problems: {"type": "result", "expr": "..."}, only on a line that shows the finished result or an equivalent form of it, never partial pieces such as one product-rule term.
+- "check": plug the answer back into the ORIGINAL problem and show the arithmetic so the user can see it works (for derivatives/integrals, differentiate back or compare a quick sample value).
+- "graph" (include it when a picture helps: equations, systems of two unknowns, functions, derivatives, definite integrals; omit it for plain arithmetic):
+    {"series": [{"label": "y = 2x + 3", "expr": "2*x+3"}], "points": [{"x": "4", "series": 0, "label": "x = 4"}], "shade": {"from": "0", "to": "3", "series": 0}, "xmin": -10, "xmax": 10}
+  Every "expr" is a math.js expression in x only, written as y = f(x) (a line 2y = x + 1 becomes "(x+1)/2"). One-variable equation f(x) = g(x): series are the two sides (a constant side is just a number such as "11") and points are the solutions (x values, series 0). System of two unknowns: one series per equation solved for y, and one point at the intersection. Derivative: series [f, f']. Definite integral: series [f] plus "shade". Up to 3 series. Choose xmin/xmax so the interesting part is visible.
+- Never put markdown or $ delimiters in any field.`
+
+  const WORD_NOTE = `\nThis equation came from a word problem. Original wording and variable meanings are below. Also return "answer_text": one short sentence that answers the original question in words, with units.`
+
+  const FORMULATE_PROMPT = `You turn a word problem into an equation so it can be solved.
+Reply with ONLY a JSON object: {"variables": [{"name": string, "meaning": string}], "equation_latex": string, "question": string, "message": string}
+Rules:
+- Define each variable in plain words with units (e.g. {"name": "x", "meaning": "number of apples Sam has"}).
+- Write ONE equation in LaTeX that captures the story, or a system inside \\begin{cases} ... \\end{cases} when there are two unknowns. Use x (and y) for variables. Do not solve it.
+- "question" restates in a few words what the problem asks for.
+- If the text is not a solvable math problem, or it is missing information, set "equation_latex": "" and explain in "message". Otherwise "message" is an empty string.`
+
+  const PRACTICE_PROMPT = `You write practice problems for a math student. Reply with ONLY one JSON object: {"latex": string, "hint": string, "problem": {...}, "answer": {...}, "answer_latex": string}
+- "latex": the new problem exactly as the student should see it, in LaTeX.
+- "hint": one or two sentences that nudge the first step. Never reveal the final answer.
+- "problem" and "answer": machine-readable versions checked by a calculator library (math.js). Use ^ for powers, * for every multiplication, sqrt(), log(x) is natural log, pi, e.
+${SHAPES}
+- "answer_latex": the correct answer in LaTeX (for example x = 2,\\\\ 3).
+Rules: the problem must have a clean exact answer (no long decimals) and exactly one correct final answer set. Avoid trig equations with infinitely many solutions.`
+
+  const TOPICS = { mixed: 'any one of: arithmetic with order of operations, a linear equation, a quadratic equation, a 2x2 system, exponents, radicals, logarithms, a derivative, an integral', arithmetic: 'arithmetic with order of operations', linear: 'a linear equation in x', quadratic: 'a quadratic equation in x', system: 'a system of two linear equations in x and y', exponents: 'an expression or equation with exponents', radicals: 'an expression or equation with radicals', logs: 'an expression or equation with logarithms', derivative: 'a derivative (Calculus 1)', integral: 'an integral (Calculus 1)' }
+  const LEVELS = { easy: 'easy: one or two steps, small whole numbers', medium: 'medium: a typical homework problem, a few steps', hard: 'hard: multi-step, needs care (negatives, fractions, or a trap), still with a clean exact answer' }
+
+  const SIMPLE_NOTE = `\nEXPLAIN LIKE I'M 12: write every "explain" and the check "conclusion" in very simple, friendly language a 12-year-old understands. Short words, tiny sentences, a quick everyday analogy when it helps. The math lines stay the same; only the wording changes.`
+
+  const COPY = {
+    not_granted: 'Allow Hunter Scan to use Claude when asked, then try again.',
+    sampling_disabled: 'Claude isn’t available for this account.',
+    rate_limited: 'Too many requests or your usage limit was reached. Wait a bit, then try again.',
+    session_expired: 'Your session expired. Reload the page and sign in again.',
+    image_rejected: 'That image couldn’t be used. Try a different photo.',
+    images_unavailable: 'Reading photos isn’t available here. Type the equation instead.',
+    invalid_json: 'The answer came back garbled. Try again.',
+    refused: 'Claude declined that input. Check the equation and try again.',
+  }
+  const errText = (e) => COPY[e?.code] || 'Something went wrong talking to Claude. Try again.'
+
+  async function initSample() {
+    try {
+      S.downloads = await window.claude?.use('downloads').catch(() => null)
+      S.sample = await window.claude?.use('sample')
+      if (S.sample) S.canReadImages = !!(await S.sample.limits().catch(() => null))?.images
+    } catch { S.sample = null }
+    S.ready = true
+    render()
+  }
+
+  const blobOf = (canvas) => new Promise((res) => canvas.toBlob(res, 'image/jpeg', 0.88))
+
+  // ---------- images ----------
+  /*SCANNER_JS*/
+
+  async function loadPhoto(file, max = 2000) {
+    let src, w, h2
+    try {
+      src = await createImageBitmap(file, { imageOrientation: 'from-image' }); w = src.width; h2 = src.height
+    } catch {
+      src = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(file) })
+      w = src.naturalWidth; h2 = src.naturalHeight
+    }
+    const k = Math.min(1, max / Math.max(w, h2))
+    const c = document.createElement('canvas')
+    c.width = Math.round(w * k); c.height = Math.round(h2 * k)
+    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height)
+    return c
+  }
+  const pixelsOf = (cv) => cv.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, cv.width, cv.height)
+  function canvasOf(img) { const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; c.getContext('2d').putImageData(new ImageData(img.data, img.width, img.height), 0, 0); return c }
+  function cropToCanvas(img, c, max = 1600) {
+    const sx = c.x * img.naturalWidth, sy = c.y * img.naturalHeight, sw = c.w * img.naturalWidth, sh = c.h * img.naturalHeight
+    const k = Math.min(1, max / Math.max(sw, sh))
+    const cv = document.createElement('canvas')
+    cv.width = Math.max(1, Math.round(sw * k)); cv.height = Math.max(1, Math.round(sh * k))
+    cv.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height)
+    return cv
+  }
+
+  // ---------- independent verification with math.js ----------
+  const PTS = [0.37, 0.91, 1.43, 1.87, 2.31, 3.17, 0.62, 1.2, 2.6, 4.2, 0.12, 5.3]
+  const close = (a, b, t = 1e-6) => Math.abs(a - b) <= t * (1 + Math.max(Math.abs(a), Math.abs(b)))
+  const SAFE = /^[A-Za-z0-9_+\-*/^().,\s]*$/
+
+  function parse(src) {
+    const s = String(src ?? '').trim()
+    if (!s || !SAFE.test(s)) throw new Error('cannot parse "' + s + '"')
+    return math.parse(s)
+  }
+  function symbols(node) {
+    const out = new Set()
+    node.traverse((n, path, parent) => {
+      if (n.isSymbolNode && !(parent && parent.isFunctionNode && path === 'fn') && !(n.name in math)) out.add(n.name)
+    })
+    return out
+  }
+  function num(node, scope = {}) {
+    try {
+      const v = node.evaluate({ ...scope })
+      if (typeof v === 'number') return Number.isFinite(v) ? v : NaN
+      if (v && typeof v.re === 'number') return Math.abs(v.im) < 1e-9 ? v.re : NaN
+      return NaN
+    } catch { return NaN }
+  }
+  const fmt = (x) => (Number.isInteger(x) ? String(x) : String(Number(x.toPrecision(8))))
+  const ok = (detail) => ({ status: 'match', detail })
+  const bad = (detail) => ({ status: 'mismatch', detail })
+  const unv = (detail) => ({ status: 'unverified', detail })
+
+  function scopeFor(names, i) {
+    const sc = {}
+    names.forEach((n, j) => { sc[n] = PTS[(i + j * 3) % PTS.length] })
+    return sc
+  }
+
+  function checkValue(p, a) {
+    const kind = p.kind
+    const claimed = parse(a.value)
+    const expr = parse(p.expr)
+    const v = String(p.variable || 'x')
+    if (kind === 'evaluate' || kind === 'simplify') {
+      const names = [...new Set([...symbols(expr), ...symbols(claimed)])]
+      if (!names.length) {
+        const A = num(expr), B = num(claimed)
+        if (Number.isNaN(A) || Number.isNaN(B)) return unv('Couldn’t evaluate it numerically.')
+        return close(A, B) ? ok('math.js got the same value.') : bad('math.js got ' + fmt(A))
+      }
+      let good = 0
+      for (let i = 0; i < PTS.length; i++) {
+        const sc = scopeFor(names, i), A = num(expr, sc), B = num(claimed, sc)
+        if (Number.isNaN(A) || Number.isNaN(B)) continue
+        if (!close(A, B, 1e-6)) return bad('The two expressions differ at ' + names.map((n) => n + ' = ' + sc[n]).join(', '))
+        good++
+      }
+      return good >= 3 ? ok('Both expressions agree at ' + good + ' test points.') : unv('Not enough test points to compare.')
+    }
+    if (kind === 'derivative' || (kind === 'integral' && !p.bounds)) {
+      const f = kind === 'derivative' ? expr : claimed          // function we differentiate numerically
+      const target = kind === 'derivative' ? claimed : expr     // what its derivative should equal
+      const names = [...new Set([...symbols(f), ...symbols(target)])].filter((n) => n !== v)
+      let good = 0
+      for (let i = 0; i < PTS.length; i++) {
+        const t = PTS[i], d = 1e-5 * (1 + Math.abs(t))
+        const sc = { ...scopeFor(names, i), [v]: t }
+        const hi = num(f, { ...sc, [v]: t + d }), lo = num(f, { ...sc, [v]: t - d }), want = num(target, sc)
+        if ([hi, lo, want].some(Number.isNaN)) continue
+        const got = (hi - lo) / (2 * d)
+        if (!close(got, want, 1e-4)) return bad('At ' + v + ' = ' + t + ' the slope should be ' + fmt(want) + ' but the answer gives ' + fmt(got))
+        good++
+      }
+      return good >= 3 ? ok('Checked numerically at ' + good + ' points.') : unv('Not enough valid test points.')
+    }
+    if (kind === 'integral') {
+      const lo = num(parse(p.bounds[0])), hi = num(parse(p.bounds[1]))
+      if (Number.isNaN(lo) || Number.isNaN(hi)) return unv('Couldn’t evaluate the bounds.')
+      const N = 4000, step = (hi - lo) / N
+      let sum = 0
+      for (let i = 0; i <= N; i++) {
+        const y = num(expr, { [v]: lo + i * step })
+        if (Number.isNaN(y)) return unv('The integrand isn’t defined everywhere on the interval.')
+        sum += y * (i === 0 || i === N ? 1 : i % 2 ? 4 : 2)
+      }
+      const val = (sum * step) / 3
+      const want = num(claimed)
+      if (Number.isNaN(want)) return unv('Couldn’t evaluate the answer.')
+      return close(val, want, 1e-5) ? ok('Numeric integration gives the same value.') : bad('Numeric integration gives ' + fmt(val))
+    }
+    return unv('This problem type can’t be checked automatically.')
+  }
+
+  function realRoots(F) {
+    const roots = []
+    const add = (r) => { if (!roots.some((x) => Math.abs(x - r) < 1e-4)) roots.push(r) }
+    const LO = -100, HI = 100, STEP = 0.01
+    let px = LO, py = F(px)
+    const ys = [py]
+    for (let x = LO + STEP; x <= HI + 1e-9; x += STEP) {
+      const y = F(x)
+      ys.push(y)
+      if (Number.isFinite(py) && Number.isFinite(y) && py * y < 0) {
+        let a = px, b = x, fa = py
+        for (let k = 0; k < 60; k++) { const m = (a + b) / 2, fm = F(m); if (fa * fm <= 0) b = m; else { a = m; fa = fm } }
+        const r = (a + b) / 2
+        if (Math.abs(F(r)) < 1e-6 * (1 + Math.abs(r))) add(r)   // reject poles that merely flip sign
+      }
+      px = x; py = y
+    }
+    // touching roots (double roots): local minima of |F| that reach ~0
+    for (let i = 1; i < ys.length - 1; i++) {
+      const a = Math.abs(ys[i - 1]), b = Math.abs(ys[i]), c = Math.abs(ys[i + 1])
+      if (b < a && b <= c && b < 1e-2) {
+        let lo = LO + (i - 1) * STEP, hi = LO + (i + 1) * STEP
+        for (let k = 0; k < 80; k++) {
+          const m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3
+          if (Math.abs(F(m1)) < Math.abs(F(m2))) hi = m2; else lo = m1
+        }
+        const r = (lo + hi) / 2
+        if (Math.abs(F(r)) < 1e-7) add(r)
+      }
+    }
+    return roots
+  }
+
+  function checkSolve(p, a) {
+    const [l, r] = String(p.equation).split('=')
+    if (r === undefined) throw new Error('not an equation')
+    const L = parse(l), R = parse(r), v = String(p.variable || 'x')
+    const F = (x) => num(L, { [v]: x }) - num(R, { [v]: x })
+    const claimed = (a.values || []).map((s) => num(parse(s)))
+    for (const c of claimed) {
+      if (Number.isNaN(c)) return unv('A solution wasn’t a real number.')
+      const res = F(c)
+      if (!(Math.abs(res) < 1e-6 * (1 + Math.abs(c)))) return bad(v + ' = ' + fmt(c) + ' doesn’t satisfy the equation')
+    }
+    if (/sin|cos|tan|cot|sec|csc/.test(String(p.equation))) return ok('Each answer was plugged back into the equation.')
+    const found = realRoots(F)
+    const missing = found.filter((x) => !claimed.some((c) => Math.abs(c - x) < 1e-4 * (1 + Math.abs(x))))
+    if (missing.length) return bad('Also found ' + v + ' ≈ ' + missing.map((x) => fmt(Number(x.toFixed(6)))).join(', '))
+    return ok('Plugged back in, and a numeric scan found no other real solutions.')
+  }
+
+  function checkSystem(p, a) {
+    const vars = p.variables.map(String)
+    const Fs = p.equations.map((e) => {
+      const [l, r] = String(e).split('=')
+      if (r === undefined) throw new Error('not an equation')
+      const L = parse(l), R = parse(r)
+      return (sc) => num(L, sc) - num(R, sc)
+    })
+    const sols = a.solutions || []
+    for (const s of sols) {
+      const sc = {}
+      for (const k of vars) sc[k] = num(parse(s[k]))
+      if (Object.values(sc).some(Number.isNaN)) return unv('A solution wasn’t a real number.')
+      if (!Fs.every((F) => Math.abs(F(sc)) < 1e-6 * (1 + Math.max(...Object.values(sc).map(Math.abs))))) return bad('An answer doesn’t satisfy every equation')
+    }
+    if (Fs.length === vars.length) {
+      const zero = Object.fromEntries(vars.map((k) => [k, 0]))
+      const f0 = Fs.map((F) => F(zero))
+      const A = Fs.map((F, i) => vars.map((k) => F({ ...zero, [k]: 1 }) - f0[i]))
+      const probe = Object.fromEntries(vars.map((k, j) => [k, PTS[(j * 5 + 1) % PTS.length]]))
+      const linear = Fs.every((F, i) => close(F(probe), f0[i] + vars.reduce((t, k, j) => t + A[i][j] * probe[k], 0), 1e-7))
+      if (linear && Number.isFinite(math.det(A)) && Math.abs(math.det(A)) > 1e-9) {
+        const x = math.lusolve(A, f0.map((z) => -z)).map((row) => row[0])
+        const match = sols.length === 1 && vars.every((k, j) => close(x[j], num(parse(sols[0][k])), 1e-6))
+        return match ? ok('Solved the linear system independently: same answer.') : bad('Solving it independently gives ' + vars.map((k, j) => k + ' = ' + fmt(Number(x[j].toFixed(6)))).join(', '))
+      }
+    }
+    return ok('Each answer was plugged into every equation (completeness not checked).')
+  }
+
+  function verify(problem, answer) {
+    if (typeof math === 'undefined') return unv('The math library didn’t load.')
+    try {
+      switch (problem?.kind) {
+        case 'solve': return checkSolve(problem, answer)
+        case 'system': return checkSystem(problem, answer)
+        case 'evaluate': case 'simplify': case 'derivative': case 'integral': return checkValue(problem, answer)
+        default: return unv('This problem type can’t be checked automatically.')
+      }
+    } catch (e) { return unv('Couldn’t run the independent check (' + (e?.message || e) + ').') }
+  }
+
+  // ---------- helpers ----------
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
+  const LIBS = {
+    html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+    zxing: 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js',
+  }
+  const loaded = {}
+  const loadScript = (src) => loaded[src] || (loaded[src] = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = src; s.onload = res
+    s.onerror = () => { delete loaded[src]; rej(new Error('Couldn’t load ' + src)) }
+    document.head.append(s)
+  }))
+
+  // ---------- handwriting fixer: tokens and look-alikes ----------
+  const TOKEN_RE = /\\[a-zA-Z]+|\\.|\d+(?:\.\d+)?|[A-Za-z]|\s+|[\s\S]/g
+  function tokenize(latex) {
+    const out = []
+    for (const m of latex.matchAll(TOKEN_RE)) if (!/^\s+$/.test(m[0])) out.push({ text: m[0], start: m.index, end: m.index + m[0].length })
+    return out
+  }
+  const CONFUSABLE = {
+    5: ['S', 's'], S: ['5', 's', '8'], s: ['5', 'S'], 1: ['l', '7', 'I'], l: ['1', 'I'], I: ['1', 'l'], 7: ['1', 'T'],
+    0: ['O', 'o', '6'], O: ['0'], o: ['0', 'a'], 2: ['z', 'Z'], z: ['2'], Z: ['2'], 9: ['g', 'q'], g: ['9', 'q'], q: ['9', 'g'],
+    6: ['b', 'G', '0'], b: ['6', 'h'], 8: ['B', '3', 'S'], B: ['8'], 3: ['8', 'B'], x: ['\\times', 'X', 'y'], X: ['x', '\\times'],
+    '\\times': ['x', '+'], '+': ['t', '\\times', '-'], t: ['+'], '-': ['+', '=', '\\div'], '=': ['-', '\\neq'],
+    u: ['v', 'n'], v: ['u'], n: ['u', 'h'], a: ['o', 'd'], y: ['g', 'x', '4'], 4: ['9', 'y', 'u'], '/': ['1', '\\div'], '\\div': ['/', '+', '-'],
+  }
+  const suggestionsFor = (tok, unc) => [...new Set([...(unc.find((u) => u.text === tok)?.alternatives || []), ...(CONFUSABLE[tok] || [])])].filter((s) => s !== tok).slice(0, 8)
+  function flaggedIdx(tokens, unc) {
+    const used = new Set()
+    for (const u of unc) { const i = tokens.findIndex((t, k) => t.text === u.text && !used.has(k)); if (i >= 0) used.add(i) }
+    return used
+  }
+  const replaceTok = (latex, t, rep) => latex.slice(0, t.start) + rep + (/^\\[a-zA-Z]+$/.test(rep) && /^[A-Za-z]/.test(latex.slice(t.end)) ? ' ' : '') + latex.slice(t.end)
+  const cleanUnc = (raw) => (Array.isArray(raw) ? raw : []).filter((u) => u && String(u.text || '').trim()).slice(0, 10).map((u) => ({ text: String(u.text).trim().slice(0, 20), alternatives: (Array.isArray(u.alternatives) ? u.alternatives : []).map((a) => String(a).trim().slice(0, 20)).filter(Boolean).slice(0, 4) }))
+
+  // ---------- per-line checks (math.js) ----------
+  function verifySteps(problem, answer, steps, verification) {
+    const matched = verification?.status === 'match'
+    let check = null
+    try {
+      if (problem?.kind === 'solve') {
+        const [l, r] = String(problem.equation).split('=')
+        const L = parse(l), R = parse(r), v = String(problem.variable || 'x')
+        const F = (x) => num(L, { [v]: x }) - num(R, { [v]: x })
+        let sols = matched ? (answer.values || []).map((s) => num(parse(s))) : realRoots(F)
+        sols = sols.filter((s) => !Number.isNaN(s))
+        if (sols.length) check = (e) => {
+          const [a, b] = String(e).split('='); if (b === undefined) return 'unchecked'
+          const A = parse(a), B = parse(b)
+          return sols.every((s) => Math.abs(num(A, { [v]: s }) - num(B, { [v]: s })) < 1e-6 * (1 + Math.abs(s))) ? 'ok' : 'bad'
+        }
+      } else if (problem?.kind === 'system' && matched) {
+        const vars = problem.variables.map(String)
+        const sols = (answer.solutions || []).map((s) => Object.fromEntries(vars.map((k) => [k, num(parse(s[k]))])))
+        if (sols.length && sols.every((s) => Object.values(s).every((x) => !Number.isNaN(x)))) check = (e) => {
+          const [a, b] = String(e).split('='); if (b === undefined) return 'unchecked'
+          const A = parse(a), B = parse(b)
+          return sols.every((s) => Math.abs(num(A, s) - num(B, s)) < 1e-6 * (1 + Math.max(...Object.values(s).map(Math.abs)))) ? 'ok' : 'bad'
+        }
+      } else if (problem?.kind === 'evaluate' || problem?.kind === 'simplify') {
+        check = (e) => { const r = checkValue({ kind: 'evaluate', expr: problem.expr }, { value: e }); return r.status === 'match' ? 'ok' : r.status === 'mismatch' ? 'bad' : 'unchecked' }
+      } else if (problem?.kind === 'derivative' || problem?.kind === 'integral') {
+        check = (e) => {
+          // a line that shows the finished result must pass the same test as the final answer
+          const truthCheck = checkValue(problem, { value: e })
+          return truthCheck.status === 'match' ? 'ok' : truthCheck.status === 'mismatch' ? 'bad' : 'unchecked'
+        }
+      }
+    } catch { check = null }
+    const wanted = problem?.kind === 'solve' || problem?.kind === 'system' ? 'equation' : problem?.kind === 'evaluate' || problem?.kind === 'simplify' ? 'expression' : 'result'
+    return steps.map((s) => {
+      const v = s.verify
+      if (!check || !v || v.type !== wanted || !v.expr) return 'unchecked'
+      try { return check(String(v.expr)) } catch { return 'unchecked' }
+    })
+  }
+
+  // ---------- graph data (re-evaluated here, so a point sits where the curve really is) ----------
+  function compileFn(expr) {
+    const src = String(expr ?? '').trim()
+    if (!src || !SAFE.test(src)) throw new Error('bad expression')
+    const node = math.parse(src).compile()
+    return (x) => {
+      try {
+        const v = node.evaluate({ x })
+        const n = typeof v === 'number' ? v : v && typeof v.re === 'number' && Math.abs(v.im) < 1e-9 ? v.re : NaN
+        return Number.isFinite(n) ? n : NaN
+      } catch { return NaN }
+    }
+  }
+  function niceStep(span) { const raw = span / 5, pow = 10 ** Math.floor(Math.log10(raw)), n = raw / pow; return (n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10) * pow }
+  function graphData(g, W = 360, H = 260) {
+    if (typeof math === 'undefined' || !g || !Array.isArray(g.series) || !g.series.length) return null
+    const fns = g.series.slice(0, 3).map((s) => compileFn(s.expr))
+    const constant = (e) => { const v = compileFn(e)(0); if (Number.isNaN(v)) throw new Error('nan'); return v }
+    const pts = (g.points || []).slice(0, 6).map((p) => { const x = constant(p.x), si = Number(p.series) || 0; return { x, y: fns[si]?.(x), label: String(p.label || ''), si } }).filter((p) => Number.isFinite(p.y))
+    const shade = g.shade && typeof g.shade === 'object' ? { a: constant(g.shade.from), b: constant(g.shade.to), si: Number(g.shade.series) || 0 } : null
+    let xmin = Number.isFinite(+g.xmin) && g.xmin !== null ? +g.xmin : -10, xmax = Number.isFinite(+g.xmax) && g.xmax !== null ? +g.xmax : 10
+    if (xmin >= xmax) { xmin = -10; xmax = 10 }
+    for (const x of [...pts.map((p) => p.x), ...(shade ? [shade.a, shade.b] : [])]) { const pad = (xmax - xmin) * 0.08; if (x < xmin + pad) xmin = x - pad; if (x > xmax - pad) xmax = x + pad }
+    const N = 480, xs = Array.from({ length: N + 1 }, (_, i) => xmin + ((xmax - xmin) * i) / N), ys = fns.map((f) => xs.map(f))
+    const finite = ys.flat().filter((v) => Number.isFinite(v) && Math.abs(v) < 1e6).sort((a, b) => a - b)
+    if (!finite.length) return null
+    let ymin = Math.min(finite[Math.floor(finite.length * 0.04)], 0, ...pts.map((p) => p.y)), ymax = Math.max(finite[Math.ceil(finite.length * 0.96) - 1], 0, ...pts.map((p) => p.y))
+    if (ymax - ymin < 1e-9) { ymin -= 1; ymax += 1 }
+    const pad = (ymax - ymin) * 0.12; ymin -= pad; ymax += pad
+    const L = 38, R = 12, T = 12, B = 26
+    const sx = (x) => L + ((x - xmin) / (xmax - xmin)) * (W - L - R), sy = (y) => H - B - ((y - ymin) / (ymax - ymin)) * (H - T - B)
+    const paths = ys.map((col) => {
+      let d = '', pen = false, prev = null
+      col.forEach((y, i) => {
+        if (!Number.isFinite(y) || y > ymax + (ymax - ymin) * 2 || y < ymin - (ymax - ymin) * 2) { pen = false; prev = null; return }
+        if (prev != null && Math.abs(y - prev) > (ymax - ymin) * 0.9) pen = false
+        d += (pen ? 'L' : 'M') + sx(xs[i]).toFixed(1) + ' ' + sy(y).toFixed(1); pen = true; prev = y
+      })
+      return d
+    })
+    let area = null
+    if (shade && fns[shade.si]) {
+      const a = Math.min(shade.a, shade.b), b = Math.max(shade.a, shade.b), top = []
+      for (let i = 0; i <= 160; i++) { const x = a + ((b - a) * i) / 160, y = fns[shade.si](x); if (Number.isFinite(y)) top.push(sx(x).toFixed(1) + ' ' + sy(y).toFixed(1)) }
+      if (top.length > 1) area = 'M' + sx(a).toFixed(1) + ' ' + sy(0).toFixed(1) + 'L' + top.join('L') + 'L' + sx(b).toFixed(1) + ' ' + sy(0).toFixed(1) + 'Z'
+    }
+    const ticks = (min, max) => { const st = niceStep(max - min), out = []; for (let v = Math.ceil(min / st) * st; v <= max + 1e-9; v += st) out.push(Math.abs(v) < st / 1e6 ? 0 : Number(v.toPrecision(6))); return out }
+    const COLORS = ['var(--accent)', 'var(--ok)', 'var(--warn)']
+    return {
+      W, H, L, R, T, B, area,
+      xT: ticks(xmin, xmax).map((v) => ({ v, p: sx(v) })), yT: ticks(ymin, ymax).map((v) => ({ v, p: sy(v) })),
+      axX: sy(Math.min(Math.max(0, ymin), ymax)), axY: sx(Math.min(Math.max(0, xmin), xmax)),
+      series: g.series.slice(0, 3).map((s, i) => ({ label: String(s.label || ''), color: COLORS[i], d: paths[i] })),
+      points: pts.map((p) => ({ ...p, px: sx(p.x), py: sy(p.y), color: COLORS[p.si % 3] })),
+    }
+  }
+  const NS = 'http://www.w3.org/2000/svg'
+  function svg(tag, attrs, ...kids) {
+    const el = document.createElementNS(NS, tag)
+    for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v)
+    for (const kid of kids) if (kid != null) el.append(kid.nodeType ? kid : document.createTextNode(kid))
+    return el
+  }
+  function vGraph(graph) {
+    let g = null
+    try { g = graphData(graph) } catch { g = null }
+    if (!g) return null
+    const f = (v) => (Math.abs(v) >= 1000 || (Math.abs(v) < 0.01 && v !== 0) ? v.toExponential(0) : String(v))
+    const label = (p) => p.label || '(' + f(Number(p.x.toFixed(2))) + ', ' + f(Number(p.y.toFixed(2))) + ')'
+    const root = svg('svg', { class: 'graph', viewBox: '0 0 ' + g.W + ' ' + g.H, role: 'img', 'aria-label': 'Graph of ' + g.series.map((s) => s.label).filter(Boolean).join(' and ') + (g.points.length ? ', with ' + g.points.map(label).join(', ') + ' marked' : '') })
+    g.xT.forEach((t) => root.append(svg('line', { x1: t.p, x2: t.p, y1: g.T, y2: g.H - g.B, class: 'g-grid' })))
+    g.yT.forEach((t) => root.append(svg('line', { y1: t.p, y2: t.p, x1: g.L, x2: g.W - g.R, class: 'g-grid' })))
+    root.append(svg('line', { x1: g.L, x2: g.W - g.R, y1: g.axX, y2: g.axX, class: 'g-axis' }), svg('line', { y1: g.T, y2: g.H - g.B, x1: g.axY, x2: g.axY, class: 'g-axis' }))
+    g.xT.forEach((t) => root.append(svg('text', { x: t.p, y: g.H - g.B + 14, class: 'g-tick', 'text-anchor': 'middle' }, f(t.v))))
+    g.yT.forEach((t) => root.append(svg('text', { x: g.L - 5, y: t.p + 3, class: 'g-tick', 'text-anchor': 'end' }, f(t.v))))
+    if (g.area) root.append(svg('path', { d: g.area, class: 'g-area' }))
+    g.series.forEach((s) => root.append(svg('path', { d: s.d, fill: 'none', stroke: s.color, 'stroke-width': '2.2', 'stroke-linejoin': 'round' })))
+    g.points.forEach((p) => root.append(svg('circle', { cx: p.px, cy: p.py, r: 5, fill: p.color, stroke: 'var(--surface)', 'stroke-width': 2 }), svg('text', { x: Math.min(Math.max(p.px, g.L + 20), g.W - g.R - 20), y: p.py - 10, class: 'g-label', 'text-anchor': 'middle' }, label(p))))
+    return h('div', { class: 'card stack' }, h('h2', {}, 'Graph'), root,
+      h('div', { class: 'legend' }, g.series.map((s) => s.label && h('span', {}, h('i', { style: 'background:' + s.color }), s.label))))
+  }
+
+  // ---------- practice grading ----------
+  const SPLIT_RE = /\s*(?:,|;|\bor\b|\band\b|\n)\s*/i
+  function parseUserAnswer(problem, text) {
+    text = String(text || '').trim().replace(/−/g, '-').replace(/[×·]/g, '*')
+    if (problem.kind === 'solve') {
+      if (/^(no (real )?solutions?|none|∅)$/i.test(text)) return { values: [] }
+      const v = String(problem.variable || 'x')
+      return { values: text.split(SPLIT_RE).map((p) => p.trim()).filter(Boolean).map((p) => { const m = p.match(new RegExp('^' + v + '\\s*=\\s*(.+)$')); return m ? m[1] : p }) }
+    }
+    if (problem.kind === 'system') {
+      const sol = {}
+      for (const part of text.replace(/^\(|\)$/g, '').split(SPLIT_RE)) { const m = part.trim().match(/^([A-Za-z_]\w*)\s*=\s*(.+)$/); if (m) sol[m[1]] = m[2] }
+      return { solutions: [sol] }
+    }
+    let value = text.split('=').pop().trim()
+    if (problem.kind === 'integral' && !problem.bounds) value = value.replace(/\s*\+\s*[cC]\s*$/, '')
+    return { value }
+  }
+  function gradeAnswer(problem, text) {
+    const r = verify(problem, parseUserAnswer(problem, text))
+    return r.status === 'unverified' ? { correct: null, detail: r.detail } : { correct: r.status === 'match', detail: r.detail }
+  }
+
+  // ---------- actions ----------
+  function setError(msg) { S.error = msg || ''; render() }
+  function go(screen) { S.error = ''; S.screen = screen; render() }
+
+  async function onFile(file, mode = 'solve') {
+    if (!file) return
+    S.mode = mode
+    if (!file.type.startsWith('image/')) return setError('Please choose an image file.')
+    try {
+      const canvas = await loadPhoto(file)
+      const original = canvas.toDataURL('image/jpeg', 0.92)
+      S.shots = null; S.photo = original
+      if (mode === 'solve') {
+        // find the page, flatten it, even out the light; the original is one tap away
+        try {
+          const r = scanDocument(pixelsOf(canvas))
+          const clean = canvasOf(r.img).toDataURL('image/jpeg', 0.92)
+          S.shots = { clean, original, found: r.found }; S.shotMode = 'clean'
+        } catch { S.shots = null }
+      }
+      S.tab = mode === 'buy' ? 'buy' : 'solve'; go('crop')
+    } catch { setError('Couldn’t open that image. Try a JPG or PNG.') }
+  }
+
+  async function readCropped(canvas) {
+    S.photo = canvas.toDataURL('image/jpeg', 0.7)
+    go('reading')
+    S.ctl = new AbortController()
+    try {
+      const blob = await blobOf(canvas)
+      const r = await S.sample.json(READ_PROMPT, { images: blob, signal: S.ctl.signal, cache: false })
+      let list = (Array.isArray(r?.problems) ? r.problems : []).filter((p) => p && (String(p.latex || '').trim() || String(p.text || '').trim())).slice(0, 12).map((p) => {
+        const latex = String(p.latex || '').trim(), text = String(p.text || '').trim(), word = !latex && !!text
+        return { id: uid(), kind: word ? 'word' : 'math', latex, text: word ? text : '', uncertain: word ? [] : cleanUnc(p.uncertain), status: 'idle', result: null, error: '' }
+      })
+      if (!list.length && String(r?.latex || '').trim()) list = [{ id: uid(), kind: 'math', latex: String(r.latex).trim(), text: '', uncertain: cleanUnc(r.uncertain), status: 'idle', result: null, error: '' }]
+      const message = String(r?.message || '').trim()
+      if (!r?.readable || !list.length) {
+        S.note = message || 'I couldn’t read that. Retake the photo with good light, held steady and close.'
+        return go('unreadable')
+      }
+      S.problems = list
+      if (list.length === 1) { openProblem(0); if (message) { S.note = message; render() } } else { S.active = -1; go('problems') }
+    } catch (e) {
+      if (e?.code === 'cancelled') return go('home')
+      S.screen = 'crop'; setError(errText(e))
+    }
+  }
+
+  function openProblem(i) {
+    const p = S.problems[i]
+    S.active = i; S.result = null
+    if (p.kind === 'word') return startWord(p.text, i)
+    S.word = null; S.latex = p.latex; S.uncertain = p.uncertain; S.note = ''; S.fixIdx = null
+    go('edit')
+  }
+
+  async function startWord(text, idx = -1) {
+    S.active = idx
+    go('formulating')
+    S.ctl = new AbortController()
+    try {
+      const r = await S.sample.json(FORMULATE_PROMPT + '\n\nWord problem:\n' + text, { signal: S.ctl.signal })
+      S.word = { text, question: String(r?.question || ''), variables: (r?.variables || []).filter((v) => v && v.name).slice(0, 6).map((v) => ({ name: String(v.name).slice(0, 12), meaning: String(v.meaning || '').slice(0, 120) })) }
+      S.latex = String(r?.equation_latex || '').trim(); S.uncertain = []; S.fixIdx = null
+      S.note = String(r?.message || '').trim() || (S.latex ? '' : 'I couldn’t turn that into an equation. Add the missing numbers or rephrase it.')
+      go('edit')
+    } catch (e) {
+      S.word = null; S.latex = text; S.screen = 'edit'
+      if (e?.code === 'cancelled') return render()
+      setError(errText(e))
+    }
+  }
+
+  const wordContext = (w) => (w ? w.text + '\nVariables: ' + (w.variables.map((v) => v.name + ' = ' + v.meaning).join('; ') || 'n/a') + '\nAsks: ' + (w.question || 'n/a') : '')
+  const cleanSteps = (raw) => (Array.isArray(raw) ? raw : []).filter((s) => s && s.latex).map((s) => ({ latex: String(s.latex), explain: String(s.explain || ''), verify: s.verify && typeof s.verify === 'object' ? { type: String(s.verify.type), expr: String(s.verify.expr || '').slice(0, 300) } : null }))
+
+  async function solveCore(latex, simple, word, signal) {
+    const d = await S.sample.json(SOLVE_PROMPT + (simple ? SIMPLE_NOTE : '') + (word ? WORD_NOTE : '') + '\n\nProblem (LaTeX):\n' + latex + (word ? '\n\nWord problem context:\n' + wordContext(word) : ''), { signal, modelTier: 'default' })
+    const steps = cleanSteps(d.steps)
+    if (!steps.length || !d.answer_latex) throw { code: 'invalid_json' }
+    const chk = d.check || {}, problem = d.problem || {}, answer = d.answer || {}
+    const verification = verify(problem, answer)
+    const statuses = verifySteps(problem, answer, steps, verification)
+    steps.forEach((s, i) => { s.check = statuses[i]; delete s.verify })
+    return {
+      answer_latex: String(d.answer_latex), answer_text: word ? String(d.answer_text || '') : '', steps,
+      steps_summary: { checked: statuses.filter((x) => x !== 'unchecked').length, bad: statuses.flatMap((x, i) => (x === 'bad' ? [i] : [])) },
+      check: { steps: cleanSteps(chk.steps).map((s) => ({ latex: s.latex, explain: s.explain })), conclusion: String(chk.conclusion || '') },
+      verification, graph: d.graph && typeof d.graph === 'object' ? d.graph : null,
+    }
+  }
+  function remember(entry) { S.history = [entry, ...S.history].slice(0, 50); store.set('history', S.history) }
+
+  async function solve(latex = S.latex, simple = S.simple, word = S.word) {
+    S.busy = true; S.error = ''; S.ctl = new AbortController(); render()
+    try {
+      S.result = await solveCore(latex, simple, word, S.ctl.signal)
+      remember({ type: 'math', id: uid(), ts: Date.now(), latex, word, result: S.result })
+      if (S.active >= 0 && S.problems[S.active]) Object.assign(S.problems[S.active], { latex, status: 'done', result: S.result, error: '' })
+      S.screen = 'result'
+    } catch (e) {
+      if (e?.code !== 'cancelled') S.error = errText(e)
+    } finally { S.busy = false; render() }
+  }
+
+  async function solveAll() {
+    S.running = true; S.error = ''; S.ctl = new AbortController(); render()
+    for (const p of S.problems) {
+      if (p.kind !== 'math' || p.status === 'done') continue
+      p.status = 'solving'; p.error = ''; render()
+      try {
+        p.result = await solveCore(p.latex, S.simple, null, S.ctl.signal); p.status = 'done'
+        remember({ type: 'math', id: uid(), ts: Date.now(), latex: p.latex, word: null, result: p.result })
+      } catch (e) { p.status = 'error'; p.error = e?.code === 'cancelled' ? 'Stopped.' : errText(e); if (e?.code === 'cancelled') break }
+    }
+    S.running = false; render()
+  }
+
+  // ---------- practice ----------
+  const prStats = () => store.get('practice.stats', { streak: 0, best: 0, solved: 0 })
+  function openPractice(seed = null) {
+    S.pr = { level: store.get('practice.level', 'medium'), topic: store.get('practice.topic', 'mixed'), seed, item: null, loading: false, answer: '', hint: false, fb: null, done: false, wrong: false, error: '' }
+    S.tab = 'solve'; go('practice'); nextPractice()
+  }
+  async function nextPractice() {
+    const P = S.pr
+    Object.assign(P, { loading: true, error: '', fb: null, done: false, wrong: false, hint: false, answer: '' }); render()
+    S.ctl = new AbortController()
+    try {
+      let item = null
+      for (let k = 0; k < 2 && !item; k++) { // the stored answer has to agree with the calculator, or grading would be unfair
+        const r = await S.sample.json(PRACTICE_PROMPT + '\n\nDifficulty: ' + LEVELS[P.level] + '.\nTopic: ' + TOPICS[P.topic] + '.' + (P.seed ? '\nMake it similar in type to this problem, with different numbers:\n' + P.seed : ''), { signal: S.ctl.signal, cache: false })
+        if (r && r.latex && r.problem && verify(r.problem, r.answer || {}).status === 'match') item = { latex: String(r.latex), hint: String(r.hint || ''), problem: r.problem, answer_latex: String(r.answer_latex || '') }
+      }
+      if (!item) throw { code: 'invalid_json' }
+      P.item = item; P.seed = null
+    } catch (e) { if (e?.code !== 'cancelled') P.error = errText(e) }
+    P.loading = false; render()
+  }
+  function checkPractice() {
+    const P = S.pr, st = prStats()
+    if (!P.answer.trim()) return
+    const r = gradeAnswer(P.item.problem, P.answer)
+    P.fb = r
+    if (r.correct) {
+      P.done = true; burst()
+      const streak = P.hint ? st.streak : st.streak + 1
+      store.set('practice.stats', { streak, best: Math.max(st.best, streak), solved: st.solved + 1 })
+    } else if (r.correct === false && !P.wrong) { P.wrong = true; store.set('practice.stats', { ...st, streak: 0 }) }
+    render()
+  }
+  function revealPractice() {
+    const P = S.pr, st = prStats()
+    P.fb = { correct: false, revealed: true }; P.done = true
+    if (!P.wrong) { P.wrong = true; store.set('practice.stats', { ...st, streak: 0 }) }
+    render()
+  }
+
+  // ---------- save or share (needs the downloads capability) ----------
+  function vSheet(problem, r) {
+    const lines = (steps) => h('ol', { class: 'sheet-steps' }, steps.map((s, i) => h('li', {}, h('span', { class: 'sheet-num' }, String(i + 1)), h('div', {}, tex(s.latex, true), s.explain && h('p', {}, s.explain), s.check === 'bad' && h('p', { class: 'sheet-bad' }, '⚠ A calculator disagrees with this line')))))
+    const v = r.verification
+    return h('div', { class: 'sheet-wrap', 'aria-hidden': 'true' }, h('div', { class: 'sheet' },
+      h('div', { class: 'sheet-brand' }, 'Hunter Scan'),
+      h('div', { class: 'sheet-label' }, 'Problem'), tex(problem, true),
+      h('div', { class: 'sheet-label' }, 'Answer'), h('div', { class: 'sheet-answer' }, tex(r.answer_latex, true)),
+      r.answer_text && h('p', { class: 'sheet-text' }, r.answer_text),
+      h('p', { class: 'sheet-verify' }, v.status === 'match' ? '✓ Verified independently by a calculator' : v.status === 'mismatch' ? '⚠ Double-check this one: the calculator disagreed' : 'Not independently verified'),
+      h('div', { class: 'sheet-label' }, 'Step by step'), lines(r.steps),
+      r.check.steps.length > 0 && h('div', {}, h('div', { class: 'sheet-label' }, 'Check'), lines(r.check.steps), r.check.conclusion && h('p', { class: 'sheet-text' }, r.check.conclusion)),
+      h('p', { class: 'sheet-foot' }, 'Made with Hunter Scan · ' + new Date().toLocaleDateString())))
+  }
+  async function exportAs(kind) {
+    if (S.exporting) return
+    S.exporting = kind; S.exportMsg = ''; render()
+    const wrap = vSheet(S.latex, S.result)
+    document.body.append(wrap)
+    try {
+      await loadScript(LIBS.html2canvas)
+      const el = wrap.firstChild
+      const canvas = await window.html2canvas(el, { backgroundColor: getComputedStyle(el).backgroundColor, scale: 2, logging: false })
+      let blob, name
+      if (kind === 'png') { blob = await new Promise((res) => canvas.toBlob(res, 'image/png')); name = 'hunter-scan.png' } else {
+        await loadScript(LIBS.jspdf)
+        const pdf = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' })
+        const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 28, w = pw - m * 2, hgt = (canvas.height * w) / canvas.width
+        const img = canvas.toDataURL('image/jpeg', 0.92), usable = ph - m * 2
+        const bg = getComputedStyle(el).backgroundColor.match(/\d+/g)?.map(Number) || [255, 255, 255]
+        for (let off = 0, page = 0; off < hgt - 1; off += usable, page++) {
+          if (page) pdf.addPage()
+          pdf.addImage(img, 'JPEG', m, m - off, w, hgt)
+          pdf.setFillColor(...bg.slice(0, 3)); pdf.rect(0, 0, pw, m, 'F'); pdf.rect(0, ph - m, pw, m, 'F')
+        }
+        blob = pdf.output('blob'); name = 'hunter-scan.pdf'
+      }
+      await S.downloads.save({ filename: name, data: blob })
+      S.exportMsg = 'Saved ' + name + '.'
+    } catch (e) {
+      S.exportMsg = e?.code === 'declined' ? '' : 'Couldn’t create the file. Try again, or take a screenshot.'
+    } finally { wrap.remove(); S.exporting = ''; render() }
+  }
+
+  // ---------- barcode ----------
+  async function scanBarcode(file) {
+    if (!file || !file.type.startsWith('image/')) return setError('Please choose an image file.')
+    S.mode = 'buy'; S.tab = 'buy'; go('b-scanning')
+    const clean = (t) => { const d = String(t || '').replace(/\D/g, ''); return d.length >= 8 && d.length <= 14 ? d : null }
+    let code = null
+    if ('BarcodeDetector' in window) {
+      try { const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); code = clean((await new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] }).detect(bmp))[0]?.rawValue) } catch {}
+    }
+    if (!code) {
+      try {
+        await loadScript(LIBS.zxing)
+        const Z = window.ZXing, hints = new Map([[Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E]], [Z.DecodeHintType.TRY_HARDER, true]])
+        const url = URL.createObjectURL(file)
+        try { code = clean((await new Z.BrowserMultiFormatReader(hints).decodeFromImageUrl(url)).getText()) } finally { URL.revokeObjectURL(url) }
+      } catch { code = null }
+    }
+    if (!code) { S.screen = 'b-home'; return setError('Couldn’t read a barcode. Fill the frame with it, hold steady in good light, or type the product name.') }
+    S.barcode = code; S.product = null; S.photo = null; S.query = 'UPC ' + code
+    go('b-confirm')
+  }
+
+  // ---------- snap buy ----------
+  const IDENTIFY_PROMPT = `You identify a consumer product from the attached photo so the user can shop for it.
+Reply with ONLY a JSON object: {"identifiable": boolean, "name": string, "query": string, "message": string}
+Rules:
+- Read any visible brand, model name or number, size, or capacity. Prefer printed text over guessing.
+- "query" is the best web search phrase to find this exact product for sale (brand + model + key spec), e.g. "Sony WH-1000XM5 headphones". No prices, no word "buy".
+- If you can only tell the general kind of item and not a specific product, set "identifiable": true, give your best generic "query", and say in "message" that the match is approximate and the user should add the brand or model.
+- If the photo is blurry, empty, or shows nothing you can name, set "identifiable": false and write a short friendly "message" asking for a clearer photo (closer, better light, show the label or logo).
+- Never invent a model number you cannot see.`
+
+  async function identifyCropped(canvas) {
+    S.photo = canvas.toDataURL('image/jpeg', 0.7); S.barcode = null
+    go('b-identify')
+    S.ctl = new AbortController()
+    try {
+      const blob = await blobOf(canvas)
+      const r = await S.sample.json(IDENTIFY_PROMPT, { images: blob, signal: S.ctl.signal, cache: false })
+      const query = String(r?.query || '').trim()
+      S.product = { name: String(r?.name || query), message: String(r?.message || '').trim() }
+      if (!r?.identifiable || !query) {
+        S.product.message = S.product.message || 'I couldn’t tell what that is. Try a closer photo that shows the label or logo.'
+        return go('b-unreadable')
+      }
+      S.query = query
+      go('b-confirm')
+    } catch (e) {
+      if (e?.code === 'cancelled') return go('b-home')
+      S.screen = 'crop'; S.mode = 'buy'; setError(errText(e))
+    }
+  }
+
+  const STORE_PROMPT = `You advise shoppers on where to buy things. Given a product search phrase and the shopper's country code, name up to 3 well-known retailers that operate in that country and are most likely to stock this kind of item at a good price, best first. Judge by the type of product and each retailer's usual strengths (range, regular sales, price matching, open-box or refurbished deals). You cannot see live stock or prices, so never claim either. Each "why" is one short sentence.
+Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
+
+  async function pickStores() {
+    S.stores = []
+    go('b-picking')
+    S.ctl = new AbortController()
+    try {
+      if (S.sample) {
+        const r = await S.sample.json(STORE_PROMPT + '\n\nProduct: ' + S.query.trim() + '\nCountry: ' + region(), { signal: S.ctl.signal, modelTier: 'quick' })
+        S.stores = (r?.stores || []).filter((x) => x && String(x.name || '').trim()).slice(0, 3).map((x) => ({ name: String(x.name).trim().slice(0, 40), why: String(x.why || '').trim().slice(0, 160) }))
+      }
+    } catch (e) {
+      if (e?.code === 'cancelled') return go('b-confirm')
+      // no recommendation is fine: the search links below still work
+    }
+    remember({ type: 'buy', id: uid(), ts: Date.now(), query: S.query.trim(), stores: S.stores })
+    go('b-results')
+  }
+
+  const region = () => ((navigator.language || 'en-US').split('-')[1] || 'US').toUpperCase()
+  function storeLinks(query) {
+    const q = encodeURIComponent(query), c = region()
+    const amazon = { US: 'com', GB: 'co.uk', CA: 'ca', DE: 'de', FR: 'fr', IT: 'it', ES: 'es', AU: 'com.au', JP: 'co.jp', IN: 'in' }[c] || 'com'
+    const links = [
+      { name: 'Google Shopping', note: 'low to high', url: 'https://www.google.com/search?tbm=shop&q=' + q + '&tbs=p_ord:p' },
+      { name: 'Amazon', note: 'search', url: 'https://www.amazon.' + amazon + '/s?k=' + q },
+      { name: 'eBay', note: 'lowest price first', url: 'https://www.ebay.com/sch/i.html?_nkw=' + q + '&_sop=15' },
+    ]
+    if (c === 'US') links.push(
+      { name: 'Walmart', note: 'search', url: 'https://www.walmart.com/search?q=' + q },
+      { name: 'Best Buy', note: 'search', url: 'https://www.bestbuy.com/site/searchpage.jsp?st=' + q },
+      { name: 'Target', note: 'search', url: 'https://www.target.com/s?searchTerm=' + q })
+    return links
+  }
+
+  function vBuyHome() {
+    const noPhoto = S.ready && !S.canReadImages
+    return [
+      S.ready && !S.sample && h('div', { class: 'banner info' }, 'Claude isn’t available in this view, so photo recognition is off. You can still type a product name.'),
+      noPhoto && S.sample && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view. You can still type a product name.'),
+      h('div', { class: 'hero' },
+        h('h1', {}, 'Snap it.', h('br'), 'Find the best price.'),
+        h('p', { class: 'muted lead' }, 'Photograph a product or scan its barcode and jump straight to the stores that sell it, with each search sorted by price.'),
+        h('label', { class: 'snap', for: 'cam2', 'aria-label': 'Snap Buy' }, icon('bag'), 'Snap Buy'),
+        h('div', { class: 'quick' },
+          tile('label', { for: 'scan' }, 'barcode', 'Scan barcode'),
+          tile('label', { for: 'pick2' }, 'upload', 'Upload'),
+          tile('button', { type: 'button', onclick: () => { S.product = null; S.barcode = null; S.query = ''; go('b-confirm') } }, 'text', 'Type it')),
+        h('p', { class: 'muted tiny' }, 'This version opens store searches for you. It can’t look up live prices itself, so check the price on the store’s page.')),
+    ]
+  }
+
+  function vBuyConfirm() {
+    const input = h('input', { class: 'field', id: 'bq', type: 'text', placeholder: 'e.g. Sony WH-1000XM5 headphones', 'aria-label': 'Product to search for' })
+    input.value = S.query
+    const btn = h('button', { class: 'btn primary grow', type: 'button', onclick: pickStores }, 'Find best price')
+    const upd = () => { S.query = input.value; btn.disabled = S.query.trim().length < 2 }
+    input.addEventListener('input', upd); upd()
+    return [h('div', { class: 'card stack' },
+      h('h2', {}, S.barcode ? 'Barcode found' : 'Is this the right product?'),
+      h('p', { class: 'muted' }, S.barcode ? 'Barcode ' + S.barcode + '. If you know the product name, replace the search with it for a better match.' : 'Add the brand, model or size for a better match.'),
+      S.product?.message && h('div', { class: 'banner info' }, S.product.message),
+      S.product && S.photo && h('img', { class: 'thumb2', src: S.photo, alt: 'Your photo' }),
+      h('label', { class: 'eyebrow', for: 'bq' }, 'Search for'), input,
+      h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('b-home') }, 'Back'), btn))]
+  }
+
+  function vBuyResults() {
+    const links = storeLinks(S.query.trim())
+    const top = S.stores[0]
+    const topUrl = top && (links.find((l) => top.name.toLowerCase().includes(l.name.split(' ')[0].toLowerCase()))?.url
+      || 'https://www.google.com/search?q=' + encodeURIComponent(S.query.trim() + ' ' + top.name))
+    return [top && h('div', { class: 'card stack rec' },
+        h('span', { class: 'tag' }, 'Most likely to have it'),
+        h('div', { class: 'eyebrow' }, 'Recommended store'),
+        h('h2', {}, top.name),
+        top.why && h('p', {}, top.why),
+        S.stores.length > 1 && h('p', { class: 'muted' }, 'Also worth a look: ' + S.stores.slice(1).map((x) => x.name).join(', ') + '.'),
+        h('a', { class: 'btn cta', href: topUrl, target: '_blank', rel: 'noopener noreferrer' }, icon('search'), 'Search ' + top.name),
+        h('p', { class: 'muted tiny' }, 'Based on the kind of product, not live stock or prices. Check the store\u2019s page before you buy.')),
+      h('div', { class: 'card stack' },
+      h('div', { class: 'eyebrow' }, 'Shop for'), h('h2', {}, S.query.trim()),
+      h('p', { class: 'muted' }, 'Each link opens that store’s search for this product. Start with Google Shopping, which compares many stores at once.'),
+      h('div', { class: 'links' }, links.map((l, i) => h('a', { class: 'store' + (i === 0 ? ' first' : ''), href: l.url, target: '_blank', rel: 'noopener noreferrer' }, l.name, h('span', {}, l.note)))),
+      h('p', { class: 'muted tiny' }, 'These are searches, not verified prices. Check the price and seller on the store’s page before you buy.')),
+      h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('b-confirm') }, 'Edit search'), h('label', { class: 'btn cta grow', for: 'cam2' }, icon('bag'), 'Snap another'))]
+  }
+
+  function vBuyUnreadable() {
+    return [h('div', { class: 'card stack center' },
+      h('h2', {}, 'I couldn’t tell what that is'), h('p', {}, S.product?.message || ''),
+      h('label', { class: 'btn cta', for: 'cam2' }, icon('camera'), 'Retake photo'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.query = ''; S.product = null; go('b-confirm') } }, 'Type the product instead'))]
+  }
+
+  // ---------- views ----------
+  const camIcon = () => { const d = h('span'); d.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'; return d.firstChild }
+
+  const tile = (tag, attrs, name, label) => h(tag, { class: 'tile', ...attrs }, icon(name), label)
+  function vHome() {
+    const drop = h('div', { class: 'drop muted tiny' }, 'Or drag and drop a picture here')
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over') })
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'))
+    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); onFile(e.dataTransfer.files?.[0]) })
+    const noPhoto = S.ready && !S.canReadImages
+    return [
+      S.ready && !S.sample && h('div', { class: 'banner info' }, 'Claude isn’t available in this view, so solving is turned off. Open this page in the Claude app.'),
+      noPhoto && S.sample && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view. You can still type an equation.'),
+      h('div', { class: 'hero' },
+        h('h1', {}, 'Snap a problem.', h('br'), 'Get the work.'),
+        h('p', { class: 'muted lead' }, 'Photograph any equation on paper. I flatten the page, read it, solve it step by step, and check every line.'),
+        h('label', { class: 'snap', for: 'cam', 'aria-label': 'Snap Equation' }, icon('scan'), 'Snap Equation'),
+        h('div', { class: 'quick' },
+          tile('label', { for: 'pick' }, 'upload', 'Upload'),
+          tile('button', { type: 'button', onclick: () => { S.latex = ''; S.note = ''; S.word = null; S.uncertain = []; S.active = -1; go('edit') } }, 'text', 'Type it'),
+          tile('button', { type: 'button', disabled: !S.sample, onclick: () => openPractice(null) }, 'target', 'Practice')),
+        h('ul', { class: 'perks' }, ['Fixes handwriting', 'Checks every line', 'Graphs and PDFs'].map((t) => h('li', {}, icon('check'), t))),
+        drop),
+    ]
+  }
+
+  function vCrop() {
+    const crop = { x: 0.05, y: 0.2, w: 0.9, h: 0.6 }
+    const img = h('img', { src: S.shots ? (S.shotMode === 'clean' ? S.shots.clean : S.shots.original) : S.photo, alt: 'Your photo', draggable: 'false' })
+    const box = h('div', { class: 'cbox' }, ['tl', 'tr', 'bl', 'br'].map((k) => h('span', { class: 'hd ' + k, 'data-m': k })))
+    const wrap = h('div', { class: 'cwrap' }, img, box)
+    const paint = () => Object.assign(box.style, { left: crop.x * 100 + '%', top: crop.y * 100 + '%', width: crop.w * 100 + '%', height: crop.h * 100 + '%' })
+    paint()
+    let d = null
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
+    box.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); box.setPointerCapture(e.pointerId)
+      d = { mode: e.target.dataset.m || 'move', px: e.clientX, py: e.clientY, c: { ...crop } }
+    })
+    box.addEventListener('pointermove', (e) => {
+      if (!d) return
+      const r = wrap.getBoundingClientRect(), dx = (e.clientX - d.px) / r.width, dy = (e.clientY - d.py) / r.height
+      let { x, y, w, h: hh } = d.c
+      if (d.mode === 'move') { x = clamp(x + dx, 0, 1 - w); y = clamp(y + dy, 0, 1 - hh) }
+      else {
+        let x2 = x + w, y2 = y + hh
+        if (d.mode.includes('l')) x = clamp(x + dx, 0, x2 - 0.06)
+        if (d.mode.includes('r')) x2 = clamp(x2 + dx, x + 0.06, 1)
+        if (d.mode.includes('t')) y = clamp(y + dy, 0, y2 - 0.06)
+        if (d.mode.includes('b')) y2 = clamp(y2 + dy, y + 0.06, 1)
+        w = x2 - x; hh = y2 - y
+      }
+      Object.assign(crop, { x, y, w, h: hh }); paint()
+    })
+    const end = () => { d = null }
+    box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end)
+    const run = (c) => () => {
+      if (!S.sample) return setError('Claude isn’t available in this view.')
+      if (!S.canReadImages) { if (S.mode === 'buy') { S.query = ''; S.product = null; return go('b-confirm') } S.latex = ''; return go('edit') }
+      const cv = cropToCanvas(img, c)
+      return S.mode === 'buy' ? identifyCropped(cv) : readCropped(cv)
+    }
+    return [h('div', { class: 'card stack' },
+      h('h2', {}, 'Crop to the equation'),
+      h('p', { class: 'muted' }, 'Drag the box so only the problem is inside it.'),
+      S.shots && h('div', { class: 'chips', role: 'group', 'aria-label': 'Photo version' }, [['clean', S.shots.found ? 'Flattened and cleaned' : 'Lighting cleaned'], ['original', 'Original']].map(([id, label]) => h('button', { type: 'button', class: 'chip' + (S.shotMode === id ? ' on' : ''), 'aria-pressed': String(S.shotMode === id), onclick: () => { S.shotMode = id; render() } }, label))),
+      h('div', { class: 'stage' }, wrap),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => go(S.mode === 'buy' ? 'b-home' : 'home') }, 'Retake'),
+        h('button', { class: 'btn primary grow', type: 'button', onclick: () => run(crop)() }, 'Read equation')),
+      h('button', { class: 'link', type: 'button', onclick: run({ x: 0, y: 0, w: 1, h: 1 }) }, 'Skip cropping'))]
+  }
+
+  function vWait(title, sub) {
+    const withPhoto = (S.screen === 'reading' || S.screen === 'b-identify') && S.photo
+    return [h('div', { class: 'card stack center scan-card', role: 'status', 'aria-live': 'polite' },
+      withPhoto ? h('div', { class: 'scan-loader' }, h('img', { src: S.photo, alt: '' }), h('div', { class: 'scan-frame' }), h('div', { class: 'beam' }))
+        : h('div', { class: 'spinner', 'aria-label': title }),
+      h('h2', {}, title), sub && h('p', { class: 'muted' }, sub),
+      h('button', { class: 'link', type: 'button', onclick: () => S.ctl?.abort() }, 'Stop'))]
+  }
+
+  function vUnreadable() {
+    return [h('div', { class: 'card stack center' },
+      h('div', { class: 'empty-ico' }, icon('search')),
+      h('h2', {}, 'I couldn’t read that'),
+      h('p', {}, S.note),
+      h('label', { class: 'btn cta', for: 'cam' }, icon('camera'), 'Retake photo'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.latex = ''; go('edit') } }, 'Type it in instead'))]
+  }
+
+  const SNIPS = [['×', '\\times '], ['÷', '\\div '], ['xⁿ', '^{}', -1], ['a/b', '\\frac{}{}', -3], ['√', '\\sqrt{}', -1], ['π', '\\pi ']]
+
+  function vFixer(repaint, changed) {
+    const tokens = tokenize(S.latex)
+    if (!tokens.length) return h('div')
+    const flagged = flaggedIdx(tokens, S.uncertain)
+    const open = S.fixIdx != null && tokens[S.fixIdx] ? S.fixIdx : null
+    const tok = open != null ? tokens[open] : null
+    const apply = (value) => {
+      if (!tok || !value) return
+      S.latex = replaceTok(S.latex, tok, value)
+      const i = S.uncertain.findIndex((u) => u.text === tok.text); if (i >= 0) S.uncertain.splice(i, 1)
+      S.fixIdx = null; changed()
+    }
+    const alts = tok ? suggestionsFor(tok.text, S.uncertain) : []
+    const first = [...flagged][0]
+    const custom = h('input', { class: 'field', type: 'text', placeholder: 'Something else', 'aria-label': 'Replacement' })
+    return h('div', { class: 'fixer stack' },
+      h('div', { class: 'eyebrow' }, flagged.size ? 'Not sure about ' + (flagged.size === 1 ? 'one symbol' : flagged.size + ' symbols') + ': tap to check' : 'Tap a symbol to fix it'),
+      h('div', { class: 'tokens', role: 'group', 'aria-label': 'Symbols in the equation' }, tokens.map((t, i) =>
+        h('button', { type: 'button', class: 'tok' + (flagged.has(i) ? ' flag' : '') + (open === i ? ' sel' : '') + (/^[{}^_]$/.test(t.text) ? ' dim' : ''), 'aria-pressed': String(open === i), 'aria-label': 'Symbol ' + t.text + (flagged.has(i) ? ', not sure' : ''), onclick: () => { S.fixIdx = open === i ? null : i; repaint() } }, t.text))),
+      tok && h('div', { class: 'fix-panel' },
+        h('div', { class: 'fix-title' }, flagged.has(open) && alts.length ? ['Is ', h('code', {}, tok.text), ' really ', ...alts.slice(0, 2).flatMap((a, i) => [i ? ' or ' : '', h('code', {}, a)]), '?'] : ['Change ', h('code', {}, tok.text), ' to:']),
+        h('div', { class: 'chips' }, alts.map((a) => h('button', { type: 'button', class: 'chip', onclick: () => apply(a) }, a))),
+        h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); apply(custom.value.trim()) } }, custom, h('button', { class: 'btn secondary', type: 'submit' }, 'Apply'))),
+      first != null && open == null && h('button', { type: 'button', class: 'link', onclick: () => { S.fixIdx = first; repaint() } }, 'Check the first unsure symbol'))
+  }
+
+  function vEdit() {
+    const prev = h('div', { class: 'preview' })
+    const ta = h('textarea', { id: 'latex', rows: '3', spellcheck: 'false', autocapitalize: 'off', autocorrect: 'off', 'aria-label': 'Equation in LaTeX' })
+    ta.value = S.latex
+    const fixHost = h('div'), wordHint = h('div')
+    const solveBtn = h('button', { class: 'btn primary grow', type: 'button', onclick: () => solve() }, S.busy ? 'Solving…' : 'Solve')
+    const paintFix = () => fixHost.replaceChildren(vFixer(paintFix, () => { ta.value = S.latex; paintAll() }))
+    const paintAll = () => {
+      prev.replaceChildren(S.latex.trim() ? tex(S.latex, true) : h('span', { class: 'muted' }, 'Type an equation below'))
+      solveBtn.disabled = !S.latex.trim() || S.busy || !S.sample
+      const words = /[A-Za-z]{3,}\s+[A-Za-z]{2,}\s+[A-Za-z]{2,}/.test(S.latex) && !/\\[a-z]+/.test(S.latex)
+      wordHint.replaceChildren(...(words ? [h('div', { class: 'banner info' }, 'This looks like a word problem. ', h('button', { class: 'link', type: 'button', onclick: () => startWord(S.latex, -1) }, 'Turn it into an equation'))] : []))
+      paintFix()
+    }
+    ta.addEventListener('input', () => { S.latex = ta.value; S.fixIdx = null; paintAll() })
+    paintAll()
+    const insert = ([, text, back = 0]) => {
+      const s = ta.selectionStart, e = ta.selectionEnd
+      ta.value = ta.value.slice(0, s) + text + ta.value.slice(e); S.latex = ta.value; paintAll(); ta.focus()
+      const pos = s + text.length + back; ta.setSelectionRange(pos, pos)
+    }
+    const w = S.word
+    return [h('div', { class: 'card stack' },
+      h('h2', {}, w ? 'Does this equation match the story?' : 'Is this right?'),
+      h('p', { class: 'muted' }, w ? 'I turned the words into an equation. Fix anything that is off, then solve.' : 'Tap any symbol I misread (5 vs S, x vs ×), or edit the text, before solving.'),
+      w && h('div', { class: 'word-card' }, h('div', { class: 'eyebrow' }, 'Word problem'), h('p', { class: 'word-text' }, '“' + w.text + '”'),
+        w.variables.length > 0 && h('ul', { class: 'vars' }, w.variables.map((v) => h('li', {}, h('code', {}, v.name), ' = ' + v.meaning))), w.question && h('p', { class: 'muted' }, 'It asks: ' + w.question)),
+      S.note && h('div', { class: 'banner info' }, S.note),
+      prev, fixHost,
+      h('label', { class: 'eyebrow', for: 'latex' }, 'Edit (LaTeX)'), ta,
+      h('div', { class: 'chips' }, SNIPS.map((s) => h('button', { class: 'chip', type: 'button', onclick: () => insert(s) }, s[0]))),
+      wordHint,
+      h('div', { class: 'row' },
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => go(S.problems.length > 1 ? 'problems' : S.result ? 'result' : 'home') }, 'Back'),
+        solveBtn))]
+  }
+
+  function vProblems() {
+    const todo = S.problems.filter((p) => p.kind === 'math' && p.status !== 'done').length
+    const label = { idle: 'Not solved yet', solving: 'Solving…', done: 'Solved', error: 'Couldn’t solve' }
+    return [
+      h('div', { class: 'card stack' }, h('h2', {}, S.problems.length + ' problems found'), h('p', { class: 'muted' }, 'Solve them one at a time, or all at once. Tap Edit to fix anything I misread.'),
+        h('div', { class: 'row wrap' },
+          h('button', { class: 'btn primary grow', type: 'button', disabled: S.running || todo === 0, onclick: solveAll }, S.running ? 'Solving…' : todo === 0 ? 'All solved' : 'Solve all (' + todo + ')'),
+          h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.problems = []; S.active = -1; go('home') } }, 'New photo'))),
+      ...S.problems.map((p, i) => h('div', { class: 'card stack' },
+        h('div', { class: 'row' }, h('span', { class: 'numchip' }, String(i + 1)), h('span', { class: 'status ' + p.status }, label[p.status])),
+        p.kind === 'math' ? h('div', { class: 'problem' }, tex(p.latex, true)) : h('p', { class: 'word-text' }, '“' + p.text + '”'),
+        p.status === 'done' && h('div', { class: 'answer small' }, tex(p.result.answer_latex)),
+        p.error && h('div', { class: 'banner warn' }, p.error),
+        h('div', { class: 'row wrap' },
+          p.status === 'done' && h('button', { class: 'btn secondary grow', type: 'button', onclick: () => { S.active = i; S.latex = p.latex; S.result = p.result; S.word = null; go('result') } }, 'View steps'),
+          h('button', { class: 'btn ' + (p.status === 'done' ? 'ghost' : 'primary') + ' grow', type: 'button', disabled: S.running, onclick: () => openProblem(i) }, p.kind === 'word' ? 'Turn into equation' : p.status === 'done' ? 'Edit' : 'Edit & solve')))),
+    ]
+  }
+
+  function vPractice() {
+    const P = S.pr, st = prStats(), item = P.item, kind = item?.problem?.kind
+    const FORMAT = { solve: 'e.g. x = 2 or x = 3', system: 'e.g. x = 1, y = 2', derivative: 'e.g. 3x^2', integral: 'e.g. x^2 + C' }
+    const input = h('input', { class: 'field', id: 'ans', type: 'text', placeholder: FORMAT[kind] || 'Type your answer', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', 'aria-label': 'Your answer' })
+    input.value = P.answer
+    input.addEventListener('input', () => { P.answer = input.value; chk.disabled = !P.answer.trim() })
+    const chk = h('button', { class: 'btn primary grow', type: 'submit' }, 'Check answer')
+    chk.disabled = !P.answer.trim()
+    const pick = (k, v) => () => { P[k] = v; store.set('practice.' + (k === 'level' ? 'level' : 'topic'), v); nextPractice() }
+    return [
+      h('div', { class: 'card stack' },
+        h('div', { class: 'row spread' }, h('h2', {}, 'Practice'), h('div', { class: 'streak', 'aria-label': 'Streak ' + st.streak + ', best ' + st.best }, icon('flame', 'flame'), h('b', {}, String(st.streak)), ' ', h('span', { class: 'muted tiny' }, 'best ' + st.best + ' · ' + st.solved + ' solved'))),
+        h('div', { class: 'chips', role: 'group', 'aria-label': 'Difficulty' }, [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']].map(([id, name]) => h('button', { type: 'button', class: 'chip' + (P.level === id ? ' on' : ''), 'aria-pressed': String(P.level === id), disabled: P.loading, onclick: pick('level', id) }, name))),
+        h('label', { class: 'eyebrow', for: 'topic' }, 'Topic'),
+        (() => { const sel = h('select', { class: 'field', id: 'topic', disabled: P.loading }, [['mixed', 'Mixed'], ['arithmetic', 'Arithmetic'], ['linear', 'Linear equations'], ['quadratic', 'Quadratics'], ['system', 'Systems'], ['exponents', 'Exponents'], ['radicals', 'Radicals'], ['logs', 'Logarithms'], ['derivative', 'Derivatives'], ['integral', 'Integrals']].map(([id, name]) => h('option', { value: id }, name))); sel.value = P.topic; sel.addEventListener('change', () => pick('topic', sel.value)()); return sel })()),
+      P.error && h('div', { class: 'banner warn', role: 'alert' }, P.error),
+      P.loading && h('div', { class: 'card stack center' }, h('div', { class: 'spinner', role: 'status', 'aria-label': 'Writing a problem' }), h('p', { class: 'muted' }, 'Writing a problem…')),
+      item && !P.loading && h('div', { class: 'card stack' },
+        h('div', { class: 'eyebrow' }, 'Solve this'), h('div', { class: 'problem' }, tex(item.latex, true)),
+        P.hint && item.hint && h('div', { class: 'banner info' }, h('strong', {}, 'Hint'), h('span', {}, item.hint)),
+        !P.done && h('form', { class: 'stack', onsubmit: (e) => { e.preventDefault(); checkPractice() } },
+          h('label', { class: 'eyebrow', for: 'ans' }, 'Your answer'), input,
+          P.fb && P.fb.correct === false && !P.fb.revealed && h('div', { class: 'banner warn', role: 'alert' }, h('strong', {}, 'Not quite.'), h('span', {}, 'Try again, take a hint, or show the answer.')),
+          P.fb && P.fb.correct === null && h('div', { class: 'banner info' }, 'I couldn’t read that answer format. ' + P.fb.detail),
+          h('div', { class: 'row wrap' }, chk, !P.hint && item.hint && h('button', { class: 'btn secondary', type: 'button', onclick: () => { P.hint = true; render() } }, 'Show hint')),
+          h('button', { class: 'link', type: 'button', onclick: revealPractice }, 'Show the answer')),
+        P.done && h('div', { class: 'stack' },
+          P.fb?.revealed ? h('div', { class: 'banner info' }, h('strong', {}, 'The answer')) : h('div', { class: 'banner ok' }, icon('check', 'b-ico'), 'Correct!' + (P.hint ? ' (with a hint, so the streak stays put)' : st.streak > 1 ? ' ' + st.streak + ' in a row.' : '')),
+          item.answer_latex && h('div', { class: 'answer' }, tex(item.answer_latex, true)),
+          h('div', { class: 'row wrap' }, h('button', { class: 'btn primary grow', type: 'button', onclick: nextPractice }, 'Next problem'), h('button', { class: 'btn secondary', type: 'button', onclick: () => { S.active = -1; S.word = null; S.uncertain = []; S.latex = item.latex; solve(item.latex, S.simple, null) } }, 'See the steps')))),
+      h('button', { class: 'link', type: 'button', onclick: () => { S.latex = ''; S.result = null; go('home') } }, 'Back'),
+    ]
+  }
+
+  function stepList(steps) {
+    return h('ol', { class: 'steps' }, steps.map((s) =>
+      h('li', { class: s.check === 'bad' ? 'step-bad' : '' }, h('div', { class: 'sb' }, h('div', { class: 'sm' }, tex(s.latex, true)), s.explain && h('p', { class: 'explain' }, s.explain),
+        s.check === 'ok' && h('span', { class: 'chk ok' }, icon('check'), 'checked'), s.check === 'bad' && h('span', { class: 'chk bad' }, icon('alert'), 'A calculator disagrees with this line')))))
+  }
+
+  function vResult() {
+    const r = S.result, v = r.verification, bad = r.steps_summary?.bad || [], checked = r.steps_summary?.checked || 0
+    const banner = v.status === 'mismatch'
+      ? h('div', { class: 'banner warn', role: 'alert' }, icon('alert', 'b-ico'), h('strong', {}, 'Double-check this one.'), h('span', {}, 'The AI’s answer and an independent math check disagree. ' + v.detail + '.'))
+      : v.status === 'match' ? h('div', { class: 'banner ok' }, icon('check', 'b-ico'), 'Verified independently with math.js')
+      : h('div', { class: 'banner info' }, 'Couldn’t be verified automatically. ' + v.detail)
+    const graph = r.graph ? vGraph(r.graph) : null
+    return [
+      S.busy && h('div', { class: 'banner info' }, 'Rewriting the explanations…'),
+      S.problems.length > 1 && S.active >= 0 && h('button', { class: 'link left', type: 'button', onclick: () => go('problems') }, '← All problems'),
+      h('div', { class: 'card stack' },
+        h('div', { class: 'eyebrow' }, 'Problem'), h('div', { class: 'problem' }, tex(S.latex, true)),
+        h('div', { class: 'eyebrow' }, 'Answer'), h('div', { class: 'answer' }, tex(r.answer_latex, true)),
+        r.answer_text && h('p', { class: 'answer-text' }, r.answer_text), banner,
+        bad.length > 0 && h('div', { class: 'banner warn', role: 'alert' }, h('strong', {}, 'Check ' + (bad.length === 1 ? 'line ' + (bad[0] + 1) : 'lines ' + bad.map((i) => i + 1).join(', ')) + ' of the work.'), h('span', {}, 'A calculator tested each line and disagrees with ' + (bad.length === 1 ? 'it' : 'them') + '. The final answer may still be right, but that part of the explanation might not be.'))),
+      graph,
+      h('div', { class: 'card' }, h('h2', {}, 'Step by step'), checked > 0 && h('p', { class: 'muted tiny' }, checked + ' of ' + r.steps.length + ' lines checked by a calculator.'), stepList(r.steps)),
+      (r.check.steps.length || r.check.conclusion) && h('div', { class: 'card' },
+        h('h2', {}, 'Check'), h('p', { class: 'muted' }, 'Plugging the answer back in:'), stepList(r.check.steps),
+        r.check.conclusion && h('p', { class: 'conclusion' }, r.check.conclusion)),
+      S.downloads && h('div', { class: 'card stack' }, h('h2', {}, 'Save or share'),
+        h('div', { class: 'row wrap' },
+          h('button', { class: 'btn secondary grow', type: 'button', disabled: !!S.exporting, onclick: () => exportAs('pdf') }, icon('pdf'), S.exporting === 'pdf' ? 'Making PDF…' : 'Save as PDF'),
+          h('button', { class: 'btn secondary grow', type: 'button', disabled: !!S.exporting, onclick: () => exportAs('png') }, icon('image'), S.exporting === 'png' ? 'Making image…' : 'Save as image')),
+        S.exportMsg && h('p', { class: 'muted tiny', role: 'status' }, S.exportMsg)),
+      h('div', { class: 'row wrap' },
+        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.busy || !S.sample, onclick: () => openPractice(S.latex) }, icon('target'), 'Practice similar'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => go('edit') }, 'Edit problem')),
+      h('label', { class: 'btn cta', for: 'cam' }, icon('camera'), 'Snap another'),
+    ]
+  }
+
+  function vHistory() {
+    if (!S.history.length) return [h('div', { class: 'card stack center' }, h('div', { class: 'empty-ico' }, icon('history')), h('h2', {}, 'Nothing here yet'), h('p', { class: 'muted' }, 'Solved problems and product searches are saved here, on this device only.'))]
+    const shown = S.history.filter((i) => S.hfilter === 'all' || i.type === S.hfilter)
+    return [
+      h('div', { class: 'chips', role: 'tablist', 'aria-label': 'History filter' }, [['all', 'All'], ['math', 'Math'], ['buy', 'Snap Buy']].map(([id, name]) => h('button', { type: 'button', role: 'tab', 'aria-selected': String(S.hfilter === id), class: 'chip' + (S.hfilter === id ? ' on' : ''), onclick: () => { S.hfilter = id; render() } }, name))),
+      !shown.length && h('div', { class: 'card center muted' }, 'No ' + (S.hfilter === 'buy' ? 'product searches' : 'math problems') + ' yet.'),
+      ...shown.map((it) => h('div', { class: 'card hitem' },
+        h('button', { class: 'hopen', type: 'button', onclick: () => {
+          if (it.type === 'buy') { S.tab = 'buy'; S.mode = 'buy'; S.query = it.query; S.stores = it.stores || []; return go('b-results') }
+          S.latex = it.latex; S.result = it.result; S.word = it.word || null; S.active = -1; S.tab = 'solve'; go('result') } },
+          h('span', { class: 'type-tag' }, it.type === 'buy' ? 'Snap Buy' : 'Math'),
+          it.type === 'buy' ? h('div', {}, h('div', { class: 'htitle' }, it.query), h('div', { class: 'hans' }, it.stores?.[0] ? 'Try ' + it.stores[0].name : 'Store searches'))
+            : h('div', {}, h('div', { class: 'problem tiny' }, tex(it.latex)), h('div', { class: 'hans' }, '= ', tex(it.result.answer_latex))),
+          h('div', { class: 'muted tiny' }, new Date(it.ts).toLocaleString())),
+        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Delete', onclick: () => { S.history = S.history.filter((x) => x.id !== it.id); store.set('history', S.history); render() } }, '✕'))),
+      h('button', { class: 'link danger', type: 'button', onclick: () => { S.history = []; store.set('history', []); render() } }, 'Clear history'),
+    ]
+  }
+
+  function render() {
+    $('#eli').checked = S.simple
+    $('#themebtn').setAttribute('aria-expanded', String(S.themeOpen))
+    $('#tab-solve').setAttribute('aria-current', S.tab === 'solve')
+    $('#tab-hist').setAttribute('aria-current', S.tab === 'history')
+    $('#tab-buy').setAttribute('aria-current', S.tab === 'buy')
+    let body
+    if (S.tab === 'history') body = vHistory()
+    else if (S.tab === 'buy') {
+      const sc = S.screen.startsWith('b-') || S.screen === 'crop' ? S.screen : 'b-home'
+      body = sc === 'crop' ? vCrop() : sc === 'b-picking' ? vWait('Picking the best store…', 'Thinking about who usually stocks this.') : sc === 'b-identify' ? vWait('Figuring out what this is…', 'This can take a few seconds.') : sc === 'b-scanning' ? vWait('Reading the barcode…', '') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
+    }
+    else if (S.screen === 'home') body = vHome()
+    else if (S.screen === 'crop') body = vCrop()
+    else if (S.screen === 'reading') body = vWait('Reading your handwriting…', 'This can take a few seconds.')
+    else if (S.screen === 'formulating') body = vWait('Turning the words into an equation…', 'This can take a few seconds.')
+    else if (S.screen === 'unreadable') body = vUnreadable()
+    else if (S.screen === 'problems') body = vProblems()
+    else if (S.screen === 'practice' && S.pr) body = vPractice()
+    else if (S.screen === 'edit') body = S.busy ? vWait('Solving…', 'Working it out, then checking it a second way.') : vEdit()
+    else if (S.screen === 'result' && S.result) body = vResult()
+    else body = vHome()
+    const themes = S.themeOpen && vThemes()
+    const err = S.error && h('div', { class: 'banner warn', role: 'alert' }, S.error)
+    view.replaceChildren(...[themes, err, ...body].filter(Boolean))
+  }
+
+  // ---------- wiring ----------
+  $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; render() })
+  $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
+  $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
+  $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; S.latex = ''; S.result = null; S.word = null; S.problems = []; S.active = -1; go('home') })
+  $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; if (S.screen.startsWith('b-')) S.screen = 'home'; render() })
+  $('#tab-hist').addEventListener('click', () => { S.tab = 'history'; render() })
+  $('#tab-buy').addEventListener('click', () => { S.tab = 'buy'; S.mode = 'buy'; if (!S.screen.startsWith('b-') && S.screen !== 'crop') S.screen = 'b-home'; render() })
+  $('#scan').addEventListener('change', (e) => { scanBarcode(e.target.files[0]); e.target.value = '' })
+  $('#cam2').addEventListener('change', (e) => { onFile(e.target.files[0], 'buy'); e.target.value = '' })
+  $('#pick2').addEventListener('change', (e) => { onFile(e.target.files[0], 'buy'); e.target.value = '' })
+  $('#eli').addEventListener('change', (e) => {
+    S.simple = e.target.checked; store.set('simple', S.simple)
+    if (S.tab === 'solve' && S.screen === 'result' && S.sample && !S.busy) solve(S.latex, S.simple, S.word); else render()
+  })
+  applySkin()
+  render()
+  initSample()
+  window.__hunterscan = { verify } // handy for debugging in the console
+})()
+</script>

@@ -1,0 +1,9 @@
+.env
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+.venv/
+frontend/e2e/.tmp/
+frontend/playwright-report/
+frontend/test-results/

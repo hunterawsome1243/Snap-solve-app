@@ -1,0 +1,16 @@
+{
+  "name": "Hunter Scan",
+  "short_name": "Hunter Scan",
+  "description": "Scan a math problem or a product and get the worked answer or the best price.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3f6f1",
+  "theme_color": "#1f5d3f",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

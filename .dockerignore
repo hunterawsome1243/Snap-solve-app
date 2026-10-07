@@ -1,0 +1,11 @@
+.git
+node_modules
+frontend/node_modules
+frontend/dist
+frontend/e2e/.tmp
+frontend/test-results
+frontend/playwright-report
+artifact
+.env
+**/__pycache__
+.pytest_cache
