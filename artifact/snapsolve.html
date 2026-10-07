@@ -160,6 +160,14 @@ textarea { width: 100%; font: 15px/1.4 var(--mono); padding: 12px; border-radius
 .banner.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-line); }
 .banner.warn strong { font-size: 1.05rem; }
 
+/* snap buy */
+.field { width: 100%; font: inherit; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.links { display: flex; flex-direction: column; gap: 10px; }
+a.store { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); color: var(--ink); text-decoration: none; font-weight: 700; }
+a.store.first { border-color: var(--accent); background: var(--soft); }
+a.store span { color: var(--muted); font: 500 .75rem var(--mono); }
+.thumb2 { max-width: 100%; max-height: 120px; border-radius: 10px; align-self: flex-start; }
+
 /* theme picker */
 .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
 .theme { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 10px; }
@@ -202,8 +210,11 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
 </div>
 <input class="sr" id="cam" type="file" accept="image/*" capture="environment" aria-label="Take a photo">
 <input class="sr" id="pick" type="file" accept="image/*" aria-label="Choose an image">
+<input class="sr" id="cam2" type="file" accept="image/*" capture="environment" aria-label="Take a photo of a product">
+<input class="sr" id="pick2" type="file" accept="image/*" aria-label="Choose a product image">
 <nav class="tabs"><div class="in">
   <button type="button" id="tab-solve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Solve</button>
+  <button type="button" id="tab-buy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>Snap Buy</button>
   <button type="button" id="tab-hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>History</button>
 </div></nav>
 
@@ -224,7 +235,7 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
-    history: store.get('history', []), skin: store.get('skin', 'auto'), themeOpen: false, sample: null, canReadImages: false, ready: false,
+    history: store.get('history', []), skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', sample: null, canReadImages: false, ready: false,
     ctl: null,
   }
 
@@ -537,10 +548,11 @@ Writing the work:
   function setError(msg) { S.error = msg || ''; render() }
   function go(screen) { S.error = ''; S.screen = screen; render() }
 
-  async function onFile(file) {
+  async function onFile(file, mode = 'solve') {
     if (!file) return
+    S.mode = mode
     if (!file.type.startsWith('image/')) return setError('Please choose an image file.')
-    try { S.photo = await loadPhoto(file); S.tab = 'solve'; go('crop') }
+    try { S.photo = await loadPhoto(file); S.tab = mode === 'buy' ? 'buy' : 'solve'; go('crop') }
     catch { setError('Couldn’t open that image. Try a JPG or PNG.') }
   }
 
@@ -593,6 +605,101 @@ Writing the work:
       if (!latex) throw { code: 'invalid_json' }
       S.latex = latex; S.note = ''; S.practice = true; S.result = null; S.screen = 'edit'
     } catch (e) { S.error = errText(e) } finally { S.busy = false; render() }
+  }
+
+  // ---------- snap buy ----------
+  const IDENTIFY_PROMPT = `You identify a consumer product from the attached photo so the user can shop for it.
+Reply with ONLY a JSON object: {"identifiable": boolean, "name": string, "query": string, "message": string}
+Rules:
+- Read any visible brand, model name or number, size, or capacity. Prefer printed text over guessing.
+- "query" is the best web search phrase to find this exact product for sale (brand + model + key spec), e.g. "Sony WH-1000XM5 headphones". No prices, no word "buy".
+- If you can only tell the general kind of item and not a specific product, set "identifiable": true, give your best generic "query", and say in "message" that the match is approximate and the user should add the brand or model.
+- If the photo is blurry, empty, or shows nothing you can name, set "identifiable": false and write a short friendly "message" asking for a clearer photo (closer, better light, show the label or logo).
+- Never invent a model number you cannot see.`
+
+  async function identifyCropped(canvas) {
+    S.photo = canvas.toDataURL('image/jpeg', 0.7)
+    go('b-identify')
+    S.ctl = new AbortController()
+    try {
+      const blob = await blobOf(canvas)
+      const r = await S.sample.json(IDENTIFY_PROMPT, { images: blob, signal: S.ctl.signal, cache: false })
+      const query = String(r?.query || '').trim()
+      S.product = { name: String(r?.name || query), message: String(r?.message || '').trim() }
+      if (!r?.identifiable || !query) {
+        S.product.message = S.product.message || 'I couldn’t tell what that is. Try a closer photo that shows the label or logo.'
+        return go('b-unreadable')
+      }
+      S.query = query
+      go('b-confirm')
+    } catch (e) {
+      if (e?.code === 'cancelled') return go('b-home')
+      S.screen = 'crop'; S.mode = 'buy'; setError(errText(e))
+    }
+  }
+
+  const region = () => ((navigator.language || 'en-US').split('-')[1] || 'US').toUpperCase()
+  function storeLinks(query) {
+    const q = encodeURIComponent(query), c = region()
+    const amazon = { US: 'com', GB: 'co.uk', CA: 'ca', DE: 'de', FR: 'fr', IT: 'it', ES: 'es', AU: 'com.au', JP: 'co.jp', IN: 'in' }[c] || 'com'
+    const links = [
+      { name: 'Google Shopping', note: 'low to high', url: 'https://www.google.com/search?tbm=shop&q=' + q + '&tbs=p_ord:p' },
+      { name: 'Amazon', note: 'search', url: 'https://www.amazon.' + amazon + '/s?k=' + q },
+      { name: 'eBay', note: 'lowest price first', url: 'https://www.ebay.com/sch/i.html?_nkw=' + q + '&_sop=15' },
+    ]
+    if (c === 'US') links.push(
+      { name: 'Walmart', note: 'search', url: 'https://www.walmart.com/search?q=' + q },
+      { name: 'Best Buy', note: 'search', url: 'https://www.bestbuy.com/site/searchpage.jsp?st=' + q },
+      { name: 'Target', note: 'search', url: 'https://www.target.com/s?searchTerm=' + q })
+    return links
+  }
+
+  function vBuyHome() {
+    const noPhoto = S.ready && !S.canReadImages
+    return [
+      h('div', { class: 'hero' },
+        h('h1', {}, 'Snap it.', h('br'), 'Find the best price.'),
+        h('p', { class: 'muted' }, 'Photograph any product and jump straight to the stores that sell it, with each search sorted by price.')),
+      S.ready && !S.sample && h('div', { class: 'banner info' }, 'Claude isn’t available in this view, so photo recognition is off. You can still type a product name.'),
+      noPhoto && S.sample && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view. You can still type a product name.'),
+      h('label', { class: 'snap', for: 'cam2', 'aria-label': 'Snap Buy' }, h('i'), h('i'), h('i'), h('i'), camIcon(), 'Snap Buy'),
+      h('div', { class: 'alt' },
+        h('label', { class: 'btn secondary', for: 'pick2' }, 'Upload image'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.product = null; S.query = ''; go('b-confirm') } }, 'Type it')),
+      h('p', { class: 'muted tiny' }, 'This version opens store searches for you. It can’t look up live prices itself, so check the price on the store’s page.'),
+    ]
+  }
+
+  function vBuyConfirm() {
+    const input = h('input', { class: 'field', id: 'bq', type: 'text', placeholder: 'e.g. Sony WH-1000XM5 headphones', 'aria-label': 'Product to search for' })
+    input.value = S.query
+    const btn = h('button', { class: 'btn primary grow', type: 'button', onclick: () => go('b-results') }, 'Find best price')
+    const upd = () => { S.query = input.value; btn.disabled = S.query.trim().length < 2 }
+    input.addEventListener('input', upd); upd()
+    return [h('div', { class: 'card stack' },
+      h('h2', {}, 'Is this the right product?'),
+      h('p', { class: 'muted' }, 'Add the brand, model or size for a better match.'),
+      S.product?.message && h('div', { class: 'banner info' }, S.product.message),
+      S.product && S.photo && h('img', { class: 'thumb2', src: S.photo, alt: 'Your photo' }),
+      h('label', { class: 'eyebrow', for: 'bq' }, 'Search for'), input,
+      h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('b-home') }, 'Back'), btn))]
+  }
+
+  function vBuyResults() {
+    const links = storeLinks(S.query.trim())
+    return [h('div', { class: 'card stack' },
+      h('div', { class: 'eyebrow' }, 'Shop for'), h('h2', {}, S.query.trim()),
+      h('p', { class: 'muted' }, 'Each link opens that store’s search for this product. Start with Google Shopping, which compares many stores at once.'),
+      h('div', { class: 'links' }, links.map((l, i) => h('a', { class: 'store' + (i === 0 ? ' first' : ''), href: l.url, target: '_blank', rel: 'noopener noreferrer' }, l.name, h('span', {}, l.note)))),
+      h('p', { class: 'muted tiny' }, 'These are searches, not verified prices. Check the price and seller on the store’s page before you buy.')),
+      h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('b-confirm') }, 'Edit search'), h('label', { class: 'btn primary grow', for: 'cam2' }, 'Snap another'))]
+  }
+
+  function vBuyUnreadable() {
+    return [h('div', { class: 'card stack center' },
+      h('h2', {}, 'I couldn’t tell what that is'), h('p', {}, S.product?.message || ''),
+      h('label', { class: 'btn primary', for: 'cam2' }, 'Retake photo'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.query = ''; S.product = null; go('b-confirm') } }, 'Type the product instead'))]
   }
 
   // ---------- views ----------
@@ -650,15 +757,16 @@ Writing the work:
     box.addEventListener('pointerup', end); box.addEventListener('pointercancel', end)
     const run = (c) => () => {
       if (!S.sample) return setError('Claude isn’t available in this view.')
-      if (!S.canReadImages) { S.latex = ''; return go('edit') }
-      readCropped(cropToCanvas(img, c))
+      if (!S.canReadImages) { if (S.mode === 'buy') { S.query = ''; S.product = null; return go('b-confirm') } S.latex = ''; return go('edit') }
+      const cv = cropToCanvas(img, c)
+      return S.mode === 'buy' ? identifyCropped(cv) : readCropped(cv)
     }
     return [h('div', { class: 'card stack' },
       h('h2', {}, 'Crop to the equation'),
       h('p', { class: 'muted' }, 'Drag the box so only the problem is inside it.'),
       h('div', { class: 'stage' }, wrap),
       h('div', { class: 'row' },
-        h('button', { class: 'btn ghost', type: 'button', onclick: () => go('home') }, 'Retake'),
+        h('button', { class: 'btn ghost', type: 'button', onclick: () => go(S.mode === 'buy' ? 'b-home' : 'home') }, 'Retake'),
         h('button', { class: 'btn primary grow', type: 'button', onclick: () => run(crop)() }, 'Read equation')),
       h('button', { class: 'link', type: 'button', onclick: run({ x: 0, y: 0, w: 1, h: 1 }) }, 'Skip cropping'))]
   }
@@ -667,7 +775,7 @@ Writing the work:
     return [h('div', { class: 'card stack center' },
       h('div', { class: 'spinner', role: 'status', 'aria-label': title }),
       h('h2', {}, title), sub && h('p', { class: 'muted' }, sub),
-      S.screen === 'reading' && S.photo && h('img', { class: 'thumb', src: S.photo, alt: '' }),
+      (S.screen === 'reading' || S.screen === 'b-identify') && S.photo && h('img', { class: 'thumb', src: S.photo, alt: '' }),
       h('button', { class: 'link', type: 'button', onclick: () => S.ctl?.abort() }, 'Stop'))]
   }
 
@@ -752,8 +860,13 @@ Writing the work:
     $('#themebtn').setAttribute('aria-expanded', String(S.themeOpen))
     $('#tab-solve').setAttribute('aria-current', S.tab === 'solve')
     $('#tab-hist').setAttribute('aria-current', S.tab === 'history')
+    $('#tab-buy').setAttribute('aria-current', S.tab === 'buy')
     let body
     if (S.tab === 'history') body = vHistory()
+    else if (S.tab === 'buy') {
+      const sc = S.screen.startsWith('b-') || S.screen === 'crop' ? S.screen : 'b-home'
+      body = sc === 'crop' ? vCrop() : sc === 'b-identify' ? vWait('Figuring out what this is\u2026', 'This can take a few seconds.') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
+    }
     else if (S.screen === 'home') body = vHome()
     else if (S.screen === 'crop') body = vCrop()
     else if (S.screen === 'reading') body = vWait('Reading your handwriting…', 'This can take a few seconds.')
@@ -771,8 +884,11 @@ Writing the work:
   $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.latex = ''; S.result = null; S.practice = false; go('home') })
-  $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; render() })
+  $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; if (S.screen.startsWith('b-')) S.screen = 'home'; render() })
   $('#tab-hist').addEventListener('click', () => { S.tab = 'history'; render() })
+  $('#tab-buy').addEventListener('click', () => { S.tab = 'buy'; S.mode = 'buy'; if (!S.screen.startsWith('b-') && S.screen !== 'crop') S.screen = 'b-home'; render() })
+  $('#cam2').addEventListener('change', (e) => { onFile(e.target.files[0], 'buy'); e.target.value = '' })
+  $('#pick2').addEventListener('change', (e) => { onFile(e.target.files[0], 'buy'); e.target.value = '' })
   $('#eli').addEventListener('change', (e) => {
     S.simple = e.target.checked; store.set('simple', S.simple)
     if (S.tab === 'solve' && S.screen === 'result' && S.sample && !S.busy) solve(S.latex, S.simple); else render()

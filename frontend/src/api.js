@@ -21,3 +21,10 @@ export const readImage = (dataUrl) => {
 }
 export const solve = (latex, simple) => post('/api/solve', { latex, simple })
 export const practice = (latex) => post('/api/practice', { latex })
+
+const country = () => (navigator.language || 'en-US').split('-')[1]?.toUpperCase() || 'US'
+export const identifyProduct = (dataUrl) => {
+  const [head, image] = dataUrl.split(',')
+  return post('/api/buy/identify', { image, media_type: head.match(/data:(.*?);/)[1] })
+}
+export const findPrices = (query) => post('/api/buy/prices', { query, country: country() })

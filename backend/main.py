@@ -3,7 +3,9 @@ import base64
 import json
 import os
 import re
+import time
 from pathlib import Path
+from urllib.parse import quote_plus, urlparse
 
 import anthropic
 from dotenv import load_dotenv
@@ -89,8 +91,7 @@ class ReadRequest(BaseModel):
     media_type: str = "image/jpeg"
 
 
-@app.post("/api/read")
-def read_image(req: ReadRequest):
+def check_image(req: "ReadRequest") -> None:
     if req.media_type not in ALLOWED_MEDIA:
         raise HTTPException(400, "Unsupported image type.")
     try:
@@ -99,6 +100,11 @@ def read_image(req: ReadRequest):
         raise HTTPException(400, "Image data was not valid base64.")
     if len(raw) > MAX_IMAGE_BYTES:
         raise HTTPException(413, "Image is too large. Try cropping it more.")
+
+
+@app.post("/api/read")
+def read_image(req: ReadRequest):
+    check_image(req)
     data = ask_claude(
         READ_SYSTEM,
         [
@@ -214,6 +220,185 @@ def practice(req: PracticeRequest):
     if not latex:
         raise HTTPException(502, "Couldn't make a practice problem. Please try again.")
     return {"latex": latex}
+
+
+# ------------------------------------------------------------------ snap buy
+
+IDENTIFY_SYSTEM = """You identify a consumer product from a photo so the user can shop for it.
+Reply with ONLY a JSON object:
+{"identifiable": boolean, "name": string, "brand": string, "model": string, "category": string,
+ "query": string, "message": string}
+
+Rules:
+- Read any visible brand, model name or number, size, or capacity. Prefer printed text over guessing.
+- "query" is the best web search phrase to find this exact product for sale (brand + model + key spec),
+  e.g. "Sony WH-1000XM5 headphones". Do not include prices or the word "buy".
+- If you can only tell the general kind of item (e.g. "a black backpack") and not a specific product, still
+  set "identifiable": true, give your best generic "query", and say in "message" that the match is approximate
+  and the user should add the brand or model.
+- If the photo is blurry, empty, or shows nothing you can name, set "identifiable": false and write a short,
+  friendly "message" asking for a clearer photo (closer, better light, show the label or logo).
+- Never invent a model number you cannot see."""
+
+OFFERS_SYSTEM = """You are a careful price-comparison assistant. Use web search to find where to buy the exact
+product the user names, then report the best current offers.
+Rules:
+- Only include an offer if you saw its price in search results and it is clearly the SAME product (not an
+  accessory, a different model, or a bundle) unless the user's query is generic.
+- "url" must be the product page link exactly as it appeared in the results. Never construct or guess a URL.
+- Prefer well-known retailers and the manufacturer's own store. Skip results that look like scams or
+  marketplaces with no real listing. Include up to 8 offers from different sellers.
+- "price" is a number in "currency" (ISO code), the item price before shipping when you can tell.
+- "condition" is one of new, used, refurbished, unknown. "note" is a few words at most (e.g. "free shipping", "sale").
+- If you cannot find reliable prices, return an empty offers list and say why in "summary".
+Reply with ONLY one JSON object: {"offers":[{"retailer":string,"price":number,"currency":string,
+"url":string,"condition":string,"note":string}],"summary":string}"""
+
+WEB_SEARCH_TYPES = ("web_search_20260209", "web_search_20250305")
+AMAZON_DOMAIN = {"US": "com", "GB": "co.uk", "CA": "ca", "DE": "de", "FR": "fr", "IT": "it", "ES": "es", "AU": "com.au", "JP": "co.jp", "IN": "in"}
+
+
+class IdentifyRequest(ReadRequest):
+    pass
+
+
+@app.post("/api/buy/identify")
+def buy_identify(req: IdentifyRequest):
+    check_image(req)
+    data = ask_claude(
+        IDENTIFY_SYSTEM,
+        [
+            {"type": "image", "source": {"type": "base64", "media_type": req.media_type, "data": req.image}},
+            {"type": "text", "text": "What product is this?"},
+        ],
+        max_tokens=600,
+    )
+    query = str(data.get("query") or "").strip()
+    ok = bool(data.get("identifiable")) and bool(query)
+    message = str(data.get("message") or "").strip()
+    if not ok and not message:
+        message = "I couldn't tell what that is. Try a closer photo that shows the label or logo."
+    return {
+        "identifiable": ok,
+        "name": str(data.get("name") or "").strip() or query,
+        "brand": str(data.get("brand") or "").strip(),
+        "model": str(data.get("model") or "").strip(),
+        "category": str(data.get("category") or "").strip(),
+        "query": query if ok else "",
+        "message": message,
+    }
+
+
+def compare_links(query: str, country: str = "US") -> list[dict]:
+    """Search links on big stores. These are searches, not prices, and are labelled that way in the UI."""
+    q = quote_plus(query)
+    c = (country or "US").upper()
+    links = [
+        {"name": "Google Shopping (low to high)", "url": f"https://www.google.com/search?tbm=shop&q={q}&tbs=p_ord:p"},
+        {"name": "Amazon", "url": f"https://www.amazon.{AMAZON_DOMAIN.get(c, 'com')}/s?k={q}"},
+        {"name": "eBay (lowest price first)", "url": f"https://www.ebay.com/sch/i.html?_nkw={q}&_sop=15"},
+    ]
+    if c == "US":
+        links += [
+            {"name": "Walmart", "url": f"https://www.walmart.com/search?q={q}"},
+            {"name": "Best Buy", "url": f"https://www.bestbuy.com/site/searchpage.jsp?st={q}"},
+            {"name": "Target", "url": f"https://www.target.com/s?searchTerm={q}"},
+        ]
+    return links
+
+
+def _url_key(url: str) -> str:
+    u = urlparse(url)
+    return (u.netloc.lower().removeprefix("www.") + u.path.rstrip("/")).lower()
+
+
+def filter_offers(offers, allowed_urls: set[str]) -> list[dict]:
+    """Keep only offers whose link really came from a search result, with a sane price. Cheapest first."""
+    allowed = {_url_key(u) for u in allowed_urls}
+    out, seen = [], set()
+    for o in offers or []:
+        if not isinstance(o, dict):
+            continue
+        url = str(o.get("url") or "").strip()
+        if urlparse(url).scheme not in ("http", "https") or _url_key(url) not in allowed:
+            continue
+        try:
+            price = float(o.get("price"))
+        except (TypeError, ValueError):
+            continue
+        if not (0 < price < 10_000_000) or _url_key(url) in seen:
+            continue
+        seen.add(_url_key(url))
+        host = urlparse(url).netloc.lower().removeprefix("www.")
+        out.append(
+            {
+                "retailer": str(o.get("retailer") or host).strip() or host,
+                "price": round(price, 2),
+                "currency": str(o.get("currency") or "USD").strip().upper()[:3] or "USD",
+                "url": url,
+                "condition": str(o.get("condition") or "unknown").strip().lower(),
+                "note": str(o.get("note") or "").strip()[:60],
+            }
+        )
+    out.sort(key=lambda o: o["price"])
+    # best = cheapest new item (or cheapest anything when nothing is marked new)
+    best = next((o for o in out if o["condition"] in ("new", "unknown")), out[0] if out else None)
+    for o in out:
+        o["best"] = o is best
+    return out
+
+
+def search_web(query: str, country: str) -> tuple[dict, set[str]]:
+    """Ask Claude to search the web. Returns (parsed JSON answer, set of URLs that appeared in results)."""
+    last_err: Exception | None = None
+    for tool_type in WEB_SEARCH_TYPES:
+        tool = {"type": tool_type, "name": "web_search", "max_uses": 5,
+                "user_location": {"type": "approximate", "country": country}}
+        messages = [{"role": "user", "content": f"Find the best current prices for: {query}"}]
+        urls: set[str] = set()
+        try:
+            for _ in range(4):  # a long search can pause; resume it
+                msg = client().messages.create(model=MODEL, max_tokens=4000, system=OFFERS_SYSTEM, tools=[tool], messages=messages)
+                for b in msg.content:
+                    if b.type == "web_search_tool_result" and isinstance(b.content, list):
+                        urls.update(r.url for r in b.content if getattr(r, "url", None))
+                    for c in getattr(b, "citations", None) or []:
+                        if getattr(c, "url", None):
+                            urls.add(c.url)
+                if msg.stop_reason != "pause_turn":
+                    break
+                messages = messages + [{"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in msg.content]}]
+            text = "".join(b.text for b in msg.content if b.type == "text")
+            return parse_json(text), urls
+        except anthropic.BadRequestError as exc:  # tool type not available for this model/org: try the basic one
+            last_err = exc
+            continue
+        except anthropic.AuthenticationError:
+            raise HTTPException(500, "Anthropic rejected the API key. Check ANTHROPIC_API_KEY in .env.")
+        except anthropic.RateLimitError:
+            raise HTTPException(429, "Rate limited by the Anthropic API. Wait a moment and try again.")
+        except anthropic.APIError as exc:
+            raise HTTPException(502, f"Anthropic API error: {exc}")
+    raise HTTPException(502, f"Web search isn't available for this API key or model ({last_err}). Enable web search in the Anthropic Console.")
+
+
+class PricesRequest(BaseModel):
+    query: str = Field(min_length=2, max_length=200)
+    country: str = Field(default="US", min_length=2, max_length=2)
+
+
+@app.post("/api/buy/prices")
+def buy_prices(req: PricesRequest):
+    country = req.country.upper()
+    data, urls = search_web(req.query.strip(), country)
+    offers = filter_offers(data.get("offers"), urls)
+    return {
+        "query": req.query.strip(),
+        "offers": offers,
+        "summary": str(data.get("summary") or "").strip(),
+        "compare": compare_links(req.query.strip(), country),
+        "checked_at": int(time.time()),
+    }
 
 
 @app.get("/api/health")

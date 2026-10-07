@@ -6,6 +6,7 @@ import Cropper from './components/Cropper.jsx'
 import Editor from './components/Editor.jsx'
 import Result from './components/Result.jsx'
 import History from './components/History.jsx'
+import BuyFlow from './components/BuyFlow.jsx'
 
 const THEMES = [
   { id: 'auto', name: 'Match device', colors: ['#f4f5fb', '#4f46e5', '#0e1020'] },
@@ -201,6 +202,8 @@ export default function App() {
         )}
         {error && <div className="banner warn" role="alert">{error}</div>}
 
+        {tab === 'buy' && <BuyFlow />}
+
         {tab === 'history' && (
           <History
             items={history}
@@ -288,6 +291,9 @@ export default function App() {
       <nav className="tabs">
         <button className={tab === 'solve' ? 'on' : ''} onClick={() => setTab('solve')}>
           <span>📷</span> Solve
+        </button>
+        <button className={tab === 'buy' ? 'on' : ''} onClick={() => setTab('buy')}>
+          <span>🛍️</span> Snap Buy
         </button>
         <button className={tab === 'history' ? 'on' : ''} onClick={() => setTab('history')}>
           <span>🕘</span> History

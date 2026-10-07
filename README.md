@@ -61,6 +61,20 @@ check (e.g. word problems) are labelled "couldn't be verified".
 Note: SymPy checks the problem *as Claude restated it*, so always glance at the recognised equation
 before solving. If the photo is blurry or unreadable, the app asks you to retake it instead of guessing.
 
+## Snap Buy
+
+The **Snap Buy** tab: photograph a product, confirm or edit what Claude thinks it is, and get the best
+current offers. The backend asks Claude to search the web (Anthropic's server-side web search tool), then
+keeps only offers whose link actually appeared in the search results, sorts them by price, and marks the
+cheapest new one as "Best price". It also gives store-search links (Google Shopping sorted low to high,
+Amazon, eBay, plus Walmart, Best Buy and Target in the US).
+
+- Web search must be enabled for your Anthropic organization (Console settings), and each Snap Buy search
+  uses web-search calls, which are billed separately.
+- Prices are a snapshot from a web search, not a live feed. The page tells you to confirm on the store.
+- The single-file artifact in `artifact/` can't search the web, so its Snap Buy identifies the product and
+  opens store searches instead of showing prices.
+
 ## Features
 
 Camera / upload / drag-and-drop · crop tool · editable KaTeX preview with symbol shortcuts ·
