@@ -24,6 +24,42 @@
   --hi: #8a6d00; --ok-bg: #12301f; --ok: #6fe3a1; --warn-bg: #3a2610; --warn: #ffc27a; --warn-line: #8a5a1c;
   --info-bg: #1b2547; --info: #aab8ff; --shadow: 0 10px 28px rgba(0, 0, 0, .4); color-scheme: dark;
 }
+
+/* Optional skins, chosen in the picker. They set every token and override the viewer's light/dark. */
+:root[data-skin="halloween"] {
+  --bg: #150c20; --surface: #201331; --ink: #f7ead9; --muted: #bba6cc; --line: #3b2657;
+  --accent: #ff8a1f; --accent-ink: #1c0b00; --soft: #2d1b44; --grid: rgba(255, 138, 31, .07); --hi: #7a3f00;
+  --ok-bg: #16301a; --ok: #9be564; --warn-bg: #3d1d0a; --warn: #ffb35c; --warn-line: #9a4d12;
+  --info-bg: #27193d; --info: #d3b8ff; --shadow: 0 10px 28px rgba(0, 0, 0, .5);
+  --display: 'Creepster', 'Bricolage Grotesque', 'Avenir Next', system-ui, sans-serif; color-scheme: dark;
+}
+:root[data-skin="ocean"] {
+  --bg: #eaf6f8; --surface: #ffffff; --ink: #07313c; --muted: #53727b; --line: #cfe6ea;
+  --accent: #087f92; --accent-ink: #ffffff; --soft: #daf0f3; --grid: rgba(8, 127, 146, .08); --hi: #ffe28a;
+  --ok-bg: #dff5ea; --ok: #12683a; --warn-bg: #fff0dc; --warn: #8f4300; --warn-line: #f0b062;
+  --info-bg: #dff0f8; --info: #1d5875; --shadow: 0 1px 2px rgba(7, 49, 60, .06), 0 10px 28px rgba(7, 49, 60, .08); color-scheme: light;
+}
+:root[data-skin="forest"] {
+  --bg: #0e1913; --surface: #15251c; --ink: #e5f0e7; --muted: #9ab3a1; --line: #254132;
+  --accent: #6fcf8c; --accent-ink: #06180c; --soft: #1c3226; --grid: rgba(111, 207, 140, .07); --hi: #6b5a00;
+  --ok-bg: #163824; --ok: #8ff0ae; --warn-bg: #3a2a10; --warn: #ffcb7a; --warn-line: #8a6a1c;
+  --info-bg: #1a3030; --info: #9fe0d0; --shadow: 0 10px 28px rgba(0, 0, 0, .45); color-scheme: dark;
+}
+:root[data-skin="sunset"] {
+  --bg: #fff3ee; --surface: #ffffff; --ink: #3a1620; --muted: #86616a; --line: #f5d9d3;
+  --accent: #d93f57; --accent-ink: #ffffff; --soft: #ffe4e0; --grid: rgba(217, 63, 87, .07); --hi: #ffd27a;
+  --ok-bg: #e3f6ea; --ok: #136a38; --warn-bg: #fff0dc; --warn: #8f4300; --warn-line: #f0b062;
+  --info-bg: #fde7ef; --info: #8a2a52; --shadow: 0 1px 2px rgba(58, 22, 32, .06), 0 10px 28px rgba(58, 22, 32, .08); color-scheme: light;
+}
+:root[data-skin="halloween"] h1, :root[data-skin="halloween"] h2 { letter-spacing: .02em; font-weight: 400; }
+:root[data-skin="halloween"] h1 { font-size: 2.5rem; }
+:root[data-skin="halloween"] .logo { font-weight: 400; font-size: 1.5rem; letter-spacing: .03em; }
+:root[data-skin="halloween"] .logo-mark { background: transparent; font-size: 0; }
+:root[data-skin="halloween"] .logo-mark::after { content: '\1F383'; font-size: 1.7rem; }
+:root[data-skin="halloween"] body::before {
+  content: ''; position: fixed; top: 0; right: 0; width: 140px; height: 140px; z-index: -1; pointer-events: none; opacity: .28;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23f7ead9' stroke-width='.7'%3E%3Cpath d='M100 0L0 0M100 0L0 28M100 0L0 60M100 0L28 100M100 0L60 100M100 0L100 100'/%3E%3Cpath d='M72 0Q74 24 100 28M44 0Q50 44 100 56M16 0Q26 68 100 86'/%3E%3C/svg%3E") no-repeat top right / contain;
+}
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body {
   background-color: var(--bg); color: var(--ink); font: 16px/1.5 var(--body);
@@ -124,6 +160,14 @@ textarea { width: 100%; font: 15px/1.4 var(--mono); padding: 12px; border-radius
 .banner.warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn-line); }
 .banner.warn strong { font-size: 1.05rem; }
 
+/* theme picker */
+.themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.theme { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 10px; }
+.theme[aria-pressed="true"] { border-color: var(--accent); }
+.theme .dots { display: flex; }
+.theme .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); margin-right: -6px; }
+.theme b { font: 700 .85rem var(--body); }
+
 /* history */
 .hitem { display: flex; gap: 8px; align-items: center; padding: 14px 16px; }
 .hopen { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 0; }
@@ -144,13 +188,14 @@ nav.tabs svg { width: 22px; height: 22px; }
 nav.tabs button[aria-current="true"] { color: var(--accent); }
 .katex { font-size: 1.1em; }
 </style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@500;700&family=Creepster&display=swap">
 <style>/*KATEX_CSS*/</style>
 
 <div class="app">
   <header class="top">
     <button class="logo" id="logo" type="button"><span class="logo-mark">∑</span>SnapSolve</button>
-    <label class="switch" title="Make the explanations simpler"><input type="checkbox" id="eli"><span class="track"></span>ELI12</label>
+    <div class="row"><button class="icon-btn" id="themebtn" type="button" aria-label="Choose theme" aria-expanded="false"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.8 1.8-1.7 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1 .8-1.7 1.8-1.7H17a4 4 0 0 0 4-4C21 6.2 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/></svg></button>
+    <label class="switch" title="Make the explanations simpler"><input type="checkbox" id="eli"><span class="track"></span>ELI12</label></div>
   </header>
   <main id="view"></main>
 </div>
@@ -178,8 +223,29 @@ nav.tabs button[aria-current="true"] { color: var(--accent); }
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
-    history: store.get('history', []), sample: null, canReadImages: false, ready: false,
+    history: store.get('history', []), skin: store.get('skin', 'auto'), themeOpen: false, sample: null, canReadImages: false, ready: false,
     ctl: null,
+  }
+
+
+  // ---------- themes ----------
+  const SKINS = [
+    { id: 'auto', name: 'Match device', colors: ['#f2f5f7', '#1456d6', '#0c1322'] },
+    { id: 'halloween', name: 'Halloween', colors: ['#150c20', '#ff8a1f', '#f7ead9'] },
+    { id: 'ocean', name: 'Ocean', colors: ['#eaf6f8', '#087f92', '#07313c'] },
+    { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
+    { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
+  ]
+  function applySkin() {
+    const root = document.documentElement
+    if (S.skin === 'auto' || !SKINS.some((k) => k.id === S.skin)) root.removeAttribute('data-skin')
+    else root.setAttribute('data-skin', S.skin)
+  }
+  function vThemes() {
+    return h('div', { class: 'card stack' }, h('h2', {}, 'Theme'),
+      h('div', { class: 'themes' }, SKINS.map((k) =>
+        h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
+          h('span', { class: 'dots' }, k.colors.map((c) => h('i', { style: 'background:' + c }))), h('b', {}, k.name)))))
   }
 
   // ---------- tiny DOM helper ----------
@@ -682,6 +748,7 @@ Writing the work:
 
   function render() {
     $('#eli').checked = S.simple
+    $('#themebtn').setAttribute('aria-expanded', String(S.themeOpen))
     $('#tab-solve').setAttribute('aria-current', S.tab === 'solve')
     $('#tab-hist').setAttribute('aria-current', S.tab === 'history')
     let body
@@ -693,11 +760,13 @@ Writing the work:
     else if (S.screen === 'edit') body = S.busy ? vWait('Solving…', 'Working it out, then checking it a second way.') : vEdit()
     else if (S.screen === 'result' && S.result) body = vResult()
     else body = vHome()
+    const themes = S.themeOpen && vThemes()
     const err = S.error && h('div', { class: 'banner warn', role: 'alert' }, S.error)
-    view.replaceChildren(...[err, ...body].filter(Boolean))
+    view.replaceChildren(...[themes, err, ...body].filter(Boolean))
   }
 
   // ---------- wiring ----------
+  $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; render() })
   $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.latex = ''; S.result = null; S.practice = false; go('home') })
@@ -707,6 +776,7 @@ Writing the work:
     S.simple = e.target.checked; store.set('simple', S.simple)
     if (S.tab === 'solve' && S.screen === 'result' && S.sample && !S.busy) solve(S.latex, S.simple); else render()
   })
+  applySkin()
   render()
   initSample()
   window.__snapsolve = { verify } // handy for debugging in the console

@@ -7,8 +7,16 @@ import Editor from './components/Editor.jsx'
 import Result from './components/Result.jsx'
 import History from './components/History.jsx'
 
-const THEMES = ['auto', 'light', 'dark']
-const THEME_ICON = { auto: '🌓', light: '☀️', dark: '🌙' }
+const THEMES = [
+  { id: 'auto', name: 'Match device', colors: ['#f4f5fb', '#4f46e5', '#0e1020'] },
+  { id: 'light', name: 'Light', colors: ['#f4f5fb', '#4f46e5', '#171a2b'] },
+  { id: 'dark', name: 'Dark', colors: ['#0e1020', '#8b83ff', '#eceefa'] },
+  { id: 'halloween', name: 'Halloween', colors: ['#150c20', '#ff8a1f', '#f7ead9'] },
+  { id: 'ocean', name: 'Ocean', colors: ['#eaf6f8', '#087f92', '#07313c'] },
+  { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
+  { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
+]
+const SKINS = ['halloween', 'ocean', 'forest', 'sunset']
 
 export default function App() {
   const [tab, setTab] = useState('solve') // solve | history
@@ -24,12 +32,16 @@ export default function App() {
   const [history, setHistory] = useState(store.loadHistory)
   const [simple, setSimple] = useState(() => store.getPref('simple', false))
   const [theme, setTheme] = useState(() => store.getPref('theme', 'auto'))
+  const [themeOpen, setThemeOpen] = useState(false)
   const camRef = useRef(null)
   const fileRef = useRef(null)
 
   useEffect(() => {
     const root = document.documentElement
-    if (theme === 'auto') root.removeAttribute('data-theme')
+    const skin = SKINS.includes(theme)
+    if (skin) root.setAttribute('data-skin', theme)
+    else root.removeAttribute('data-skin')
+    if (skin || theme === 'auto') root.removeAttribute('data-theme')
     else root.setAttribute('data-theme', theme)
     store.setPref('theme', theme)
   }, [theme])
@@ -162,15 +174,31 @@ export default function App() {
           </label>
           <button
             className="icon-btn"
-            aria-label={`Theme: ${theme}`}
-            onClick={() => setTheme(THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length])}
+            aria-label="Choose theme"
+            aria-expanded={themeOpen}
+            onClick={() => setThemeOpen((o) => !o)}
           >
-            {THEME_ICON[theme]}
+            🎨
           </button>
         </div>
       </header>
 
       <main className="content">
+        {themeOpen && (
+          <div className="card stack">
+            <h2>Theme</h2>
+            <div className="themes">
+              {THEMES.map((t) => (
+                <button key={t.id} className="theme" aria-pressed={theme === t.id} onClick={() => setTheme(t.id)}>
+                  <span className="dots">
+                    {t.colors.map((c) => <i key={c} style={{ background: c }} />)}
+                  </span>
+                  <b>{t.name}</b>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {error && <div className="banner warn" role="alert">{error}</div>}
 
         {tab === 'history' && (
