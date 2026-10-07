@@ -3,7 +3,7 @@ const MAX = 50
 
 export function loadHistory() {
   try {
-    return JSON.parse(localStorage.getItem(KEY)) || []
+    return (JSON.parse(localStorage.getItem(KEY)) || []).map((i) => ({ type: 'math', ...i }))
   } catch {
     return []
   }
@@ -49,4 +49,24 @@ export function setPref(name, value) {
   } catch {
     /* ignore */
   }
+}
+
+// ---- tracked products (Snap Buy). Kept on this device only.
+const TRACK_KEY = 'snapsolve.tracked.v1'
+
+export function loadTracked() {
+  try {
+    return JSON.parse(localStorage.getItem(TRACK_KEY)) || []
+  } catch {
+    return []
+  }
+}
+
+export function saveTracked(items) {
+  try {
+    localStorage.setItem(TRACK_KEY, JSON.stringify(items))
+  } catch {
+    /* storage full or blocked */
+  }
+  return items
 }

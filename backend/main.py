@@ -462,7 +462,7 @@ Rules:
 - "in_stock" is "yes" only if the listing says it is available, "no" if it says out of stock or unavailable,
   otherwise "unknown". "free_shipping" is "yes" only if the listing says shipping is free, "no" if it shows
   a shipping charge, otherwise "unknown".
-- If the user's query is a barcode number (UPC/EAN, 8 to 14 digits), first work out which product it is
+- If the user's query is or contains a barcode number (UPC/EAN, 8 to 14 digits), first work out which product it is
   from search results, then find prices for that product.
 - "likely_stores": up to 3 well-known retailers in the user's region that are most likely to stock this kind
   of item at a good price, best first, each with a short "why" (range, price matching, sales). This is your

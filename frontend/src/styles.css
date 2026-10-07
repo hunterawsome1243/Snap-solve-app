@@ -215,3 +215,97 @@ label.snap-btn, label.btn { cursor: pointer; }
 .rec > .tag { margin-left: 0; }
 .rec-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 a.btn { text-decoration: none; text-align: center; }
+
+/* handwriting fixer */
+.fixer { gap: 10px; }
+.tokens { display: flex; flex-wrap: wrap; gap: 6px; }
+.tok { font: 600 .95rem ui-monospace, Menlo, monospace; min-width: 38px; height: 38px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); position: relative; }
+.tok.dim { opacity: .55; }
+.tok.flag { border-color: var(--warn-line); background: var(--warn-bg); color: var(--warn); }
+.tok.flag::after { content: '?'; position: absolute; top: -7px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--warn-line); color: #000; font-size: .7rem; display: grid; place-items: center; }
+.tok.sel { outline: 2px solid var(--brand); }
+.fix-panel { background: var(--soft); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.fix-title code { font-weight: 800; }
+
+/* graph */
+.graph { width: 100%; height: auto; background: var(--bg); border-radius: 14px; }
+.g-grid { stroke: var(--line); stroke-width: 1; }
+.g-axis { stroke: var(--muted); stroke-width: 1.4; }
+.g-tick { fill: var(--muted); font-size: 9px; }
+.g-label { fill: var(--text); font-size: 10px; font-weight: 700; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; }
+.g-area { fill: var(--brand); opacity: .22; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .85rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 4px; margin-right: 6px; vertical-align: -1px; }
+
+/* step checks */
+.chk { display: inline-block; font-size: .75rem; font-weight: 700; margin-top: 4px; }
+.chk.ok { color: var(--ok); }
+.chk.bad { color: var(--warn); }
+.step-bad .num { background: var(--warn-bg); color: var(--warn); }
+.step-bad .step-math { border-left: 3px solid var(--warn-line); padding-left: 8px; }
+.answer-text { font-weight: 600; }
+.link.left { align-self: flex-start; padding-left: 0; }
+
+/* export sheet (off-screen, plain styles so it exports cleanly) */
+.sheet-wrap { position: fixed; left: -10000px; top: 0; width: 720px; pointer-events: none; }
+.sheet { width: 720px; padding: 32px; background: var(--card); color: var(--text); font: 16px/1.5 -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.sheet-brand { font-weight: 800; font-size: 1.1rem; color: var(--brand); margin-bottom: 8px; }
+.sheet-label { margin-top: 18px; font-size: .75rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.sheet-answer { font-size: 1.6rem; }
+.sheet-verify, .sheet-text { margin: 6px 0 0; }
+.sheet-verify { color: var(--muted); font-size: .9rem; }
+.sheet-steps { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.sheet-steps li { display: flex; gap: 12px; }
+.sheet-num { flex: none; width: 24px; height: 24px; border-radius: 12px; background: var(--soft); color: var(--brand); font-weight: 800; font-size: .8rem; display: flex; align-items: center; justify-content: center; margin-top: 4px; }
+.sheet-steps p { margin: 0; color: var(--muted); font-size: .92rem; }
+.sheet-steps p.sheet-bad { color: var(--warn); font-weight: 700; }
+.sheet .katex-display { margin: .25em 0; text-align: left; }
+.sheet-foot { margin-top: 24px; color: var(--muted); font-size: .8rem; }
+
+/* multiple problems */
+.status { font-size: .8rem; font-weight: 700; color: var(--muted); }
+.status.done { color: var(--ok); }
+.status.error { color: var(--warn); }
+.status.solving { color: var(--brand); }
+.word-text { font-style: italic; }
+.answer.small { font-size: 1.15rem; padding: 0; color: var(--brand); }
+
+/* practice */
+.row.spread { justify-content: space-between; }
+.streak { font-weight: 800; font-size: 1.1rem; text-align: right; }
+.chip.on { background: var(--brand); color: var(--brand-ink); }
+
+/* halloween pumpkins */
+.pumpkins { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.pumpkin { position: absolute; top: -48px; opacity: .55; animation: pumpkin-fall linear infinite; will-change: transform; }
+.pumpkin i { display: block; font-style: normal; animation: pumpkin-sway ease-in-out infinite alternate; animation-duration: 3.4s; filter: drop-shadow(0 0 6px rgba(255, 138, 31, .55)); }
+.pumpkin:nth-child(2n) i { animation-duration: 4.6s; }
+.pumpkin:nth-child(3n) i { animation-duration: 5.4s; animation-direction: alternate-reverse; }
+@keyframes pumpkin-fall { to { transform: translateY(calc(100vh + 96px)) rotate(200deg); } }
+@keyframes pumpkin-sway { from { transform: translateX(calc(var(--sway) * -1)); } to { transform: translateX(var(--sway)); } }
+:root[data-skin='halloween'] .logo-mark::after { animation: flicker 3.2s infinite; }
+@keyframes flicker { 0%, 100% { filter: brightness(1); } 8% { filter: brightness(1.5); } 12% { filter: brightness(.85); } 55% { filter: brightness(1.25); } 60% { filter: brightness(.9); } }
+@media (prefers-reduced-motion: reduce) { .pumpkins { display: none; } :root[data-skin='halloween'] .logo-mark::after { animation: none; } }
+
+/* snap buy: tracking, filters, staleness */
+.seg { margin-bottom: 4px; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--warn-line); margin-left: 6px; }
+.stale { color: var(--warn); font-weight: 700; }
+.offer-price.big { font-size: 1.7rem; }
+.delta { font-weight: 800; text-align: right; }
+.delta.down { color: var(--ok); }
+.delta.up { color: var(--warn); }
+.text-input.small { width: 110px; min-width: 0; padding: 8px 10px; flex: 1; }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: .92rem; }
+select.text-input { appearance: auto; }
+
+.type-tag { display: inline-block; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--brand); background: var(--soft); padding: 2px 8px; border-radius: 8px; margin-bottom: 6px; }
+.history-title { font-weight: 700; overflow-wrap: anywhere; }
+
+/* word problems */
+.word-card { background: var(--soft); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.vars { margin: 0; padding-left: 18px; }
+.vars code { font-weight: 800; }
+.sheet .katex-display > .katex { text-align: left; }
+.sheet-steps li > div { flex: 1; min-width: 0; }
+.fix-panel .chip { background: var(--card); border: 1px solid var(--line); }

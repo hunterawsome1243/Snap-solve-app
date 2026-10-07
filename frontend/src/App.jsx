@@ -7,6 +7,9 @@ import Editor from './components/Editor.jsx'
 import Result from './components/Result.jsx'
 import History from './components/History.jsx'
 import BuyFlow from './components/BuyFlow.jsx'
+import Problems from './components/Problems.jsx'
+import Practice from './components/Practice.jsx'
+import Pumpkins from './components/Pumpkins.jsx'
 
 const THEMES = [
   { id: 'auto', name: 'Match device', colors: ['#f4f5fb', '#4f46e5', '#0e1020'] },
@@ -19,13 +22,25 @@ const THEMES = [
 ]
 const SKINS = ['halloween', 'ocean', 'forest', 'sunset']
 
+const uid = (p = 'h') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
+
+// What the solver is told about a word problem, so it can answer in words with units.
+const contextString = (c) =>
+  c ? `${c.text}\nVariables: ${c.variables.map((v) => `${v.name} = ${v.meaning}`).join('; ') || 'n/a'}\nAsks: ${c.question || 'n/a'}` : null
+
 export default function App() {
-  const [tab, setTab] = useState('solve') // solve | history
-  const [screen, setScreen] = useState('home') // home | crop | reading | unreadable | edit | result
+  const [tab, setTab] = useState('solve') // solve | buy | history
+  const [screen, setScreen] = useState('home') // home | crop | reading | unreadable | problems | formulating | edit | result | practice
   const [photo, setPhoto] = useState(null)
   const [latex, setLatex] = useState('')
   const [note, setNote] = useState('')
-  const [isPractice, setIsPractice] = useState(false)
+  const [uncertain, setUncertain] = useState([])
+  const [wordCtx, setWordCtx] = useState(null)
+  const [problems, setProblems] = useState([])
+  const [activeIdx, setActiveIdx] = useState(-1)
+  const [running, setRunning] = useState(false)
+  const [practiceSeed, setPracticeSeed] = useState(null)
+  const [buyInitial, setBuyInitial] = useState(null)
   const [result, setResult] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -51,7 +66,6 @@ export default function App() {
     setError('')
     setScreen(s)
   }
-
   const fail = (e) => setError(e.message || 'Something went wrong.')
 
   async function onFile(file) {
@@ -66,6 +80,36 @@ export default function App() {
     }
   }
 
+  async function startWord(text, idx = activeIdx) {
+    setActiveIdx(idx)
+    go('formulating')
+    try {
+      const r = await api.formulate(text)
+      setWordCtx({ text, variables: r.variables, question: r.question })
+      setLatex(r.equation_latex)
+      setUncertain([])
+      setNote(r.message)
+      go('edit')
+    } catch (e) {
+      go('edit')
+      setWordCtx(null)
+      setLatex(text)
+      fail(e)
+    }
+  }
+
+  function openProblem(i, list = problems) {
+    const p = list[i]
+    setActiveIdx(i)
+    setResult(null)
+    if (p.kind === 'word') return startWord(p.text, i)
+    setWordCtx(null)
+    setLatex(p.latex)
+    setUncertain(p.uncertain || [])
+    setNote('')
+    go('edit')
+  }
+
   async function onCropped(dataUrl) {
     setPhoto(dataUrl)
     go('reading')
@@ -75,25 +119,31 @@ export default function App() {
         setNote(r.message)
         return go('unreadable')
       }
-      setLatex(r.latex)
-      setNote(r.message)
-      setIsPractice(false)
-      go('edit')
+      const items = r.problems.map((p, i) => ({ id: uid('p') + i, ...p, status: 'idle', result: null, error: '' }))
+      setProblems(items)
+      if (items.length === 1) {
+        openProblem(0, items)
+        if (r.message) setNote(r.message)
+      } else {
+        setActiveIdx(-1)
+        go('problems')
+      }
     } catch (e) {
       go('crop')
       fail(e)
     }
   }
 
-  async function runSolve(text = latex, simpleMode = simple) {
+  const patchProblem = (i, patch) => setProblems((ps) => ps.map((p, k) => (k === i ? { ...p, ...patch } : p)))
+
+  async function runSolve(text = latex, simpleMode = simple, ctx = wordCtx) {
     setBusy(true)
     setError('')
     try {
-      const r = await api.solve(text, simpleMode)
+      const r = await api.solve(text, simpleMode, contextString(ctx))
       setResult(r)
-      setHistory(
-        store.addHistory({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), ts: Date.now(), latex: text, result: r }),
-      )
+      setHistory(store.addHistory({ type: 'math', id: uid(), ts: Date.now(), latex: text, wordCtx: ctx, result: r }))
+      if (activeIdx >= 0) patchProblem(activeIdx, { latex: text, status: 'done', result: r, error: '' })
       setScreen('result')
     } catch (e) {
       fail(e)
@@ -102,21 +152,37 @@ export default function App() {
     }
   }
 
-  async function onPractice() {
-    setBusy(true)
+  async function solveAll() {
+    setRunning(true)
     setError('')
-    try {
-      const r = await api.practice(latex)
-      setLatex(r.latex)
-      setNote('')
-      setIsPractice(true)
-      setResult(null)
-      setScreen('edit')
-    } catch (e) {
-      fail(e)
-    } finally {
-      setBusy(false)
+    for (let i = 0; i < problems.length; i++) {
+      const p = problems[i]
+      if (p.kind !== 'math' || p.status === 'done') continue
+      patchProblem(i, { status: 'solving', error: '' })
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const r = await api.solve(p.latex, simple, null)
+        patchProblem(i, { status: 'done', result: r })
+        setHistory(store.addHistory({ type: 'math', id: uid(), ts: Date.now(), latex: p.latex, wordCtx: null, result: r }))
+      } catch (e) {
+        patchProblem(i, { status: 'error', error: e.message })
+      }
     }
+    setRunning(false)
+  }
+
+  function openPractice(seed = null) {
+    setPracticeSeed(seed)
+    setTab('solve')
+    go('practice')
+  }
+
+  function stepsFor(text) {
+    setActiveIdx(-1)
+    setWordCtx(null)
+    setUncertain([])
+    setLatex(text)
+    runSolve(text, simple, null)
   }
 
   function toggleSimple() {
@@ -127,9 +193,14 @@ export default function App() {
   }
 
   function openHistory(item) {
+    if (item.type === 'buy') {
+      setBuyInitial({ key: Date.now(), query: item.query, result: item.result })
+      return setTab('buy')
+    }
     setLatex(item.latex)
     setResult(item.result)
-    setIsPractice(false)
+    setWordCtx(item.wordCtx || null)
+    setActiveIdx(-1)
     setTab('solve')
     go('result')
   }
@@ -137,7 +208,10 @@ export default function App() {
   const startNew = () => {
     setLatex('')
     setResult(null)
-    setIsPractice(false)
+    setWordCtx(null)
+    setProblems([])
+    setActiveIdx(-1)
+    setUncertain([])
     go('home')
   }
 
@@ -161,8 +235,22 @@ export default function App() {
     />
   )
 
+  const wordPanel = wordCtx && (
+    <div className="word-card">
+      <div className="label">Word problem</div>
+      <p className="word-text">“{wordCtx.text}”</p>
+      {wordCtx.variables.length > 0 && (
+        <ul className="vars">
+          {wordCtx.variables.map((v) => <li key={v.name}><code>{v.name}</code> = {v.meaning}</li>)}
+        </ul>
+      )}
+      {wordCtx.question && <p className="muted">It asks: {wordCtx.question}</p>}
+    </div>
+  )
+
   return (
     <div className="app">
+      {theme === 'halloween' && <Pumpkins />}
       <header className="top">
         <button className="logo" onClick={() => { setTab('solve'); startNew() }}>
           <span className="logo-mark">∑</span> SnapSolve
@@ -202,14 +290,14 @@ export default function App() {
         )}
         {error && <div className="banner warn" role="alert">{error}</div>}
 
-        {tab === 'buy' && <BuyFlow />}
+        {tab === 'buy' && <BuyFlow initial={buyInitial} onHistory={(e) => setHistory(store.addHistory(e))} />}
 
         {tab === 'history' && (
           <History
             items={history}
             onOpen={openHistory}
             onRemove={(id) => setHistory(store.removeHistory(id))}
-            onClear={() => window.confirm('Delete all saved problems?') && setHistory(store.clearHistory())}
+            onClear={() => window.confirm('Delete all saved history?') && setHistory(store.clearHistory())}
           />
         )}
 
@@ -226,11 +314,10 @@ export default function App() {
               <span className="snap-icon">📷</span>
               Snap Equation
             </button>
-            <div className="row center-row">
+            <div className="row center-row wrap">
               <button className="btn secondary" onClick={() => fileRef.current.click()}>Upload image</button>
-              <button className="btn ghost" onClick={() => { setLatex(''); setNote(''); setIsPractice(false); go('edit') }}>
-                Type it
-              </button>
+              <button className="btn ghost" onClick={() => { setLatex(''); setNote(''); setUncertain([]); setWordCtx(null); setActiveIdx(-1); go('edit') }}>Type it</button>
+              <button className="btn ghost" onClick={() => openPractice(null)}>✏️ Practice</button>
             </div>
             <p className="muted tiny drop-hint">…or drag & drop a picture here</p>
           </div>
@@ -240,11 +327,11 @@ export default function App() {
           <Cropper src={photo} onDone={onCropped} onCancel={() => go('home')} />
         )}
 
-        {tab === 'solve' && screen === 'reading' && (
+        {tab === 'solve' && (screen === 'reading' || screen === 'formulating') && (
           <div className="card center">
             <div className="spinner" />
-            <h2>Reading your handwriting…</h2>
-            {photo && <img className="thumb" src={photo} alt="" />}
+            <h2>{screen === 'reading' ? 'Reading your handwriting…' : 'Turning the words into an equation…'}</h2>
+            {screen === 'reading' && photo && <img className="thumb" src={photo} alt="" />}
           </div>
         )}
 
@@ -258,16 +345,33 @@ export default function App() {
           </div>
         )}
 
+        {tab === 'solve' && screen === 'problems' && (
+          <Problems
+            items={problems}
+            running={running}
+            onSolve={openProblem}
+            onSolveAll={solveAll}
+            onView={(i) => { setActiveIdx(i); setLatex(problems[i].latex); setResult(problems[i].result); go('result') }}
+            onBack={startNew}
+          />
+        )}
+
         {tab === 'solve' && screen === 'edit' && (
           <Editor
             latex={latex}
             onChange={setLatex}
             note={note}
             busy={busy}
-            practice={isPractice}
-            onBack={() => go(result ? 'result' : 'home')}
+            uncertain={uncertain}
+            onResolved={(t) => setUncertain((u) => { const i = u.findIndex((x) => x.text === t); return i < 0 ? u : u.filter((_, k) => k !== i) })}
+            title={wordCtx ? 'Does this equation match the story?' : undefined}
+            subtitle={wordCtx ? 'I turned the words into an equation. Fix anything that is off, then solve.' : undefined}
+            onWordProblem={(text) => startWord(text, -1)}
+            onBack={() => go(problems.length > 1 ? 'problems' : result ? 'result' : 'home')}
             onSolve={() => runSolve()}
-          />
+          >
+            {wordPanel}
+          </Editor>
         )}
 
         {tab === 'solve' && screen === 'result' && result && (
@@ -277,11 +381,16 @@ export default function App() {
               problem={latex}
               result={result}
               busy={busy}
-              onPractice={onPractice}
+              onPractice={() => openPractice(latex)}
               onNew={startNew}
               onEdit={() => go('edit')}
+              onBackToProblems={problems.length > 1 && activeIdx >= 0 ? () => go('problems') : null}
             />
           </>
+        )}
+
+        {tab === 'solve' && screen === 'practice' && (
+          <Practice seed={practiceSeed} onSteps={stepsFor} onExit={startNew} />
         )}
       </main>
 

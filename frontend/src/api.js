@@ -19,8 +19,11 @@ export const readImage = (dataUrl) => {
   const media_type = head.match(/data:(.*?);/)[1]
   return post('/api/read', { image, media_type })
 }
-export const solve = (latex, simple) => post('/api/solve', { latex, simple })
-export const practice = (latex) => post('/api/practice', { latex })
+export const solve = (latex, simple, context) => post('/api/solve', { latex, simple, context: context || null })
+export const formulate = (text) => post('/api/formulate', { text })
+export const practice = ({ difficulty, topic, latex }) => post('/api/practice', { difficulty, topic, latex: latex || null })
+export const practiceCheck = (problem, answer) => post('/api/practice/check', { problem, answer })
+export const rankOffers = (body) => post('/api/buy/rank', body)
 
 const country = () => (navigator.language || 'en-US').split('-')[1]?.toUpperCase() || 'US'
 export const identifyProduct = (dataUrl) => {
