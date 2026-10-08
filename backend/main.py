@@ -785,6 +785,123 @@ def buy_rank(req: RankRequest):
     return rank(offers, req.likely_stores, req.query, req.filters)
 
 
+# ---------------------------------------------------------------- plant scan
+
+PLANT_SYSTEM = """You are a careful plant identification and plant-care assistant. Look at the photo and reply with
+ONLY a JSON object:
+{"is_plant": boolean, "message": string,
+ "name": string, "scientific": string, "confidence": "high" | "medium" | "low", "kind": string,
+ "alternatives": [{"name": string, "scientific": string}],
+ "health": {"status": "healthy" | "needs_attention" | "unclear", "summary": string,
+            "issues": [{"name": string, "signs": string, "cause": string, "fix": string,
+                        "severity": "mild" | "moderate" | "serious"}]},
+ "care": {"light": string, "water": string, "water_every_days": integer or null, "soil": string,
+          "temperature": string, "humidity": string, "feeding": string},
+ "pets": {"status": "toxic" | "mostly_safe" | "unknown", "note": string},
+ "fun_fact": string, "photo_tips": string}
+
+Rules:
+- Only describe what you can see. Identification from one photo is a best guess: say "medium" or "low"
+  confidence unless the leaves, shape and (if visible) flowers clearly match one species. Give up to 3
+  "alternatives" when unsure.
+- If the photo shows no plant, or is too blurry or dark, set "is_plant": false and write a short friendly
+  "message" asking for a clearer, closer photo. Do not guess a species from nothing.
+- Health: list issues you can actually see (yellow or brown leaves, spots, wilting, pests, mould, leggy growth).
+  Give plain, practical fixes. If nothing looks wrong, say "healthy" with an empty "issues" list. If you cannot tell,
+  say "unclear" and put what to photograph next in "photo_tips".
+- "water_every_days" is a typical watering interval for a home plant of this kind (a whole number), or null if it
+  depends too much on the setting (e.g. a tree in the ground).
+- Pets: say "toxic" for plants known to be toxic to cats or dogs, "mostly_safe" only when you are confident, and
+  "unknown" otherwise. Add a one-line "note", and when toxic say which pets if you know.
+- NEVER say a wild plant, berry, or mushroom is safe to eat, and never recommend eating anything from a photo.
+  If the photo shows a mushroom or fungus, set "is_plant": false and say mushrooms cannot be identified safely
+  from a picture.
+- Keep every string short (one or two sentences)."""
+
+PLANT_ENUMS = {
+    "confidence": ("high", "medium", "low"),
+    "status": ("healthy", "needs_attention", "unclear"),
+    "severity": ("mild", "moderate", "serious"),
+    "pets": ("toxic", "mostly_safe", "unknown"),
+}
+
+
+def _s(v, n: int = 300) -> str:
+    return str(v or "").strip()[:n]
+
+
+def _pick(v, allowed: tuple, default: str) -> str:
+    v = str(v or "").strip().lower().replace(" ", "_")
+    return v if v in allowed else default
+
+
+def clean_plant(data: dict) -> dict:
+    """Make the model's answer safe and predictable for the app: known values only, trimmed text, small lists."""
+    ok = bool(data.get("is_plant")) and bool(_s(data.get("name")) or _s(data.get("scientific")))
+    message = _s(data.get("message"), 400)
+    if not ok:
+        return {
+            "is_plant": False,
+            "message": message or "I couldn't see a plant clearly. Try a closer photo of the leaves, in good light.",
+        }
+    health = data.get("health") if isinstance(data.get("health"), dict) else {}
+    care = data.get("care") if isinstance(data.get("care"), dict) else {}
+    pets = data.get("pets") if isinstance(data.get("pets"), dict) else {}
+    issues = []
+    for i in (health.get("issues") or [])[:5]:
+        if isinstance(i, dict) and _s(i.get("name")):
+            issues.append({
+                "name": _s(i.get("name"), 80), "signs": _s(i.get("signs")), "cause": _s(i.get("cause")),
+                "fix": _s(i.get("fix")), "severity": _pick(i.get("severity"), PLANT_ENUMS["severity"], "mild"),
+            })
+    alts = [
+        {"name": _s(a.get("name"), 80), "scientific": _s(a.get("scientific"), 80)}
+        for a in (data.get("alternatives") or [])[:3]
+        if isinstance(a, dict) and (_s(a.get("name")) or _s(a.get("scientific")))
+    ]
+    days = care.get("water_every_days")
+    days = int(days) if isinstance(days, (int, float)) and not isinstance(days, bool) and 1 <= days <= 60 else None
+    status = _pick(health.get("status"), PLANT_ENUMS["status"], "unclear")
+    if issues and status == "healthy":
+        status = "needs_attention"
+    return {
+        "is_plant": True,
+        "message": message,
+        "name": _s(data.get("name"), 100) or _s(data.get("scientific"), 100),
+        "scientific": _s(data.get("scientific"), 100),
+        "confidence": _pick(data.get("confidence"), PLANT_ENUMS["confidence"], "low"),
+        "kind": _s(data.get("kind"), 60),
+        "alternatives": alts,
+        "health": {"status": status, "summary": _s(health.get("summary")), "issues": issues},
+        "care": {k: _s(care.get(k)) for k in ("light", "water", "soil", "temperature", "humidity", "feeding")}
+        | {"water_every_days": days},
+        "pets": {"status": _pick(pets.get("status"), PLANT_ENUMS["pets"], "unknown"), "note": _s(pets.get("note"))},
+        "fun_fact": _s(data.get("fun_fact")),
+        "photo_tips": _s(data.get("photo_tips")),
+    }
+
+
+class PlantRequest(ReadRequest):
+    note: str = Field(default="", max_length=300)  # e.g. "leaves turning yellow since last week"
+
+
+@app.post("/api/plant/scan")
+def plant_scan(req: PlantRequest):
+    check_image(req)
+    ask = "What plant is this, and is it healthy?"
+    if req.note.strip():
+        ask += f" The owner says: {req.note.strip()}"
+    data = ask_claude(
+        PLANT_SYSTEM,
+        [
+            {"type": "image", "source": {"type": "base64", "media_type": req.media_type, "data": req.image}},
+            {"type": "text", "text": ask},
+        ],
+        max_tokens=1400,
+    )
+    return clean_plant(data)
+
+
 @app.get("/api/health")
 def health():
     return {"ok": True, "model": MODEL}

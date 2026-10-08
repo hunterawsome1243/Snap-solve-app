@@ -70,3 +70,26 @@ export function saveTracked(items) {
   }
   return items
 }
+
+
+// ---- saved plants (My Plants) ----
+const PLANTS = 'snapsolve.plants.v1'
+const MAX_PLANTS = 40
+
+export function loadPlants() {
+  try {
+    const v = JSON.parse(localStorage.getItem(PLANTS))
+    return Array.isArray(v) ? v : []
+  } catch {
+    return []
+  }
+}
+
+export function savePlants(plants) {
+  try {
+    localStorage.setItem(PLANTS, JSON.stringify(plants.slice(0, MAX_PLANTS)))
+  } catch {
+    /* storage full: the plant stays on screen but is not remembered */
+  }
+  return plants
+}

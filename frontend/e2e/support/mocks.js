@@ -87,3 +87,21 @@ export async function mockBuyApi(page, state = { price: 278, checkedAt: Math.flo
   })
   await page.route('**/api/buy/identify', (r) => r.fulfill({ json: { identifiable: true, name: 'X', brand: '', model: '', category: '', query: 'Sony WH-1000XM5 headphones', message: '' } }))
 }
+
+export const MONSTERA = {
+  is_plant: true, message: '', name: 'Monstera', scientific: 'Monstera deliciosa', confidence: 'medium', kind: 'houseplant',
+  alternatives: [{ name: 'Philodendron', scientific: 'Philodendron bipinnatifidum' }],
+  health: { status: 'needs_attention', summary: 'One lower leaf is yellowing.', issues: [
+    { name: 'Yellow leaf', signs: 'one lower leaf', cause: 'too much water', fix: 'Let the top of the soil dry out.', severity: 'mild' }] },
+  care: { light: 'Bright, indirect', water: 'When the top 5 cm is dry', water_every_days: 7, soil: 'Airy mix', temperature: '18-27 C', humidity: 'Average', feeding: 'Monthly in summer' },
+  pets: { status: 'toxic', note: 'Toxic to cats and dogs.' }, fun_fact: 'The holes in the leaves are called fenestrations.', photo_tips: '',
+}
+
+/** Plant Scan endpoint. `reply` can be changed per test; `calls` collects what the page sent. */
+export async function mockPlantApi(page, calls = [], reply = MONSTERA) {
+  await page.route('**/api/plant/scan', (r) => {
+    const b = JSON.parse(r.request().postData())
+    calls.push(['plant', b.note])
+    r.fulfill({ json: reply })
+  })
+}
