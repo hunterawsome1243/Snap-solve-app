@@ -42,3 +42,8 @@ export const identifyProduct = (dataUrl) => {
   return post('/api/buy/identify', { image, media_type: head.match(/data:(.*?);/)[1] })
 }
 export const findPrices = (query) => post('/api/buy/prices', { query, country: country() })
+
+export const scanPlant = (dataUrl, note) => {
+  const [head, image] = dataUrl.split(',')
+  return post('/api/plant/scan', { image, media_type: head.match(/data:(.*?);/)[1], note: note || '' })
+}

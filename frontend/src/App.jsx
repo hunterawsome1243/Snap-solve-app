@@ -14,6 +14,7 @@ import Pumpkins from './components/Pumpkins.jsx'
 import Elements from './components/Elements.jsx'
 import Fruits from './components/Fruits.jsx'
 import InstallHint from './components/InstallHint.jsx'
+import Extras from './components/Extras.jsx'
 import Icon from './components/Icon.jsx'
 import ScanLoader from './components/ScanLoader.jsx'
 import { buzz } from './lib/haptics.js'
@@ -38,7 +39,7 @@ const contextString = (c) =>
   c ? `${c.text}\nVariables: ${c.variables.map((v) => `${v.name} = ${v.meaning}`).join('; ') || 'n/a'}\nAsks: ${c.question || 'n/a'}` : null
 
 export default function App() {
-  const [tab, setTab] = useState('solve') // solve | buy | history
+  const [tab, setTab] = useState('solve') // solve | buy | extras | history
   const [screen, setScreen] = useState('home') // home | crop | reading | unreadable | problems | formulating | edit | result | practice
   const [photo, setPhoto] = useState(null)
   const [shots, setShots] = useState(null) // { clean, original, found } while choosing a crop
@@ -339,6 +340,8 @@ export default function App() {
 
         {tab === 'buy' && <BuyFlow initial={buyInitial} onHistory={(e) => setHistory(store.addHistory(e))} />}
 
+        {tab === 'extras' && <Extras />}
+
         {tab === 'history' && (
           <History
             items={history}
@@ -470,6 +473,9 @@ export default function App() {
         </button>
         <button className={tab === 'buy' ? 'on' : ''} onClick={() => setTab('buy')}>
           <span className="ico"><Icon name="bag" /></span> Snap Buy
+        </button>
+        <button className={tab === 'extras' ? 'on' : ''} onClick={() => setTab('extras')}>
+          <span className="ico"><Icon name="grid" /></span> Extras
         </button>
         <button className={tab === 'history' ? 'on' : ''} onClick={() => setTab('history')}>
           <span className="ico"><Icon name="history" /></span> History

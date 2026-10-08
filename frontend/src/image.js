@@ -54,3 +54,20 @@ export function cropImage(img, crop, max = 1600) {
   c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height)
   return c.toDataURL('image/jpeg', 0.88)
 }
+
+/** A small JPEG copy of a photo, for keeping with a saved item without filling up storage. */
+export function thumbOf(dataUrl, max = 240) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight))
+      const c = document.createElement('canvas')
+      c.width = Math.max(1, Math.round(img.naturalWidth * k))
+      c.height = Math.max(1, Math.round(img.naturalHeight * k))
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height)
+      resolve(c.toDataURL('image/jpeg', 0.75))
+    }
+    img.onerror = () => resolve('')
+    img.src = dataUrl
+  })
+}

@@ -561,3 +561,40 @@ input[type='checkbox'], input[type='radio'], progress { accent-color: var(--bran
 .fruit:nth-child(3n) i { animation-duration: 6.1s; animation-direction: alternate-reverse; }
 @keyframes fruit-fall { to { transform: translateY(calc(100vh + 110px)) rotate(150deg); } }
 @media (prefers-reduced-motion: reduce) { .fruits { display: none; } :root[data-skin='tropical'] .logo-mark::after { animation: none; } }
+
+/* extras + plant scan */
+.tool { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; transition: transform .1s, border-color .15s; }
+.tool:hover { border-color: color-mix(in srgb, var(--brand) 40%, var(--line)); }
+.tool:active { transform: scale(.985); }
+.tool-ico { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--soft); color: var(--brand); }
+.tool-ico .ico-svg { width: 28px; height: 28px; }
+.tool-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tool-text b { font-size: 1.05rem; }
+.quick.two { grid-template-columns: repeat(2, 1fr); }
+.link.back { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; text-decoration: none; font-weight: 700; }
+.link.back .ico-svg { width: 18px; height: 18px; }
+.plant-id { display: flex; gap: 14px; align-items: center; }
+.plant-photo { width: 92px; height: 92px; border-radius: 16px; object-fit: cover; flex: none; box-shadow: var(--shadow); }
+.pill.conf-high { background: var(--ok-bg); color: var(--ok); }
+.pill.conf-medium { background: var(--info-bg); color: var(--info); }
+.pill.conf-low { background: var(--warn-bg); color: var(--warn); }
+.pill.soft { background: var(--soft); color: var(--muted); }
+.issues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.issue { padding-left: 12px; border-left: 4px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.issue.sev-moderate { border-left-color: var(--warn-line); }
+.issue.sev-serious { border-left-color: #d64545; }
+.issue-head { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.care { margin: 0; display: grid; gap: 10px; }
+.care dt { font-size: .74rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.care dd { margin: 0; }
+.pets-toxic { border-color: var(--warn-line); background: var(--warn-bg); }
+.plant-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.plant-row { display: flex; align-items: center; gap: 12px; }
+.plant-row img, .plant-ph { width: 54px; height: 54px; border-radius: 14px; object-fit: cover; flex: none; background: var(--soft); display: grid; place-items: center; color: var(--brand); }
+.plant-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.plant-info b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.due { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.due.now { color: var(--warn); }
+.plant-edit summary { cursor: pointer; font-size: .78rem; color: var(--muted); }
+.plant-edit .row { margin-top: 6px; }
+.btn.water { min-height: 44px; flex: none; }
