@@ -1,3 +1,4 @@
+import { cleanFavs } from './lib/favorites.js'
 const KEY = 'snapsolve.history.v1'
 const MAX = 50
 
@@ -92,6 +93,26 @@ export function savePlants(plants) {
     /* storage full: the plant stays on screen but is not remembered */
   }
   return plants
+}
+
+// ---- favourite scanners (the two slots in the bottom bar) ----
+const FAVS = 'snapsolve.favs.v1'
+
+export function loadFavs() {
+  try {
+    return cleanFavs(JSON.parse(localStorage.getItem(FAVS)))
+  } catch {
+    return cleanFavs(null)
+  }
+}
+
+export function saveFavs(favs) {
+  try {
+    localStorage.setItem(FAVS, JSON.stringify(favs))
+  } catch {
+    /* storage full: the choice holds until the page closes */
+  }
+  return favs
 }
 
 // ---- the food log (meals you saved from Food Scan) ----

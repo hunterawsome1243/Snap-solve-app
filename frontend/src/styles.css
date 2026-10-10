@@ -563,7 +563,15 @@ input[type='checkbox'], input[type='radio'], progress { accent-color: var(--bran
 @media (prefers-reduced-motion: reduce) { .fruits { display: none; } :root[data-skin='tropical'] .logo-mark::after { animation: none; } }
 
 /* extras + plant scan */
-.tool { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; transition: transform .1s, border-color .15s; }
+.tool { display: flex; align-items: center; gap: 6px; width: 100%; transition: transform .1s, border-color .15s; }
+.tool-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; text-align: left; cursor: pointer; font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+.star { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: none; border: 0; color: var(--muted); cursor: pointer; transition: transform .12s, color .15s, background .15s; }
+.star .ico-svg { width: 24px; height: 24px; }
+.star:active { transform: scale(.9); }
+.star.on { color: #e9a400; background: var(--soft); }
+.star.on .ico-svg path { fill: currentColor; }
+.tabs .slot-empty { opacity: .7; }
+.tabs .slot-empty .ico { border: 1.5px dashed var(--line); }
 .tool:hover { border-color: color-mix(in srgb, var(--brand) 40%, var(--line)); }
 .tool:active { transform: scale(.985); }
 .tool-ico { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--soft); color: var(--brand); }
