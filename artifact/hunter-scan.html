@@ -465,6 +465,18 @@ a.store { border-radius: 14px; }
 .plant-edit .row { margin-top: 6px; }
 .field.small { width: 4.5em; padding: 8px; }
 .btn.water { min-height: 44px; flex: none; }
+/* food + species scan */
+.kcal { display: flex; align-items: baseline; gap: 8px; }
+.kcal b { font-size: 2.4rem; line-height: 1; letter-spacing: -.02em; }
+.kcal span { color: var(--muted); font-weight: 600; }
+.macros { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.macros > div { background: var(--soft); border-radius: 14px; padding: 10px 12px; }
+.macros dt { font: 700 .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.macros dd { margin: 2px 0 0; font-size: 1.15rem; font-weight: 800; }
+.food-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.food-items li { display: flex; justify-content: space-between; gap: 12px; }
+.chip.allergen { background: var(--warn-bg); border: 1px solid var(--warn-line); }
+.row.between { justify-content: space-between; align-items: center; }
 /* theme picker groups, holiday particles, and the generated holiday themes */
 .theme-group { display: flex; flex-direction: column; gap: 8px; }
 .theme-group h3 { margin: 6px 0 0; font: 700 .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
@@ -663,6 +675,10 @@ a.store { border-radius: 14px; }
 <input class="sr" id="scan" type="file" accept="image/*" capture="environment" aria-label="Scan a barcode">
 <input class="sr" id="plantcam" type="file" accept="image/*" capture="environment" aria-label="Take a photo of a plant">
 <input class="sr" id="plantpick" type="file" accept="image/*" aria-label="Choose a plant image">
+<input class="sr" id="foodcam" type="file" accept="image/*" capture="environment" aria-label="Take a photo of food">
+<input class="sr" id="foodpick" type="file" accept="image/*" aria-label="Choose a food image">
+<input class="sr" id="spcam" type="file" accept="image/*" capture="environment" aria-label="Take a photo of an animal">
+<input class="sr" id="sppick" type="file" accept="image/*" aria-label="Choose an animal image">
 <input class="sr" id="pick2" type="file" accept="image/*" aria-label="Choose a product image">
 <nav class="tabs"><div class="in">
   <button type="button" id="tab-solve"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>Solve</button>
@@ -689,7 +705,7 @@ a.store { border-radius: 14px; }
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
     shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, themeCat: null, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
-    ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false,
+    ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false, meals: store.get('meals', []), foNote: '', food: null, foSaved: false, spNote: '', species: null,
   }
 
 
@@ -954,6 +970,8 @@ ${root} .answer { background: linear-gradient(135deg, color-mix(in srgb, ${h.bra
     pdf: '<path d="M7 3h7l5 5v13H7zM14 3v5h5M10 14h6M10 17h4"/>',
     image: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="m4 16 5-5 4 4 3-3 4 4"/><circle cx="9" cy="9.5" r="1" fill="currentColor" stroke="none"/>',
     barcode: '<path d="M4 5v14M7 5v14M11 5v14M14 5v14M18 5v14M20.5 5v14"/>',
+    food: '<path d="M12 8c-3-2-7 0-7 5 0 4 2.5 8 5 8 1 0 1.5-.5 2-.5s1 .5 2 .5c2.5 0 5-4 5-8 0-5-4-7-7-5z"/><path d="M12 8c0-2 1-3.5 3-4"/>',
+    paw: '<circle cx="7" cy="10.5" r="1.8"/><circle cx="11" cy="6.5" r="1.8"/><circle cx="16" cy="7" r="1.8"/><circle cx="19" cy="11.5" r="1.8"/><path d="M12 12c-3 0-5.5 3.5-5 6 .3 1.4 1.5 2 3 1.6 1-.3 1.5-.5 2-.5s1 .2 2 .5c1.5.4 2.7-.2 3-1.6.5-2.5-2-6-5-6z"/>',
     flame: '<path d="M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-1.5.6-2.5 1.5-3.5C10 8 11.5 6 12 3z"/>',
     check: '<path d="m5 12.5 4.5 4.5L19 7"/>',
     alert: '<path d="M12 4 21 20H3zM12 10v4M12 17h.01"/>',
@@ -1727,6 +1745,114 @@ function cleanPlant(data) {
   }
 }
 
+  const { CONFIDENCE: FOOD_CONFIDENCE, ALLERGENS, MACROS, cleanFood, mealsOn, dayTotals, fmtVal } = (() => {
+// Food scan helpers: cleaning the model's answer (the same rules as clean_food in backend/main.py) and the daily log.
+// The phone artifact has no server, so it uses cleanFood directly; the React app gets the same result from the server.
+
+const CONFIDENCE = { high: 'Pretty sure', medium: 'Rough estimate', low: 'Best guess' }
+const ALLERGENS = ['milk', 'eggs', 'fish', 'shellfish', 'tree nuts', 'peanuts', 'wheat', 'soy', 'sesame']
+const MACROS = [['calories', 6000], ['protein_g', 500], ['carbs_g', 800], ['fat_g', 500], ['fiber_g', 200], ['sugar_g', 500], ['sodium_mg', 20000]]
+
+const foodText = (v, n = 300) => String(v ?? '').trim().slice(0, n)
+const foodEnum = (v, allowed, fallback) => {
+  const k = String(v ?? '').trim().toLowerCase().replace(/ /g, '_')
+  return allowed.includes(k) ? k : fallback
+}
+const foodNum = (v, top) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= top ? Math.round(v * 10) / 10 : null)
+const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v)
+
+function cleanFood(data) {
+  const d = isObj(data) ? data : {}
+  const t = isObj(d.totals) ? d.totals : {}
+  const totals = Object.fromEntries(MACROS.map(([k, top]) => [k, foodNum(t[k], top)]))
+  if (!d.is_food || totals.calories === null) {
+    return { is_food: false, message: foodText(d.message, 400) || "I couldn't see food or a nutrition label clearly. Try a closer photo in good light." }
+  }
+  const items = (Array.isArray(d.items) ? d.items : []).slice(0, 8)
+    .filter((i) => isObj(i) && foodText(i.name))
+    .map((i) => ({ name: foodText(i.name, 80), portion: foodText(i.portion, 60), calories: foodNum(i.calories, 6000) }))
+  const seen = new Set((Array.isArray(d.allergens) ? d.allergens : []).filter((a) => typeof a === 'string').map((a) => a.trim().toLowerCase()))
+  return {
+    is_food: true,
+    message: foodText(d.message, 400),
+    name: foodText(d.name, 100) || 'Meal',
+    confidence: foodEnum(d.confidence, ['high', 'medium', 'low'], 'low'),
+    source: foodEnum(d.source, ['label', 'estimate'], 'estimate'),
+    serving: foodText(d.serving, 80),
+    items,
+    totals,
+    allergens: ALLERGENS.filter((a) => seen.has(a)),
+    notes: foodText(d.notes),
+    photo_tips: foodText(d.photo_tips),
+  }
+}
+
+// ---- the daily log ----
+const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString()
+const mealsOn = (meals, now = Date.now()) => meals.filter((m) => sameDay(m.at, now))
+
+function dayTotals(meals) {
+  const sum = (k) => Math.round(meals.reduce((n, m) => n + (m[k] || 0), 0))
+  return { calories: sum('calories'), protein_g: sum('protein_g'), carbs_g: sum('carbs_g'), fat_g: sum('fat_g') }
+}
+
+const fmtVal = (n, unit = '') => (n === null || n === undefined ? '–' : `${Math.round(n)}${unit}`)
+
+return { CONFIDENCE, ALLERGENS, MACROS, cleanFood, mealsOn, dayTotals, fmtVal }
+})()
+  const { CONFIDENCE: SPECIES_CONFIDENCE, GROUPS, DANGER, cleanSpecies } = (() => {
+// Species scan helpers: labels and cleaning the model's answer (the same rules as clean_species in backend/main.py).
+// The phone artifact has no server, so it uses cleanSpecies directly.
+
+const CONFIDENCE = { high: 'Pretty sure', medium: 'Likely', low: 'Best guess' }
+const GROUPS = {
+  mammal: 'Mammal', bird: 'Bird', reptile: 'Reptile', amphibian: 'Amphibian', fish: 'Fish', insect: 'Insect',
+  spider: 'Spider', other_invertebrate: 'Invertebrate', fungus: 'Fungus', other: 'Wildlife',
+}
+const DANGER = {
+  harmless: 'Generally harmless',
+  use_caution: 'Use caution',
+  dangerous: 'Dangerous. Keep your distance',
+  unknown: 'Danger unknown. Keep your distance',
+}
+
+const spText = (v, n = 300) => String(v ?? '').trim().slice(0, n)
+const spEnum = (v, allowed, fallback) => {
+  const k = String(v ?? '').trim().toLowerCase().replace(/ /g, '_')
+  return allowed.includes(k) ? k : fallback
+}
+const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v)
+
+function cleanSpecies(data) {
+  const d = isObj(data) ? data : {}
+  if (!d.found || !(spText(d.name) || spText(d.scientific))) {
+    return { found: false, message: spText(d.message, 400) || "I couldn't see an animal clearly. Try a closer photo in good light." }
+  }
+  const danger = isObj(d.danger) ? d.danger : {}
+  const alternatives = (Array.isArray(d.alternatives) ? d.alternatives : []).slice(0, 3)
+    .filter((a) => isObj(a) && (spText(a.name) || spText(a.scientific)))
+    .map((a) => ({ name: spText(a.name, 80), scientific: spText(a.scientific, 80) }))
+  const group = spEnum(d.group, Object.keys(GROUPS), 'other')
+  let level = spEnum(danger.level, ['harmless', 'use_caution', 'dangerous', 'unknown'], 'unknown')
+  if (group === 'fungus' && level === 'harmless') level = 'unknown' // a photo can never show a fungus is safe
+  return {
+    found: true,
+    message: spText(d.message, 400),
+    name: spText(d.name, 100) || spText(d.scientific, 100),
+    scientific: spText(d.scientific, 100),
+    group,
+    confidence: spEnum(d.confidence, ['high', 'medium', 'low'], 'low'),
+    alternatives,
+    about: spText(d.about), habitat: spText(d.habitat), diet: spText(d.diet), size: spText(d.size, 100),
+    danger: { level, note: spText(danger.note) },
+    conservation: spText(d.conservation, 60),
+    fun_fact: spText(d.fun_fact),
+    photo_tips: spText(d.photo_tips),
+  }
+}
+
+return { CONFIDENCE, GROUPS, DANGER, cleanSpecies }
+})()
 
   async function loadPhoto(file, max = 2000) {
     let src, w, h2
@@ -2536,7 +2662,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   }
 
   function vWait(title, sub) {
-    const withPhoto = (S.screen === 'reading' || S.screen === 'b-identify' || S.screen === 'p-reading') && S.photo
+    const withPhoto = (S.screen === 'reading' || S.screen === 'b-identify' || S.screen === 'p-reading' || S.screen === 'f-reading' || S.screen === 'x-reading') && S.photo
     return [h('div', { class: 'card stack center scan-card', role: 'status', 'aria-live': 'polite' },
       withPhoto ? h('div', { class: 'scan-loader' }, h('img', { src: S.photo, alt: '' }), h('div', { class: 'scan-frame' }), h('div', { class: 'beam' }))
         : h('div', { class: 'spinner', 'aria-label': title }),
@@ -2800,6 +2926,161 @@ Rules:
     render()
   }
 
+  // ---------- extras: food scan and species scan ----------
+  const FOOD_PROMPT = `You are a careful nutrition assistant. Look at the photo of a meal, snack, drink, or a nutrition facts
+label and reply with ONLY a JSON object:
+{"is_food": boolean, "message": string, "name": string, "confidence": "high" | "medium" | "low",
+ "source": "label" | "estimate", "serving": string,
+ "items": [{"name": string, "portion": string, "calories": integer}],
+ "totals": {"calories": number, "protein_g": number, "carbs_g": number, "fat_g": number,
+            "fiber_g": number, "sugar_g": number, "sodium_mg": number},
+ "allergens": [string], "notes": string, "photo_tips": string}
+
+Rules:
+- If the photo shows a nutrition facts label, read the numbers from it ("source": "label") and say which serving
+  they are for. Otherwise estimate from what you can see ("source": "estimate") and never claim precision:
+  portions are a guess from one photo, so use "medium" or "low" confidence unless the food and size are obvious.
+- "totals" is for the whole portion shown (or one labelled serving), and "items" lists each separate food you can see (up to 8).
+- "allergens" may only use: milk, eggs, fish, shellfish, tree nuts, peanuts, wheat, soy, sesame. List the ones the food
+  probably contains, and remember hidden ones can be present. Never say a food is free of an allergen.
+- "notes" is one or two plain, neutral sentences (for example what drives the calories). No diet advice and no shaming.
+- If the photo shows no food or label, or is too blurry or dark, set "is_food": false and write a short friendly "message"
+  asking for a clearer photo.
+- Keep every string short.`
+  const SPECIES_PROMPT = `You are a careful wildlife identification assistant. Look at the photo of an animal, insect, bird, fish,
+or fungus and reply with ONLY a JSON object:
+{"found": boolean, "message": string, "name": string, "scientific": string,
+ "group": "mammal" | "bird" | "reptile" | "amphibian" | "fish" | "insect" | "spider" | "other_invertebrate" | "fungus" | "other",
+ "confidence": "high" | "medium" | "low",
+ "alternatives": [{"name": string, "scientific": string}],
+ "about": string, "habitat": string, "diet": string, "size": string,
+ "danger": {"level": "harmless" | "use_caution" | "dangerous" | "unknown", "note": string},
+ "conservation": string, "fun_fact": string, "photo_tips": string}
+
+Rules:
+- Only describe what you can see. Identification from one photo is a best guess: say "medium" or "low" confidence unless
+  the markings and shape clearly match one species, and give up to 3 "alternatives" when unsure. Domestic pets: name the
+  likely breed and say it is a guess.
+- If the photo shows no animal, insect, bird, fish or fungus, or is too blurry, dark or far away, set "found": false and
+  write a short friendly "message" asking for a clearer, closer photo. If it shows a plant, set "found": false and say
+  Plant Scan is the better tool. Do not guess from nothing.
+- "danger" is about people and pets: "dangerous" for venomous, poisonous or aggressive species, "use_caution" if it can
+  bite, sting or scratch, "harmless" only when you are confident, otherwise "unknown". Say what to do in "note" (keep distance,
+  do not handle). Never encourage touching or picking up a wild animal.
+- NEVER say a mushroom or fungus is edible or safe to eat or touch, and never advise eating anything from a photo. For fungus,
+  give a best-guess name only and say it cannot be judged safe from a picture.
+- "conservation" is the IUCN status if you know it (for example "Least Concern"), otherwise empty.
+- Keep every string short (one or two sentences).`
+
+  // one scan flow for both tools: read the photo, ask Claude, clean the answer, show the result (or the "try again" message)
+  async function scanExtra({ file, label, prompt, ask, note, clean, ok, readScreen, homeScreen, resultScreen, keep }) {
+    if (!file) return
+    S.tab = 'extras'
+    if (!file.type.startsWith('image/')) return setError('Please choose an image file.')
+    if (!S.sample) return setError('Claude isn’t available in this view, so ' + label + ' scanning is off.')
+    let canvas
+    try { canvas = await loadPhoto(file, 1600) } catch { return setError('Couldn’t open that image. Try a JPG or PNG.') }
+    S.photo = canvas.toDataURL('image/jpeg', 0.7); S.plThumb = thumbOfCanvas(canvas)
+    go(readScreen)
+    S.ctl = new AbortController()
+    try {
+      const n = note.trim().slice(0, 200)
+      const r = clean(await S.sample.json(prompt + '\n\n' + ask + (n ? ' The person says: ' + n : ''), { images: await blobOf(canvas), signal: S.ctl.signal, cache: false }))
+      if (!r[ok]) { S.screen = homeScreen; return setError(r.message) }
+      keep(r)
+      go(resultScreen)
+    } catch (e) {
+      if (e?.code === 'cancelled') return go(homeScreen)
+      S.screen = homeScreen; setError(errText(e))
+    }
+  }
+  const foodFile = (file) => scanExtra({ file, label: 'food', prompt: FOOD_PROMPT, ask: 'What is this food, and what is in it?', note: S.foNote, clean: cleanFood, ok: 'is_food', readScreen: 'f-reading', homeScreen: 'f-home', resultScreen: 'f-result', keep: (r) => { S.food = r; S.foSaved = false } })
+  const speciesFile = (file) => scanExtra({ file, label: 'species', prompt: SPECIES_PROMPT, ask: 'What species is this?', note: S.spNote, clean: cleanSpecies, ok: 'found', readScreen: 's-reading', homeScreen: 's-home', resultScreen: 's-result', keep: (r) => { S.species = r } })
+
+  const saveMeals = () => store.set('meals', S.meals.slice(0, 200))
+  function saveMeal() {
+    const r = S.food, t = r.totals
+    S.meals = [{ id: uid(), name: r.name, calories: t.calories, protein_g: t.protein_g, carbs_g: t.carbs_g, fat_g: t.fat_g, photo: S.plThumb || '', at: Date.now() }, ...S.meals]
+    saveMeals(); S.foSaved = true
+    try { navigator.vibrate?.(18) } catch {}
+    render()
+  }
+
+  function scanHome({ title, lead, snap, snapIcon, cam, pick, notePlaceholder, noteLabel, noteKey, what }) {
+    const note = h('input', { class: 'field', type: 'text', maxlength: '200', placeholder: notePlaceholder, 'aria-label': noteLabel })
+    note.value = S[noteKey]
+    note.addEventListener('input', () => { S[noteKey] = note.value })
+    return [
+      h('button', { class: 'link left', type: 'button', onclick: () => go('x-home') }, icon('back'), 'Extras'),
+      S.ready && (!S.sample || !S.canReadImages) && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view, so ' + what + ' scanning won’t work here.'),
+      h('div', { class: 'hero' },
+        h('h1', {}, title), h('p', { class: 'muted lead' }, lead),
+        h('label', { class: 'snap', for: cam, 'aria-label': snap }, icon(snapIcon), snap),
+        h('div', { class: 'quick two' }, tile('label', { for: pick }, 'upload', 'Upload'), tile('label', { for: cam }, 'camera', 'Camera')),
+        note),
+    ]
+  }
+  const vFoodHome = () => [...scanHome({ title: 'Scan your food', lead: 'Snap a meal, a snack or a nutrition label. I’ll estimate the calories and nutrients and flag common allergens.', snap: 'Snap Food', snapIcon: 'food', cam: 'foodcam', pick: 'foodpick', notePlaceholder: 'Anything to know? e.g. about half the plate', noteLabel: 'Anything to know? (optional)', noteKey: 'foNote', what: 'food' }), vToday()]
+  const vSpeciesHome = () => scanHome({ title: 'Identify a species', lead: 'Snap an animal, bird, insect, fish or fungus. I’ll tell you what it is and whether to keep your distance.', snap: 'Snap Species', snapIcon: 'paw', cam: 'spcam', pick: 'sppick', notePlaceholder: 'Where was it? e.g. my garden in Texas', noteLabel: 'Where was it? (optional)', noteKey: 'spNote', what: 'species' })
+
+  function vToday() {
+    const today = mealsOn(S.meals)
+    if (!today.length) return null
+    const sum = dayTotals(today)
+    return h('div', { class: 'card stack', 'data-testid': 'food-log' },
+      h('div', { class: 'row between' }, h('h2', {}, 'Today'), h('b', {}, sum.calories + ' cal')),
+      h('p', { class: 'muted tiny' }, 'Protein ' + sum.protein_g + ' g · Carbs ' + sum.carbs_g + ' g · Fat ' + sum.fat_g + ' g'),
+      h('ul', { class: 'plant-list' }, today.map((m) => h('li', { class: 'plant-row' },
+        m.photo ? h('img', { src: m.photo, alt: '' }) : h('span', { class: 'plant-ph' }, icon('food')),
+        h('div', { class: 'plant-info' }, h('b', {}, m.name), h('span', { class: 'due' }, m.calories + ' cal · ' + new Date(m.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }))),
+        h('button', { class: 'btn ghost', type: 'button', 'aria-label': 'Remove ' + m.name, onclick: () => { S.meals = S.meals.filter((x) => x.id !== m.id); saveMeals(); render() } }, icon('alert'))))))
+  }
+
+  function vFoodResult() {
+    const r = S.food, t = r.totals
+    const more = [['Fiber', t.fiber_g, ' g'], ['Sugar', t.sugar_g, ' g'], ['Sodium', t.sodium_mg, ' mg']].filter(([, v]) => v !== null)
+    return [h('div', { class: 'stack' },
+      h('div', { class: 'card stack' },
+        h('div', { class: 'plant-id' }, S.photo && h('img', { class: 'plant-photo', src: S.photo, alt: 'Your food' }),
+          h('div', {}, h('h2', {}, r.name), r.serving && h('p', { class: 'muted' }, r.serving),
+            h('div', { class: 'chips' }, h('span', { class: 'pill conf-' + r.confidence }, FOOD_CONFIDENCE[r.confidence]), h('span', { class: 'pill' }, r.source === 'label' ? 'Read from the label' : 'Estimated from the photo')))),
+        h('div', { class: 'kcal' }, h('b', {}, fmtVal(t.calories)), h('span', {}, 'calories')),
+        h('dl', { class: 'macros' }, [['Protein', t.protein_g], ['Carbs', t.carbs_g], ['Fat', t.fat_g]].map(([k, v]) => h('div', {}, h('dt', {}, k), h('dd', {}, fmtVal(v, ' g'))))),
+        more.length > 0 && h('p', { class: 'muted tiny' }, more.map(([k, v, u]) => k + ' ' + fmtVal(v, u)).join(' · '))),
+      r.items.length > 1 && h('div', { class: 'card stack' }, h('h2', {}, 'What I can see'),
+        h('ul', { class: 'food-items' }, r.items.map((i) => h('li', {}, h('span', {}, h('b', {}, i.name), i.portion && h('span', { class: 'muted' }, ' · ' + i.portion)), h('span', {}, i.calories === null ? '' : fmtVal(i.calories) + ' cal'))))),
+      r.allergens.length > 0 && h('div', { class: 'card stack' }, h('p', { class: 'eyebrow' }, 'May contain'),
+        h('div', { class: 'chips' }, r.allergens.map((a) => h('span', { class: 'chip allergen' }, a))),
+        h('p', { class: 'muted tiny' }, 'A photo can’t show everything in a food. If you have an allergy, check the packaging.')),
+      r.notes && h('p', { class: 'muted' }, r.notes),
+      r.confidence !== 'high' && r.photo_tips && h('p', { class: 'muted tiny' }, 'Next photo: ' + r.photo_tips),
+      h('p', { class: 'muted tiny center' }, 'Numbers from a photo are estimates, not medical advice.'),
+      h('div', { class: 'row wrap' },
+        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.foSaved, onclick: saveMeal }, icon(S.foSaved ? 'check' : 'food'), S.foSaved ? 'Added to today' : 'Add to today'),
+        h('button', { class: 'btn cta grow', type: 'button', onclick: () => { S.food = null; S.photo = null; S.foNote = ''; go('f-home') } }, icon('camera'), 'Scan another')))]
+  }
+
+  function vSpeciesResult() {
+    const r = S.species
+    const facts = [['Habitat', r.habitat], ['Diet', r.diet], ['Size', r.size], ['Conservation', r.conservation]].filter(([, v]) => v)
+    const bad = r.danger.level === 'dangerous' || r.danger.level === 'use_caution'
+    return [h('div', { class: 'stack' },
+      h('div', { class: 'card stack' },
+        h('div', { class: 'plant-id' }, S.photo && h('img', { class: 'plant-photo', src: S.photo, alt: 'Your photo' }),
+          h('div', {}, h('h2', {}, r.name), r.scientific && h('p', { class: 'muted' }, h('i', {}, r.scientific)),
+            h('div', { class: 'chips' }, h('span', { class: 'pill conf-' + r.confidence }, SPECIES_CONFIDENCE[r.confidence]), h('span', { class: 'pill' }, GROUPS[r.group])))),
+        r.confidence !== 'high' && h('p', { class: 'muted tiny' }, 'This is a guess from one photo. A sharper, closer shot that shows markings or the whole body makes it much better.'),
+        r.alternatives.length > 0 && h('div', {}, h('p', { class: 'eyebrow' }, 'Could also be'), h('div', { class: 'chips' }, r.alternatives.map((a) => h('span', { class: 'chip', title: a.scientific }, a.name))))),
+      h('div', { class: 'banner ' + (bad ? 'warn' : r.danger.level === 'harmless' ? 'ok' : 'info') }, icon(bad ? 'alert' : 'check', 'b-ico'), h('span', {}, h('strong', {}, DANGER[r.danger.level] + '. '), r.danger.note)),
+      r.group === 'fungus' && h('div', { class: 'banner warn', role: 'note' }, 'Never eat or taste a mushroom or fungus because of a photo scan. Many deadly ones look like safe ones.'),
+      r.about && h('p', {}, r.about),
+      facts.length > 0 && h('div', { class: 'card stack' }, h('dl', { class: 'care' }, facts.map(([k, v]) => h('div', {}, h('dt', {}, k), h('dd', {}, v))))),
+      r.fun_fact && h('p', { class: 'muted center' }, r.fun_fact),
+      r.confidence === 'low' && r.photo_tips && h('p', { class: 'muted tiny' }, 'Next photo: ' + r.photo_tips),
+      h('p', { class: 'muted tiny center' }, 'Keep your distance from wild animals, and never handle one because of an app.'),
+      h('button', { class: 'btn cta', type: 'button', onclick: () => { S.species = null; S.photo = null; S.spNote = ''; go('s-home') } }, icon('camera'), 'Scan another'))]
+  }
+
   function vExtras() {
     const due = dueCount(S.plants)
     return [h('div', { class: 'stack' },
@@ -2808,6 +3089,13 @@ Rules:
         h('span', { class: 'tool-ico' }, icon('leaf')),
         h('span', { class: 'tool-text' }, h('b', {}, 'Plant Scan'), h('span', { class: 'muted' }, 'Identify a plant, check its health and get care tips.'),
           S.plants.length > 0 && h('span', { class: 'due' + (due ? ' now' : '') }, due ? due + ' need' + (due === 1 ? 's' : '') + ' water' : S.plants.length + ' saved plant' + (S.plants.length === 1 ? '' : 's')))),
+      h('button', { class: 'card tool', type: 'button', onclick: () => go('f-home') },
+        h('span', { class: 'tool-ico' }, icon('food')),
+        h('span', { class: 'tool-text' }, h('b', {}, 'Food Scan'), h('span', { class: 'muted' }, 'Estimate calories and nutrients from a meal or a label.'),
+          mealsOn(S.meals).length > 0 && h('span', { class: 'due' }, dayTotals(mealsOn(S.meals)).calories + ' cal today'))),
+      h('button', { class: 'card tool', type: 'button', onclick: () => go('s-home') },
+        h('span', { class: 'tool-ico' }, icon('paw')),
+        h('span', { class: 'tool-text' }, h('b', {}, 'Species Scan'), h('span', { class: 'muted' }, 'Identify an animal, bird, insect, fish or fungus.'))),
       h('p', { class: 'muted tiny center' }, 'More tools are on the way.'))]
   }
 
@@ -2892,7 +3180,9 @@ Rules:
       body = sc === 'crop' ? vCrop() : sc === 'b-picking' ? vWait('Picking the best store…', 'Thinking about who usually stocks this.') : sc === 'b-identify' ? vWait('Figuring out what this is…', 'This can take a few seconds.') : sc === 'b-scanning' ? vWait('Reading the barcode…', '') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
     }
     else if (S.tab === 'extras') {
-      body = S.screen === 'p-reading' ? vWait('Looking at your plant…', 'Checking the leaves, shape and health.') : S.screen === 'p-result' && S.plant ? vPlantResult() : S.screen === 'p-home' ? vPlantHome() : vExtras()
+      body = S.screen === 'p-reading' ? vWait('Looking at your plant…', 'Checking the leaves, shape and health.') : S.screen === 'p-result' && S.plant ? vPlantResult() : S.screen === 'p-home' ? vPlantHome()
+        : S.screen === 'f-reading' ? vWait('Looking at your food…', 'Working out what’s on the plate.') : S.screen === 'f-result' && S.food ? vFoodResult() : S.screen === 'f-home' ? vFoodHome()
+        : S.screen === 's-reading' ? vWait('Looking closely…', 'Checking markings, shape and size.') : S.screen === 's-result' && S.species ? vSpeciesResult() : S.screen === 's-home' ? vSpeciesHome() : vExtras()
     }
     else if (S.screen === 'home') body = vHome()
     else if (S.screen === 'crop') body = vCrop()
@@ -2915,9 +3205,10 @@ Rules:
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; S.latex = ''; S.result = null; S.word = null; S.problems = []; S.active = -1; go('home') })
   $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; if (/^[bpx]-/.test(S.screen)) S.screen = 'home'; render() })
-  $('#tab-extras').addEventListener('click', () => { S.tab = 'extras'; S.mode = 'solve'; if (!/^[px]-/.test(S.screen)) S.screen = 'x-home'; render() })
+  $('#tab-extras').addEventListener('click', () => { S.tab = 'extras'; S.mode = 'solve'; if (!/^[pfsx]-/.test(S.screen)) S.screen = 'x-home'; render() })
   $('#plantcam').addEventListener('change', (e) => { plantFile(e.target.files[0]); e.target.value = '' })
   $('#plantpick').addEventListener('change', (e) => { plantFile(e.target.files[0]); e.target.value = '' })
+  for (const [id, fn] of [['foodcam', foodFile], ['foodpick', foodFile], ['spcam', speciesFile], ['sppick', speciesFile]]) $('#' + id).addEventListener('change', (e) => { fn(e.target.files[0]); e.target.value = '' })
   $('#tab-hist').addEventListener('click', () => { S.tab = 'history'; render() })
   $('#tab-buy').addEventListener('click', () => { S.tab = 'buy'; S.mode = 'buy'; if (!S.screen.startsWith('b-') && S.screen !== 'crop') S.screen = 'b-home'; render() })
   $('#scan').addEventListener('change', (e) => { scanBarcode(e.target.files[0]); e.target.value = '' })

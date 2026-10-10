@@ -179,6 +179,59 @@ test('extras tab: a photo with no plant asks for a better one, and the other tab
   await expect(page.getByRole('heading', { name: 'Scan a plant' })).toHaveCount(0)
 })
 
+test('extras tab: food scan shows an estimate and allergens, and keeps a daily log', async ({ page }) => {
+  await page.locator('#tab-extras').click()
+  await page.getByText('Food Scan').first().click()
+  await page.setInputFiles('#foodpick', PAPER_PNG)
+
+  await expect(page.getByRole('heading', { name: 'Cheese pizza slice' })).toBeVisible()
+  await expect(page.getByText('Rough estimate')).toBeVisible()
+  await expect(page.locator('.kcal')).toContainText('285')
+  await expect(page.locator('.chip.allergen')).toHaveText(['milk', 'wheat'])
+  await page.getByRole('button', { name: 'Add to today' }).click()
+  await expect(page.getByRole('button', { name: 'Added to today' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Scan another' }).click()
+  await expect(page.getByTestId('food-log')).toContainText('285 cal')
+
+  await page.reload()
+  await page.locator('#tab-extras').click()
+  await expect(page.getByText('285 cal today')).toBeVisible()
+  await page.getByText('Food Scan').first().click()
+  await page.getByTestId('food-log').getByRole('button', { name: 'Remove Cheese pizza slice' }).click()
+  await expect(page.getByTestId('food-log')).toHaveCount(0)
+})
+
+test('extras tab: a photo with no food asks for a better one', async ({ page }) => {
+  await page.locator('#tab-extras').click()
+  await page.getByText('Food Scan').first().click()
+  await page.getByLabel('Anything to know? (optional)').fill('it is a rock')
+  await page.setInputFiles('#foodpick', PAPER_PNG)
+  await expect(page.getByRole('alert')).toContainText('closer photo')
+  await expect(page.getByRole('heading', { name: 'Scan your food' })).toBeVisible()
+})
+
+test('extras tab: species scan names it, rates the danger, and never calls a fungus harmless', async ({ page }) => {
+  await page.locator('#tab-extras').click()
+  await page.getByText('Species Scan').first().click()
+  await page.setInputFiles('#sppick', PAPER_PNG)
+  await expect(page.getByRole('heading', { name: 'Monarch butterfly' })).toBeVisible()
+  await expect(page.getByText('Generally harmless.')).toBeVisible()
+  await expect(page.getByText('Could also be')).toBeVisible()
+  await expect(page.getByText('Endangered')).toBeVisible()
+  await page.getByRole('button', { name: 'Scan another' }).click()
+
+  await page.getByLabel('Where was it? (optional)').fill('a red toadstool in the woods')
+  await page.setInputFiles('#sppick', PAPER_PNG)
+  await expect(page.getByRole('heading', { name: 'Fly agaric' })).toBeVisible()
+  await expect(page.getByText('Never eat or taste a mushroom')).toBeVisible()
+  await expect(page.getByText('Danger unknown. Keep your distance.')).toBeVisible() // "harmless" was overridden
+  await page.getByRole('button', { name: 'Scan another' }).click()
+
+  await page.getByLabel('Where was it? (optional)').fill('it is a rock')
+  await page.setInputFiles('#sppick', PAPER_PNG)
+  await expect(page.getByRole('alert')).toContainText('closer photo')
+})
+
 test('themes are sorted into categories, and a category opens a wider view of its themes', async ({ page }) => {
   await page.locator('#themebtn').click()
   await expect(page.locator('.cat-card b')).toHaveText(['Everyday', 'Nature', 'Fun', 'Holidays'])

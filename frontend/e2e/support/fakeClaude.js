@@ -47,6 +47,25 @@ export function fakeRuntime() {
         pets: { status: 'toxic', note: 'Toxic to cats and dogs.' }, fun_fact: 'The holes in the leaves are called fenestrations.', photo_tips: '',
       }
     }
+    if (prompt.startsWith('You are a careful nutrition')) {
+      if (/rock/.test(prompt)) return { is_food: false, message: 'I could not see any food. Try a closer photo.' }
+      return {
+        is_food: true, message: '', name: 'Cheese pizza slice', confidence: 'medium', source: 'estimate', serving: '1 large slice',
+        items: [{ name: 'Crust', portion: '1 slice', calories: 150 }, { name: 'Cheese', portion: 'about 40 g', calories: 135 }],
+        totals: { calories: 285, protein_g: 12, carbs_g: 36, fat_g: 10, fiber_g: 2, sugar_g: 4, sodium_mg: 640 },
+        allergens: ['milk', 'wheat'], notes: 'Most of the calories come from the crust and cheese.', photo_tips: '',
+      }
+    }
+    if (prompt.startsWith('You are a careful wildlife')) {
+      if (/rock/.test(prompt)) return { found: false, message: 'I could not see an animal. Try a closer photo.' }
+      if (/toadstool/.test(prompt)) return { found: true, name: 'Fly agaric', scientific: 'Amanita muscaria', group: 'fungus', confidence: 'medium', danger: { level: 'harmless', note: 'Cannot be judged from a photo.' } }
+      return {
+        found: true, message: '', name: 'Monarch butterfly', scientific: 'Danaus plexippus', group: 'insect', confidence: 'medium',
+        alternatives: [{ name: 'Viceroy', scientific: 'Limenitis archippus' }],
+        about: 'A large orange butterfly famous for its long migration.', habitat: 'Meadows and gardens', diet: 'Nectar', size: '9 cm wingspan', conservation: 'Endangered',
+        danger: { level: 'harmless', note: 'It does not bite or sting.' }, fun_fact: 'Monarchs fly up to 4,000 km.', photo_tips: '',
+      }
+    }
     if (prompt.startsWith('You identify')) return { identifiable: true, name: 'X', query: 'Sony WH-1000XM5 headphones', message: '' }
     if (prompt.startsWith('You advise')) return { stores: [{ name: 'Best Buy', why: 'Wide range.' }] }
     const latex = prompt.split('Problem (LaTeX):\n')[1].split('\n')[0]

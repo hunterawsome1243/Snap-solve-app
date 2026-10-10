@@ -40,6 +40,21 @@ plants = (root.parent / "frontend" / "src" / "lib" / "plants.js").read_text()
 plants = re.sub(r"^import .*\n", "", plants, flags=re.M)
 plants = re.sub(r"^export ", "", plants, flags=re.M)
 src = src.replace("/*PLANTS_JS*/", plants)
+
+
+def private_module(path, names):
+    """Inline a shared module inside a function so its helper names can't clash with the page's.
+    Only its exports reach the page; `names` renames the ones that would clash (export -> page name)."""
+    text = path.read_text()
+    exported = re.findall(r"^export (?:const|function) (\w+)", text, flags=re.M)
+    code = re.sub(r"^export ", "", text, flags=re.M)
+    left = ", ".join(f"{n}: {names[n]}" if n in names else n for n in exported)
+    return "const { " + left + " } = (() => {\n" + code + "\nreturn { " + ", ".join(exported) + " }\n})()"
+
+
+lib = root.parent / "frontend" / "src" / "lib"
+src = src.replace("/*FOOD_JS*/", private_module(lib / "food.js", {"CONFIDENCE": "FOOD_CONFIDENCE"}))
+src = src.replace("/*SPECIES_JS*/", private_module(lib / "species.js", {"CONFIDENCE": "SPECIES_CONFIDENCE"}))
 # barcode reading (many views of a photo, shared with the React app) is inlined inside a function so its helper names stay private
 barcode = re.sub(r"^export ", "", (root.parent / "frontend" / "src" / "lib" / "barcode.js").read_text(), flags=re.M)
 src = src.replace("/*BARCODE_JS*/", "const { decodeBarcode } = (() => {\n" + barcode + "\nreturn { decodeBarcode }\n})()")

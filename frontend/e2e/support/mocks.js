@@ -105,3 +105,33 @@ export async function mockPlantApi(page, calls = [], reply = MONSTERA) {
     r.fulfill({ json: reply })
   })
 }
+
+export const PIZZA = {
+  is_food: true, message: '', name: 'Cheese pizza slice', confidence: 'medium', source: 'estimate', serving: '1 large slice',
+  items: [{ name: 'Crust', portion: '1 slice', calories: 150 }, { name: 'Cheese', portion: 'about 40 g', calories: 135 }],
+  totals: { calories: 285, protein_g: 12, carbs_g: 36, fat_g: 10, fiber_g: 2, sugar_g: 4, sodium_mg: 640 },
+  allergens: ['milk', 'wheat'], notes: 'Most of the calories come from the crust and cheese.', photo_tips: '',
+}
+
+export const MONARCH = {
+  found: true, message: '', name: 'Monarch butterfly', scientific: 'Danaus plexippus', group: 'insect', confidence: 'medium',
+  alternatives: [{ name: 'Viceroy', scientific: 'Limenitis archippus' }],
+  about: 'A large orange butterfly famous for its long migration.', habitat: 'Meadows and gardens', diet: 'Nectar; caterpillars eat milkweed', size: '8.9-10.2 cm wingspan', conservation: 'Endangered',
+  danger: { level: 'harmless', note: 'It does not bite or sting.' }, fun_fact: 'Monarchs fly up to 4,000 km to overwinter.', photo_tips: '',
+}
+
+/** Food Scan endpoint. `reply` can be changed per test; `calls` collects what the page sent. */
+export async function mockFoodApi(page, calls = [], reply = PIZZA) {
+  await page.route('**/api/food/scan', (r) => {
+    calls.push(['food', JSON.parse(r.request().postData()).note])
+    r.fulfill({ json: reply })
+  })
+}
+
+/** Species Scan endpoint. */
+export async function mockSpeciesApi(page, calls = [], reply = MONARCH) {
+  await page.route('**/api/species/scan', (r) => {
+    calls.push(['species', JSON.parse(r.request().postData()).note])
+    r.fulfill({ json: reply })
+  })
+}

@@ -948,6 +948,170 @@ def plant_scan(req: PlantRequest):
     return clean_plant(data)
 
 
+# ---------------------------------------------------------------- food scan
+
+FOOD_SYSTEM = """You are a careful nutrition assistant. Look at the photo of a meal, snack, drink, or a nutrition facts
+label and reply with ONLY a JSON object:
+{"is_food": boolean, "message": string, "name": string, "confidence": "high" | "medium" | "low",
+ "source": "label" | "estimate", "serving": string,
+ "items": [{"name": string, "portion": string, "calories": integer}],
+ "totals": {"calories": number, "protein_g": number, "carbs_g": number, "fat_g": number,
+            "fiber_g": number, "sugar_g": number, "sodium_mg": number},
+ "allergens": [string], "notes": string, "photo_tips": string}
+
+Rules:
+- If the photo shows a nutrition facts label, read the numbers from it ("source": "label") and say which serving
+  they are for. Otherwise estimate from what you can see ("source": "estimate") and never claim precision:
+  portions are a guess from one photo, so use "medium" or "low" confidence unless the food and size are obvious.
+- "totals" is for the whole portion shown (or one labelled serving), and "items" lists each separate food you can see (up to 8).
+- "allergens" may only use: milk, eggs, fish, shellfish, tree nuts, peanuts, wheat, soy, sesame. List the ones the food
+  probably contains, and remember hidden ones can be present. Never say a food is free of an allergen.
+- "notes" is one or two plain, neutral sentences (for example what drives the calories). No diet advice and no shaming.
+- If the photo shows no food or label, or is too blurry or dark, set "is_food": false and write a short friendly "message"
+  asking for a clearer photo.
+- Keep every string short."""
+
+ALLERGENS = ("milk", "eggs", "fish", "shellfish", "tree nuts", "peanuts", "wheat", "soy", "sesame")
+MACROS = (("calories", 6000), ("protein_g", 500), ("carbs_g", 800), ("fat_g", 500), ("fiber_g", 200), ("sugar_g", 500), ("sodium_mg", 20000))
+
+
+def _num(v, top: float):
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v or not 0 <= v <= top:
+        return None
+    return round(float(v), 1)
+
+
+def clean_food(data: dict) -> dict:
+    """Known values only, trimmed text, numbers in a sane range. Nutrition from a photo is an estimate; the page says so."""
+    totals_in = data.get("totals") if isinstance(data.get("totals"), dict) else {}
+    totals = {k: _num(totals_in.get(k), top) for k, top in MACROS}
+    ok = bool(data.get("is_food")) and totals["calories"] is not None
+    if not ok:
+        return {"is_food": False, "message": _s(data.get("message"), 400) or "I couldn't see food or a nutrition label clearly. Try a closer photo in good light."}
+    items = []
+    for i in (data.get("items") or [])[:8]:
+        if isinstance(i, dict) and _s(i.get("name")):
+            items.append({"name": _s(i.get("name"), 80), "portion": _s(i.get("portion"), 60), "calories": _num(i.get("calories"), 6000)})
+    seen = {str(a or "").strip().lower() for a in (data.get("allergens") or []) if isinstance(a, str)}
+    return {
+        "is_food": True,
+        "message": _s(data.get("message"), 400),
+        "name": _s(data.get("name"), 100) or "Meal",
+        "confidence": _pick(data.get("confidence"), ("high", "medium", "low"), "low"),
+        "source": _pick(data.get("source"), ("label", "estimate"), "estimate"),
+        "serving": _s(data.get("serving"), 80),
+        "items": items,
+        "totals": totals,
+        "allergens": [a for a in ALLERGENS if a in seen],
+        "notes": _s(data.get("notes")),
+        "photo_tips": _s(data.get("photo_tips")),
+    }
+
+
+class FoodRequest(ReadRequest):
+    note: str = Field(default="", max_length=300)  # e.g. "about half the plate"
+
+
+@app.post("/api/food/scan")
+def food_scan(req: FoodRequest):
+    check_image(req)
+    ask = "What is this food, and what is in it?"
+    if req.note.strip():
+        ask += f" The person says: {req.note.strip()}"
+    data = ask_claude(
+        FOOD_SYSTEM,
+        [
+            {"type": "image", "source": {"type": "base64", "media_type": req.media_type, "data": req.image}},
+            {"type": "text", "text": ask},
+        ],
+        max_tokens=1200,
+        endpoint="food",
+    )
+    return clean_food(data)
+
+
+# ---------------------------------------------------------------- species scan
+
+SPECIES_SYSTEM = """You are a careful wildlife identification assistant. Look at the photo of an animal, insect, bird, fish,
+or fungus and reply with ONLY a JSON object:
+{"found": boolean, "message": string, "name": string, "scientific": string,
+ "group": "mammal" | "bird" | "reptile" | "amphibian" | "fish" | "insect" | "spider" | "other_invertebrate" | "fungus" | "other",
+ "confidence": "high" | "medium" | "low",
+ "alternatives": [{"name": string, "scientific": string}],
+ "about": string, "habitat": string, "diet": string, "size": string,
+ "danger": {"level": "harmless" | "use_caution" | "dangerous" | "unknown", "note": string},
+ "conservation": string, "fun_fact": string, "photo_tips": string}
+
+Rules:
+- Only describe what you can see. Identification from one photo is a best guess: say "medium" or "low" confidence unless
+  the markings and shape clearly match one species, and give up to 3 "alternatives" when unsure. Domestic pets: name the
+  likely breed and say it is a guess.
+- If the photo shows no animal, insect, bird, fish or fungus, or is too blurry, dark or far away, set "found": false and
+  write a short friendly "message" asking for a clearer, closer photo. If it shows a plant, set "found": false and say
+  Plant Scan is the better tool. Do not guess from nothing.
+- "danger" is about people and pets: "dangerous" for venomous, poisonous or aggressive species, "use_caution" if it can
+  bite, sting or scratch, "harmless" only when you are confident, otherwise "unknown". Say what to do in "note" (keep distance,
+  do not handle). Never encourage touching or picking up a wild animal.
+- NEVER say a mushroom or fungus is edible or safe to eat or touch, and never advise eating anything from a photo. For fungus,
+  give a best-guess name only and say it cannot be judged safe from a picture.
+- "conservation" is the IUCN status if you know it (for example "Least Concern"), otherwise empty.
+- Keep every string short (one or two sentences)."""
+
+SPECIES_GROUPS = ("mammal", "bird", "reptile", "amphibian", "fish", "insect", "spider", "other_invertebrate", "fungus", "other")
+
+
+def clean_species(data: dict) -> dict:
+    ok = bool(data.get("found")) and bool(_s(data.get("name")) or _s(data.get("scientific")))
+    if not ok:
+        return {"found": False, "message": _s(data.get("message"), 400) or "I couldn't see an animal clearly. Try a closer photo in good light."}
+    danger = data.get("danger") if isinstance(data.get("danger"), dict) else {}
+    alts = [
+        {"name": _s(a.get("name"), 80), "scientific": _s(a.get("scientific"), 80)}
+        for a in (data.get("alternatives") or [])[:3]
+        if isinstance(a, dict) and (_s(a.get("name")) or _s(a.get("scientific")))
+    ]
+    group = _pick(data.get("group"), SPECIES_GROUPS, "other")
+    level = _pick(danger.get("level"), ("harmless", "use_caution", "dangerous", "unknown"), "unknown")
+    if group == "fungus" and level == "harmless":
+        level = "unknown"  # a photo can never show a fungus is safe
+    return {
+        "found": True,
+        "message": _s(data.get("message"), 400),
+        "name": _s(data.get("name"), 100) or _s(data.get("scientific"), 100),
+        "scientific": _s(data.get("scientific"), 100),
+        "group": group,
+        "confidence": _pick(data.get("confidence"), ("high", "medium", "low"), "low"),
+        "alternatives": alts,
+        "about": _s(data.get("about")), "habitat": _s(data.get("habitat")), "diet": _s(data.get("diet")), "size": _s(data.get("size"), 100),
+        "danger": {"level": level, "note": _s(danger.get("note"))},
+        "conservation": _s(data.get("conservation"), 60),
+        "fun_fact": _s(data.get("fun_fact")),
+        "photo_tips": _s(data.get("photo_tips")),
+    }
+
+
+class SpeciesRequest(ReadRequest):
+    note: str = Field(default="", max_length=300)  # e.g. "found in my garden in Texas"
+
+
+@app.post("/api/species/scan")
+def species_scan(req: SpeciesRequest):
+    check_image(req)
+    ask = "What species is this?"
+    if req.note.strip():
+        ask += f" The person says: {req.note.strip()}"
+    data = ask_claude(
+        SPECIES_SYSTEM,
+        [
+            {"type": "image", "source": {"type": "base64", "media_type": req.media_type, "data": req.image}},
+            {"type": "text", "text": ask},
+        ],
+        max_tokens=1200,
+        endpoint="species",
+    )
+    return clean_species(data)
+
+
 @app.get("/api/health")
 def health():
     return {"ok": True, "model": MODEL}

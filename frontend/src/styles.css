@@ -634,3 +634,16 @@ input[type='checkbox'], input[type='radio'], progress { accent-color: var(--bran
 .bc-aim::after { content: ''; position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; background: var(--cta); box-shadow: 0 0 10px 2px color-mix(in srgb, var(--cta) 60%, transparent); animation: bc-sweep 1.8s ease-in-out infinite alternate; }
 @keyframes bc-sweep { from { transform: translateY(-60px); opacity: .5; } to { transform: translateY(60px); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .bc-aim::after { animation: none; } }
+
+/* food + species scan */
+.kcal { display: flex; align-items: baseline; gap: 8px; }
+.kcal b { font-size: 2.4rem; line-height: 1; letter-spacing: -.02em; }
+.kcal span { color: var(--muted); font-weight: 600; }
+.macros { margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.macros > div { background: var(--soft); border-radius: 14px; padding: 10px 12px; }
+.macros dt { font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.macros dd { margin: 2px 0 0; font-size: 1.15rem; font-weight: 800; }
+.food-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.food-items li { display: flex; justify-content: space-between; gap: 12px; }
+.chip.allergen { background: var(--warn-bg); border-color: var(--warn-line); }
+.row.between { justify-content: space-between; align-items: center; }

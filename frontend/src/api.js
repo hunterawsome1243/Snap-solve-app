@@ -47,3 +47,12 @@ export const scanPlant = (dataUrl, note) => {
   const [head, image] = dataUrl.split(',')
   return post('/api/plant/scan', { image, media_type: head.match(/data:(.*?);/)[1], note: note || '' })
 }
+
+export const scanFood = (dataUrl, note) => {
+  const [head, image] = dataUrl.split(',')
+  return post('/api/food/scan', { image, media_type: head.match(/data:(.*?);/)[1], note: note || '' })
+}
+export const scanSpecies = (dataUrl, note) => {
+  const [head, image] = dataUrl.split(',')
+  return post('/api/species/scan', { image, media_type: head.match(/data:(.*?);/)[1], note: note || '' })
+}
