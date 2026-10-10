@@ -129,3 +129,46 @@ test('themes: halloween pumpkins and the science lab', async ({ page }) => {
   await page.locator('.theme', { hasText: 'Ocean' }).click()
   await expect(page.locator('.element')).toHaveCount(0)
 })
+
+test('extras tab: scan a plant, save it, and keep track of watering', async ({ page }) => {
+  await page.locator('#tab-extras').click()
+  await page.getByText('Plant Scan').first().click()
+  await page.setInputFiles('#plantpick', PAPER_PNG)
+
+  await expect(page.getByRole('heading', { name: 'Monstera' })).toBeVisible()
+  await expect(page.getByText('Likely', { exact: true })).toBeVisible() // medium confidence is labelled, not shown as certain
+  await expect(page.getByText('Needs attention.')).toBeVisible() // an issue was listed, so "healthy" is corrected
+  await expect(page.getByText('Let the top of the soil dry out.')).toBeVisible()
+  await expect(page.getByText('Toxic to pets')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Save to My Plants' }).click()
+  await expect(page.getByRole('button', { name: 'Saved to My Plants' })).toBeDisabled()
+  await page.getByRole('button', { name: 'Scan another' }).click()
+  const mine = page.getByTestId('my-plants')
+  await expect(mine.getByText('Water in 7 days')).toBeVisible()
+
+  await page.reload()
+  await page.locator('#tab-extras').click()
+  await expect(page.getByText('1 saved plant')).toBeVisible()
+  await page.getByText('Plant Scan').first().click()
+  await mine.getByText('Edit').click()
+  await mine.getByLabel('Water every').fill('3')
+  await expect(mine.getByText('Water in 3 days')).toBeVisible()
+  await mine.getByRole('button', { name: 'Mark Monstera watered' }).click()
+  await expect(mine.getByText('Water in 3 days')).toBeVisible()
+  await mine.getByText('Edit').click()
+  await mine.getByRole('button', { name: 'Remove' }).click()
+  await expect(page.getByTestId('my-plants')).toHaveCount(0)
+})
+
+test('extras tab: a photo with no plant asks for a better one, and the other tabs still work', async ({ page }) => {
+  await page.locator('#tab-extras').click()
+  await page.getByText('Plant Scan').first().click()
+  await page.getByLabel('Anything wrong with it? (optional)').fill('it is a rock')
+  await page.setInputFiles('#plantpick', PAPER_PNG)
+  await expect(page.getByRole('alert')).toContainText('closer photo')
+  await expect(page.getByRole('heading', { name: 'Scan a plant' })).toBeVisible()
+  await page.locator('#tab-solve').click()
+  await expect(page.locator('.snap')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Scan a plant' })).toHaveCount(0)
+})

@@ -171,7 +171,7 @@ Claude tells you what it is with an honest confidence ("Pretty sure", "Likely" o
 look-alikes), whether it looks healthy, what is wrong and what to do, how to care for it, and whether it is toxic to
 pets. Save it to **My Plants** to get a watering schedule: it shows what is overdue, and "Watered" restarts the count.
 Saved plants live on the device. It never says a wild plant or mushroom is safe to eat. Endpoint: `POST /api/plant/scan`.
-The artifact does not have this tab.
+The phone artifact has the same tab: it asks Claude through your account, so there is no server, and it cleans the answer with the same shared code (`frontend/src/lib/plants.js`).
 
 **The artifact version** (`artifact/`) has the same Solve features, plus barcode scanning and shared history. Its
 Snap Buy cannot search the web, so filters, price tracking and stale-price warnings do not apply there.
