@@ -176,12 +176,18 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
   a sweeping laser and drifting periodic-table tiles; Tropical, with a swaying pineapple and falling fruit) and
   **Holidays**, in the order the year brings them: New Year's, Lunar New Year, Valentine's Day, St. Patrick's Day, Easter,
   4th of July, Halloween (falling pumpkins), Thanksgiving and Christmas. Each holiday theme has its own colours, a logo
-  emoji, and emoji that fall or float up the screen. They are defined once in `frontend/src/lib/themes.js` (their CSS is
+  emoji, and emoji that fall or float up the screen. Holiday themes carry an **In season** badge (and so does the Holidays
+  category card) in the days around their holiday, worked out from today's date, including the ones that move (Easter,
+  Thanksgiving, Lunar New Year). They are defined once in `frontend/src/lib/themes.js` (their CSS is
   generated from it, and a test checks every one for readable contrast), and the phone artifact uses the same
   definitions. All motion respects "reduce motion".
 
 **Snap Buy** (see above)
-- **Barcode scanning** (EAN/UPC from a photo; built-in detector where available, ZXing elsewhere).
+- **Barcode scanning** (EAN/UPC). On the hosted app (or `npm run dev:https`) **Scan barcode** opens the live camera: hold the
+  barcode in the box and it reads on its own, with the camera focusing continuously. From a photo (a photo you pick, or the
+  artifact, which has no live camera) it looks at the picture many ways until one works: full size, shrunk and sharpened for
+  blur, contrast-stretched for dim light, tilted either way, turned sideways, and zoomed into each part. A short UPC-E code is
+  expanded to the 12-digit UPC-A stores use. If it still can't read one, it says so and you can type the product name.
 - **Filters**: new only, free shipping, max price, and a preferred store (a soft preference that wins close calls).
   Filtering re-ranks the offers you already have, with no extra search.
 - **Price tracking**: save a product, re-check it, and see the change since you started. Optional target price.

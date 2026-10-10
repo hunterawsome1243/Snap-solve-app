@@ -66,3 +66,41 @@ export function encodeY4m({ data, width, height }, frames = 30) {
   const frame = Buffer.concat([Buffer.from('FRAME\n'), Y, chroma, chroma])
   return Buffer.concat([Buffer.from(`YUV4MPEG2 W${width} H${height} F10:1 Ip A1:1 C420jpeg\n`), ...Array(frames).fill(frame)])
 }
+
+// ---- an EAN-13 barcode on a white label, for the live barcode scanner tests ----
+const EAN_L = ['0001101', '0011001', '0010011', '0111101', '0100011', '0110001', '0101111', '0111011', '0110111', '0001011']
+const EAN_R = EAN_L.map((p) => [...p].map((b) => (b === '0' ? '1' : '0')).join(''))
+const EAN_G = EAN_R.map((p) => [...p].reverse().join(''))
+const EAN_PARITY = ['LLLLLL', 'LLGLGG', 'LLGGLG', 'LLGGGL', 'LGLLGG', 'LGGLLG', 'LGGGLL', 'LGLGLG', 'LGLGGL', 'LGGLGL']
+
+export function ean13Modules(first12) {
+  const d = [...first12].map(Number)
+  const check = (10 - (d.reduce((s, v, i) => s + v * (i % 2 ? 3 : 1), 0) % 10)) % 10
+  const all = [...d, check]
+  const parity = EAN_PARITY[all[0]]
+  let m = '101'
+  for (let i = 1; i <= 6; i++) m += (parity[i - 1] === 'L' ? EAN_L : EAN_G)[all[i]]
+  m += '01010'
+  for (let i = 7; i <= 12; i++) m += EAN_R[all[i]]
+  return { modules: m + '101', digits: all.join('') }
+}
+
+/** RGBA frame: a white label with the barcode, on a dark desk. */
+export function barcodeFrame(first12, width = 640, height = 480, unit = 4) {
+  const { modules } = ean13Modules(first12)
+  const data = new Uint8ClampedArray(width * height * 4)
+  const x0 = Math.round((width - modules.length * unit) / 2), y0 = Math.round(height * 0.3), y1 = Math.round(height * 0.7)
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let c = [38, 36, 40]
+      if (x > 40 && x < width - 40 && y > 70 && y < height - 70) c = [236, 236, 232]
+      if (y >= y0 && y <= y1) {
+        const k = Math.floor((x - x0) / unit)
+        if (k >= 0 && k < modules.length && modules[k] === '1') c = [18, 18, 18]
+      }
+      const i = (y * width + x) * 4
+      data[i] = c[0]; data[i + 1] = c[1]; data[i + 2] = c[2]; data[i + 3] = 255
+    }
+  }
+  return { data, width, height }
+}

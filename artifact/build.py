@@ -40,6 +40,9 @@ plants = (root.parent / "frontend" / "src" / "lib" / "plants.js").read_text()
 plants = re.sub(r"^import .*\n", "", plants, flags=re.M)
 plants = re.sub(r"^export ", "", plants, flags=re.M)
 src = src.replace("/*PLANTS_JS*/", plants)
+# barcode reading (many views of a photo, shared with the React app) is inlined inside a function so its helper names stay private
+barcode = re.sub(r"^export ", "", (root.parent / "frontend" / "src" / "lib" / "barcode.js").read_text(), flags=re.M)
+src = src.replace("/*BARCODE_JS*/", "const { decodeBarcode } = (() => {\n" + barcode + "\nreturn { decodeBarcode }\n})()")
 # themes (names, categories, holiday definitions) are inlined too, and the holiday CSS is generated from the same file by node
 themes_path = root.parent / "frontend" / "src" / "lib" / "themes.js"
 themes = re.sub(r"^export ", "", themes_path.read_text(), flags=re.M)

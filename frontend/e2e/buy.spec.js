@@ -1,4 +1,6 @@
+import fs from 'node:fs'
 import { expect, test } from '@playwright/test'
+import { barcodePhoto } from './support/barcodePhoto.js'
 import { blockFonts, EAN_PNG, mockBuyApi, PAPER_PNG } from './support/mocks.js'
 
 let state, calls
@@ -91,4 +93,28 @@ test('history keeps searches, flags old ones, and re-checks on request', async (
   await page.getByRole('button', { name: 'Re-check now' }).click()
   await page.locator('.rec').waitFor()
   expect(calls.filter((c) => c[0] === 'prices')).toHaveLength(2)
+})
+
+const HARD_PHOTOS = {
+  'small and off to one side': { frac: 0.08, cx: 0.72, cy: 0.3 },
+  'tiny': { frac: 0.05 },
+  'dim and noisy': { frac: 0.3, dark: 0.45, noise: 40 },
+  'tilted 40 degrees': { frac: 0.3, deg: 40 },
+  'on its side and small': { frac: 0.1, deg: 90, cx: 0.4 },
+  'out of focus': { frac: 0.3, blur: 6 },
+}
+for (const [name, opts] of Object.entries(HARD_PHOTOS)) {
+  test(`reads a barcode from a hard photo: ${name}`, async ({ page }) => {
+    test.setTimeout(90_000)
+    const file = test.info().outputPath('hard.jpg')
+    fs.writeFileSync(file, Buffer.from(await barcodePhoto(page, opts), 'base64'))
+    await page.setInputFiles('#buy-scan', file)
+    await expect(page.getByRole('heading', { name: 'Barcode found' })).toBeVisible({ timeout: 40_000 })
+    await expect(page.locator('#buy-query')).toHaveValue('UPC 5901234123457')
+  })
+}
+
+test('says so when there is no barcode to read', async ({ page }) => {
+  await page.setInputFiles('#buy-scan', PAPER_PNG)
+  await expect(page.getByRole('alert')).toContainText("Couldn't read a barcode", { timeout: 40_000 })
 })

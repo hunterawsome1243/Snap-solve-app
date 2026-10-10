@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CATEGORIES, HOLIDAYS, STATUS, THEMES, holidayCss, themesIn } from './themes.js'
+import { CATEGORIES, HOLIDAYS, SEASONS, STATUS, THEMES, easterDate, holidayCss, inSeason, inSeasonIds, themesIn, thanksgivingDate } from './themes.js'
 
 // WCAG contrast ratio between two #rrggbb colours.
 const lum = (hex) => {
@@ -55,5 +55,42 @@ describe('themes', () => {
     const css = holidayCss()
     for (const h of HOLIDAYS) expect(css).toContain(`:root[data-skin='${h.id}']`)
     expect(css).toContain('prefers-reduced-motion')
+  })
+
+  describe('in season', () => {
+    const ymd = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+    const on = (y, m, d) => inSeasonIds(new Date(y, m - 1, d))
+    it('works out the holidays that move', () => {
+      expect([2024, 2025, 2026, 2027, 2028].map((y) => ymd(easterDate(y)))).toEqual(['2024-3-31', '2025-4-20', '2026-4-5', '2027-3-28', '2028-4-16'])
+      expect([2024, 2025, 2026, 2027].map((y) => ymd(thanksgivingDate(y)))).toEqual(['2024-11-28', '2025-11-27', '2026-11-26', '2027-11-25'])
+    })
+    it('knows what is in season on a given day', () => {
+      expect(on(2026, 12, 10)).toEqual(['christmas'])
+      expect(on(2026, 12, 25)).toEqual(['christmas'])
+      expect(on(2026, 12, 27)).toEqual(['newyear']) // Christmas is over, New Year's has begun
+      expect(on(2027, 1, 2)).toEqual(['newyear']) // across the new year
+      expect(on(2027, 1, 3)).toEqual([])
+      expect(on(2026, 10, 15)).toEqual(['halloween'])
+      expect(on(2026, 11, 2)).toEqual([])
+      expect(on(2026, 11, 20)).toEqual(['thanksgiving'])
+      expect(on(2026, 3, 30)).toEqual(['easter'])
+      expect(on(2026, 2, 10)).toEqual(['lunar', 'valentine']) // Lunar New Year 2026 is Feb 17
+      expect(on(2026, 7, 1)).toEqual(['july4'])
+      expect(on(2026, 8, 20)).toEqual([])
+    })
+    it('shows a theme for the days around the holiday, not just the day', () => {
+      expect(inSeason('stpatrick', new Date(2026, 2, 10))).toBe(true)
+      expect(inSeason('stpatrick', new Date(2026, 2, 9))).toBe(false)
+      expect(inSeason('stpatrick', new Date(2026, 2, 18))).toBe(true) // the day after still counts
+      expect(inSeason('stpatrick', new Date(2026, 2, 19))).toBe(false)
+    })
+    it('never marks a theme without a season, and has one for every holiday theme', () => {
+      expect(inSeason('ocean', new Date(2026, 11, 10))).toBe(false)
+      for (const h of HOLIDAYS) expect(SEASONS[h.id], h.id).toBeTruthy()
+      expect(SEASONS.halloween).toBeTruthy()
+    })
+    it('copes with years the Lunar New Year table does not cover', () => {
+      expect(inSeason('lunar', new Date(2060, 1, 10))).toBe(false)
+    })
   })
 })
