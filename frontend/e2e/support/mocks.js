@@ -68,7 +68,7 @@ export async function mockBuyApi(page, state = { price: 278, checkedAt: Math.flo
       offer('target.com', 305, { free_shipping: 'no' }),
     ].sort((a, b) => a.price - b.price)
     return {
-      query: q, offers, likely_stores: [], summary: '', compare: [{ name: 'Google Shopping', url: 'https://g/x' }], checked_at: state.checkedAt,
+      query: q, product: q.startsWith('UPC ') ? 'Acme Widget 500 ml' : '', offers, likely_stores: [], summary: '', compare: [{ name: 'Google Shopping', url: 'https://g/x' }], checked_at: state.checkedAt,
       recommendation: { kind: 'offer', retailer: 'bestbuy.com', price: state.price, currency: 'USD', url: 'https://bestbuy.com/x', in_stock: 'yes', reason: 'Best deal you can actually get.' },
     }
   }

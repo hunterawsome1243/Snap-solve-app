@@ -22,8 +22,9 @@ async function search(page) {
 
 test('reads a barcode from a photo', async ({ page }) => {
   await page.setInputFiles('#buy-scan', EAN_PNG)
-  await expect(page.getByRole('heading', { name: 'Barcode found' })).toBeVisible({ timeout: 20_000 })
-  await expect(page.locator('#buy-query')).toHaveValue('UPC 5901234123457')
+  await expect(page.locator('.rec')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByText('Results for Acme Widget 500 ml')).toBeVisible()
+  await expect(page.getByText('Barcode 5901234123457')).toBeVisible()
 })
 
 test('photo → product → recommended store with freshness details', async ({ page }) => {
@@ -109,8 +110,7 @@ for (const [name, opts] of Object.entries(HARD_PHOTOS)) {
     const file = test.info().outputPath('hard.jpg')
     fs.writeFileSync(file, Buffer.from(await barcodePhoto(page, opts), 'base64'))
     await page.setInputFiles('#buy-scan', file)
-    await expect(page.getByRole('heading', { name: 'Barcode found' })).toBeVisible({ timeout: 40_000 })
-    await expect(page.locator('#buy-query')).toHaveValue('UPC 5901234123457')
+    await expect(page.getByText('Results for Acme Widget 500 ml')).toBeVisible({ timeout: 40_000 })
   })
 }
 

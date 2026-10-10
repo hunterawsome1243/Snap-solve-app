@@ -133,3 +133,14 @@ def test_rank_no_match_gives_no_recommendation_and_rejects_bad_urls():
     assert r["offers"] == [] and r["recommendation"] is None and r["hidden"] == 4
     bad = _rank({}, [{"retailer": "X", "price": 5, "url": "javascript:alert(1)"}])
     assert bad["offers"] == []
+
+
+def test_prices_reports_what_a_barcode_is(monkeypatch):
+    monkeypatch.setattr(
+        main,
+        "search_web",
+        lambda q, c: ({"offers": [], "summary": "", "product": " Acme Widget 500 ml "}, set(), {}),
+    )
+    r = client.post("/api/buy/prices", json={"query": "UPC 5901234123457", "country": "US"}).json()
+    assert r["product"] == "Acme Widget 500 ml"
+    assert any("Acme+Widget" in c["url"] for c in r["compare"])
