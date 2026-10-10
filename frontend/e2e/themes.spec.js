@@ -143,3 +143,35 @@ test('holiday particles stop for people who ask for less motion', async ({ brows
   expect(await page.evaluate(() => getComputedStyle(document.querySelector('.hparts')).display)).toBe('none')
   await ctx.close()
 })
+
+// "In season": the badge follows today's date. The clock is set, so these do not depend on when they run.
+async function openPickerOn(page, date) {
+  await page.clock.setFixedTime(new Date(date))
+  await page.goto('/')
+  await page.getByLabel('Choose theme').click()
+}
+
+test('in season: the Holidays card and the matching theme carry a badge', async ({ page }) => {
+  await openPickerOn(page, '2026-12-10T12:00:00')
+  await expect(page.locator('.season-badge')).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /^Holidays,/ }).locator('.season-badge')).toHaveText('In season')
+  await expect(page.getByRole('button', { name: /^Nature,/ }).locator('.season-badge')).toHaveCount(0)
+  await page.getByRole('button', { name: /^Holidays,/ }).click()
+  await expect(page.locator('.theme .season-badge')).toHaveCount(1)
+  await expect(page.locator('.theme', { hasText: 'Christmas' }).locator('.season-badge')).toHaveText('In season')
+  await expect(page.locator('.theme', { hasText: 'Easter' }).locator('.season-badge')).toHaveCount(0)
+  // the badge doesn't change the theme's name
+  expect(await page.locator('.themes.wide .theme b').allTextContents()).toContain('Christmas')
+})
+
+test('in season: it moves with the calendar, including holidays that move', async ({ page }) => {
+  await openPickerOn(page, '2026-03-30T12:00:00') // Easter 2026 is April 5
+  await page.getByRole('button', { name: /^Holidays,/ }).click()
+  await expect(page.locator('.theme', { hasText: 'Easter' }).locator('.season-badge')).toHaveCount(1)
+  await expect(page.locator('.theme .season-badge')).toHaveCount(1)
+})
+
+test('in season: nothing is marked when no holiday is near', async ({ page }) => {
+  await openPickerOn(page, '2026-08-20T12:00:00')
+  await expect(page.locator('.season-badge')).toHaveCount(0)
+})

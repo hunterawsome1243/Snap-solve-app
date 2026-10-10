@@ -621,8 +621,10 @@ input[type='checkbox'], input[type='radio'], progress { accent-color: var(--bran
 .cat-card .dots { display: flex; }
 .cat-card .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--card); margin-right: -6px; }
 .cat-card b { font-size: 1rem; margin-top: 4px; }
-.themes.wide { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.themes.wide { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; }
 .themes.wide .theme { padding: 14px; min-height: 84px; }
 .themes.wide .theme .dots i { width: 28px; height: 28px; }
 .themes.wide .theme b { font-size: .95rem; }
 .theme-card .row h2 { margin: 0; }
+
+.season-badge { align-self: flex-start; font-size: .64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--brand); color: var(--brand-ink); }

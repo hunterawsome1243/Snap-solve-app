@@ -200,3 +200,15 @@ test('themes are sorted into categories, and a category opens a wider view of it
   await page.locator('.theme', { hasText: 'Ocean' }).click()
   await expect(page.locator('.hpart')).toHaveCount(0)
 })
+
+test('themes: the "In season" badge follows the date', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2026-12-10T12:00:00'))
+  await page.goto('http://app.test/')
+  await page.locator('.snap').waitFor()
+  await page.locator('#themebtn').click()
+  await expect(page.locator('.season-badge')).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /^Holidays,/ }).locator('.season-badge')).toHaveText('In season')
+  await page.getByRole('button', { name: /^Holidays,/ }).click()
+  await expect(page.locator('.theme', { hasText: 'Christmas' }).locator('.season-badge')).toHaveCount(1)
+  await expect(page.locator('.theme .season-badge')).toHaveCount(1)
+})

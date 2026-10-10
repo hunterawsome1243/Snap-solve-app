@@ -476,10 +476,11 @@ a.store { border-radius: 14px; }
 .cat-card .dots { display: flex; }
 .cat-card .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); margin-right: -6px; }
 .cat-card b { font-size: 1rem; margin-top: 4px; }
-.themes.wide { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.themes.wide { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 12px; }
 .themes.wide .theme { padding: 14px; min-height: 84px; }
 .themes.wide .theme .dots i { width: 28px; height: 28px; }
 .theme-card .row h2 { margin: 0; }
+.season-badge { align-self: flex-start; font: 800 .64rem var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
 .hparts { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
 .hpart { position: absolute; opacity: .65; will-change: transform; }
 .hpart.fall { top: -56px; animation: hpart-fall linear infinite; }
@@ -590,6 +591,7 @@ a.store { border-radius: 14px; }
     return box
   }
   function vThemes() {
+    const seasonal = new Set(inSeasonIds()) // holiday themes that fit today's date
     if (!S.themeCat) {
       return h('div', { class: 'card stack theme-card' }, h('h2', {}, 'Theme'),
         h('div', { class: 'cat-grid' }, CATEGORIES.map((c) => {
@@ -598,7 +600,8 @@ a.store { border-radius: 14px; }
           const current = list.find((t) => t.id === S.skin)
           return h('button', { class: 'cat-card' + (current ? ' has-current' : ''), type: 'button', 'aria-label': c.name + ', ' + list.length + ' themes', onclick: () => { S.themeCat = c.id; render() } },
             h('span', { class: 'dots' }, list.slice(0, 4).map((t) => h('i', { style: 'background:' + t.colors[1] }))),
-            h('b', {}, c.name), h('span', { class: 'muted tiny' }, current ? 'Using ' + current.name : list.length + (list.length === 1 ? ' theme' : ' themes')))
+            h('b', {}, c.name), h('span', { class: 'muted tiny' }, current ? 'Using ' + current.name : list.length + (list.length === 1 ? ' theme' : ' themes')),
+            list.some((t) => seasonal.has(t.id)) && h('span', { class: 'season-badge' }, 'In season'))
         })))
     }
     const cat = CATEGORIES.find((c) => c.id === S.themeCat)
@@ -606,7 +609,7 @@ a.store { border-radius: 14px; }
       h('div', { class: 'row' }, h('button', { class: 'link left', type: 'button', onclick: () => { S.themeCat = null; render() } }, icon('back'), 'Themes'), h('h2', {}, cat.name)),
       h('div', { class: 'themes wide' }, SKINS.filter((t) => t.category === cat.id).map((k) =>
         h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
-          h('span', { class: 'dots' }, k.colors.map((col) => h('i', { style: 'background:' + col }))), h('b', {}, k.name)))))
+          h('span', { class: 'dots' }, k.colors.map((col) => h('i', { style: 'background:' + col }))), h('b', {}, k.name), seasonal.has(k.id) && h('span', { class: 'season-badge' }, 'In season')))))
   }
 
   // ---------- icons (one set, so every phone draws the same pictures) ----------

@@ -82,6 +82,59 @@ export const THEMES = (() => {
   return [...BASE_THEMES.filter((t) => t.id !== 'halloween'), ...holidays]
 })()
 
+// ---- "in season": which holiday themes fit today's date ----
+// Each holiday has a day it falls on (for some it moves: Easter, Thanksgiving, Lunar New Year) and how many days
+// before and after it counts as in season.
+const LUNAR_NEW_YEAR = { // from 2025; beyond this table the badge simply isn't shown for it
+  2025: [0, 29], 2026: [1, 17], 2027: [1, 6], 2028: [0, 26], 2029: [1, 13], 2030: [1, 3], 2031: [0, 23], 2032: [1, 11],
+  2033: [0, 31], 2034: [1, 19], 2035: [1, 8], 2036: [0, 28], 2037: [1, 15], 2038: [1, 4], 2039: [0, 24], 2040: [1, 12],
+}
+
+/** Easter Sunday (the Gregorian calendar's standard calculation). */
+export function easterDate(year) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100
+  const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3)
+  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451)
+  const month = Math.floor((h + l - 7 * m + 114) / 31), day = ((h + l - 7 * m + 114) % 31) + 1
+  return new Date(year, month - 1, day)
+}
+
+/** US Thanksgiving: the fourth Thursday of November. */
+export function thanksgivingDate(year) {
+  const firstThursday = 1 + ((4 - new Date(year, 10, 1).getDay() + 7) % 7)
+  return new Date(year, 10, firstThursday + 21)
+}
+
+export const SEASONS = {
+  newyear: { date: (y) => new Date(y, 0, 1), before: 5, after: 1 }, // Dec 27 to Jan 2
+  lunar: { date: (y) => (LUNAR_NEW_YEAR[y] ? new Date(y, LUNAR_NEW_YEAR[y][0], LUNAR_NEW_YEAR[y][1]) : null), before: 7, after: 15 },
+  valentine: { date: (y) => new Date(y, 1, 14), before: 7, after: 1 },
+  stpatrick: { date: (y) => new Date(y, 2, 17), before: 7, after: 1 },
+  easter: { date: easterDate, before: 14, after: 1 },
+  july4: { date: (y) => new Date(y, 6, 4), before: 7, after: 1 },
+  halloween: { date: (y) => new Date(y, 9, 31), before: 30, after: 1 }, // all of October
+  thanksgiving: { date: thanksgivingDate, before: 10, after: 1 },
+  christmas: { date: (y) => new Date(y, 11, 25), before: 24, after: 1 }, // Dec 1 to Dec 26
+}
+
+/** Is this holiday theme in season on `now`? Checks last year's, this year's and next year's date, so New Year's works across Dec/Jan. */
+export function inSeason(id, now = new Date()) {
+  const season = SEASONS[id]
+  if (!season) return false
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const DAY_MS = 24 * 60 * 60 * 1000
+  for (const y of [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1]) {
+    const day = season.date(y)
+    if (!day) continue
+    const days = Math.round((today - day) / DAY_MS)
+    if (days >= -season.before && days <= season.after) return true
+  }
+  return false
+}
+
+export const inSeasonIds = (now = new Date()) => Object.keys(SEASONS).filter((id) => inSeason(id, now))
+
 export const themesIn = (category) => THEMES.filter((t) => t.category === category)
 export const holidayById = (id) => HOLIDAYS.find((h) => h.id === id)
 

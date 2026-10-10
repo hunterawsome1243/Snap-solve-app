@@ -176,7 +176,9 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
   a sweeping laser and drifting periodic-table tiles; Tropical, with a swaying pineapple and falling fruit) and
   **Holidays**, in the order the year brings them: New Year's, Lunar New Year, Valentine's Day, St. Patrick's Day, Easter,
   4th of July, Halloween (falling pumpkins), Thanksgiving and Christmas. Each holiday theme has its own colours, a logo
-  emoji, and emoji that fall or float up the screen. They are defined once in `frontend/src/lib/themes.js` (their CSS is
+  emoji, and emoji that fall or float up the screen. Holiday themes carry an **In season** badge (and so does the Holidays
+  category card) in the days around their holiday, worked out from today's date, including the ones that move (Easter,
+  Thanksgiving, Lunar New Year). They are defined once in `frontend/src/lib/themes.js` (their CSS is
   generated from it, and a test checks every one for readable contrast), and the phone artifact uses the same
   definitions. All motion respects "reduce motion".
 

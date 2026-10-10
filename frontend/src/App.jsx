@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { cleanUp, loadPhotoCanvas } from './image.js'
 import * as api from './api.js'
 import * as store from './storage.js'
@@ -18,7 +18,7 @@ import Extras from './components/Extras.jsx'
 import Icon from './components/Icon.jsx'
 import ScanLoader from './components/ScanLoader.jsx'
 import { buzz } from './lib/haptics.js'
-import { CATEGORIES, HOLIDAYS, holidayById, themesIn } from './lib/themes.js'
+import { CATEGORIES, HOLIDAYS, holidayById, inSeasonIds, themesIn } from './lib/themes.js'
 import HolidayParticles from './components/HolidayParticles.jsx'
 
 const SKINS = ['halloween', 'ocean', 'forest', 'sunset', 'science', 'tropical', ...HOLIDAYS.map((h) => h.id)]
@@ -53,6 +53,7 @@ export default function App() {
   const [simple, setSimple] = useState(() => store.getPref('simple', false))
   const [theme, setTheme] = useState(() => store.getPref('theme', 'auto'))
   const [themeOpen, setThemeOpen] = useState(false)
+  const seasonal = useMemo(() => new Set(inSeasonIds()), []) // holiday themes that fit today's date
   const [themeCat, setThemeCat] = useState(null) // null = the list of categories, else the category being browsed
   const camRef = useRef(null)
   const fileRef = useRef(null)
@@ -327,6 +328,7 @@ export default function App() {
                         <span className="dots">{list.slice(0, 4).map((t) => <i key={t.id} style={{ background: t.colors[1] }} />)}</span>
                         <b>{c.name}</b>
                         <span className="muted tiny">{current ? `Using ${current.name}` : `${list.length} themes`}</span>
+                        {list.some((t) => seasonal.has(t.id)) && <span className="season-badge">In season</span>}
                       </button>
                     )
                   })}
@@ -345,6 +347,7 @@ export default function App() {
                         {t.colors.map((col) => <i key={col} style={{ background: col }} />)}
                       </span>
                       <b>{t.name}</b>
+                      {seasonal.has(t.id) && <span className="season-badge">In season</span>}
                     </button>
                   ))}
                 </div>
