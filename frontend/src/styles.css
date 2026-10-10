@@ -525,6 +525,47 @@ input[type='checkbox'], input[type='radio'], progress { accent-color: var(--bran
   .btn, .chip, .tile, .offer { transition: none; }
 }
 
+/* ===== motion polish: results pop in, errors shake, saves confirm, waits talk, themes cross-fade, one press feel ===== */
+:root { --press: .12s; --reveal: .32s; --stagger: 60ms; }
+/* a result: the first card pops, the rest rise after it. Opacity and transform only, so nothing is hidden or delayed. */
+.reveal > :first-child { animation: pop var(--reveal) cubic-bezier(.2, .7, .2, 1) both; }
+.reveal > :nth-child(n+2) { animation: rise-up .3s cubic-bezier(.2, .7, .2, 1) both; }
+.reveal > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
+.reveal > :nth-child(3) { animation-delay: calc(var(--stagger) * 2); }
+.reveal > :nth-child(4) { animation-delay: calc(var(--stagger) * 3); }
+.reveal > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
+.reveal > :nth-child(n+6) { animation-delay: calc(var(--stagger) * 5); }
+@keyframes pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes rise-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* the "verified" / "healthy" check draws itself in (the check path is about 21 units long) */
+.reveal .banner.ok > .b-ico path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw .45s .2s ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+/* an error is felt, not just read */
+.banner.warn[role='alert'] { animation: shake .4s cubic-bezier(.36, .07, .19, .97) both; }
+@keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-3px); } 40%, 60% { transform: translateX(3px); } }
+/* Save / Add / Track confirm with a pop */
+.btn.done { animation: done-pop .3s cubic-bezier(.2, .7, .2, 1); }
+@keyframes done-pop { 50% { transform: scale(1.06); } }
+/* each new progress line fades in */
+.progress-text { display: inline-block; animation: fade-in .25s ease-out both; }
+@keyframes fade-in { from { opacity: 0; } }
+/* colours cross-fade only while a theme is being applied */
+:root.theme-fading body, :root.theme-fading .card, :root.theme-fading .tabs, :root.theme-fading .top, :root.theme-fading .btn,
+:root.theme-fading .chip, :root.theme-fading .tile, :root.theme-fading .banner, :root.theme-fading .tool-ico, :root.theme-fading .pill {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+.results-head { display: flex; flex-direction: column; gap: 4px; }
+/* one press feel for everything you can tap */
+.btn:active:not(:disabled), .chip:active, .tile:active, .tool-main:active, .history-item:active, .offer:active, .cat-card:active, .theme:active, .btn.water:active {
+  transform: scale(.97); transition-duration: var(--press);
+}
+.star:active, .icon-btn:active, .tabs button:active .ico { transform: scale(.92); transition-duration: var(--press); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal > *, .reveal .banner.ok > .b-ico path, .banner.warn[role='alert'], .btn.done, .progress-text { animation: none !important; }
+  .reveal .banner.ok > .b-ico path { stroke-dashoffset: 0; }
+  :root.theme-fading * { transition: none !important; }
+}
+
 /* tropical fruit theme */
 :root[data-skin='tropical'] {
   --bg: #fff6e0; --card: #fffdf7; --text: #3b1b33; --muted: #8a6378; --line: #f5d8b4;

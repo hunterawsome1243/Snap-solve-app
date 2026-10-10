@@ -1,5 +1,8 @@
+import Progress from './Progress.jsx'
+
 // "Hunter Scan" loading state: your photo inside a frame with a beam sweeping over it.
-export default function ScanLoader({ photo, title, sub, onStop }) {
+// Give it `lines` and the text under the title changes every couple of seconds, saying what is happening.
+export default function ScanLoader({ photo, title, sub, lines, onStop }) {
   return (
     <div className="card center stack scan-card" role="status" aria-live="polite">
       <div className="scan-loader">
@@ -8,7 +11,7 @@ export default function ScanLoader({ photo, title, sub, onStop }) {
         <div className="beam" />
       </div>
       <h2>{title}</h2>
-      {sub && <p className="muted">{sub}</p>}
+      {lines ? <Progress lines={lines} /> : sub && <p className="muted">{sub}</p>}
       {onStop && <button className="link" onClick={onStop}>Stop</button>}
     </div>
   )

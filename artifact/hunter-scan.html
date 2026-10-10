@@ -3,6 +3,7 @@
 /* Layout: one narrow column on graph paper; a big viewfinder button is the home screen, results read like worked homework. */
 /* Hunter green for structure, blaze orange for the one action that matters. */
 :root {
+  --press: .12s; --reveal: .32s; --stagger: 60ms;
   --bg: #f3f6f1; --surface: #ffffff; --ink: #15211a; --muted: #5d6c62; --line: #e0e8df;
   --accent: #2c6e4d; --accent-ink: #ffffff; --soft: #e6f0e9; --grid: rgba(44, 110, 77, .07);
   --cta: #f26a1b; --cta-2: #ff8a3d; --cta-ink: #ffffff;
@@ -430,6 +431,36 @@ a.store { border-radius: 14px; }
   .confetti { display: none; }
   .btn, .chip, .tile { transition: none; }
 }
+/* ===== motion polish (mirrors frontend/src/styles.css): results pop in, errors shake, saves confirm, waits talk, themes cross-fade ===== */
+.reveal > :first-child { animation: pop var(--reveal) cubic-bezier(.2, .7, .2, 1) both; }
+.reveal > :nth-child(n+2) { animation: rise-up .3s cubic-bezier(.2, .7, .2, 1) both; }
+.reveal > :nth-child(2) { animation-delay: calc(var(--stagger) * 1); }
+.reveal > :nth-child(3) { animation-delay: calc(var(--stagger) * 2); }
+.reveal > :nth-child(4) { animation-delay: calc(var(--stagger) * 3); }
+.reveal > :nth-child(5) { animation-delay: calc(var(--stagger) * 4); }
+.reveal > :nth-child(n+6) { animation-delay: calc(var(--stagger) * 5); }
+@keyframes pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes rise-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.reveal .banner.ok > .b-ico path { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw .45s .2s ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.banner.warn.shake { animation: shake .4s cubic-bezier(.36, .07, .19, .97) both; }
+@keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-3px); } 40%, 60% { transform: translateX(3px); } }
+.btn.done { animation: done-pop .3s cubic-bezier(.2, .7, .2, 1); }
+@keyframes done-pop { 50% { transform: scale(1.06); } }
+.progress-text { display: inline-block; animation: fade-in .25s ease-out both; }
+@keyframes fade-in { from { opacity: 0; } }
+:root.theme-fading body, :root.theme-fading .card, :root.theme-fading nav.tabs, :root.theme-fading header, :root.theme-fading .btn,
+:root.theme-fading .chip, :root.theme-fading .tile, :root.theme-fading .banner, :root.theme-fading .tool-ico, :root.theme-fading .pill {
+  transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+.results-head { display: flex; flex-direction: column; gap: 4px; }
+.btn:active:not(:disabled), .chip:active, .tile:active, .tool-main:active, .cat-card:active, .theme:active, .btn.water:active { transform: scale(.97); transition-duration: var(--press); }
+.star:active, nav.tabs button:active .ico { transform: scale(.92); transition-duration: var(--press); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal > *, .reveal .banner.ok > .b-ico path, .banner.warn.shake, .btn.done, .progress-text { animation: none !important; }
+  .reveal .banner.ok > .b-ico path { stroke-dashoffset: 0; }
+  :root.theme-fading * { transition: none !important; }
+}
 /* extras + plant scan */
 .tool { display: flex; align-items: center; gap: 6px; width: 100%; }
 .tool-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; text-align: left; cursor: pointer; font: inherit; color: inherit; background: none; border: 0; padding: 0; }
@@ -741,7 +772,7 @@ return { SCANNERS, MAX_FAVS, DEFAULT_FAVS, scannerById, cleanFavs, toggleFav }
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
     shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, themeCat: null, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
-    ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false, meals: store.get('meals', []), favs: cleanFavs(store.get('favs', null)), favNote: '', foNote: '', food: null, foSaved: false, spNote: '', species: null,
+    ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false, meals: store.get('meals', []), favs: cleanFavs(store.get('favs', null)), favNote: '', lastScreen: null, lastError: '', fresh: false, forceReveal: false, justWatered: null, booted: false, fadeT: null, foNote: '', food: null, foSaved: false, spNote: '', species: null,
   }
 
 
@@ -923,6 +954,7 @@ ${root} .answer { background: linear-gradient(135deg, color-mix(in srgb, ${h.bra
   const SKINS = THEMES.filter((t) => t.id !== 'light' && t.id !== 'dark')
   function applySkin() {
     const root = document.documentElement
+    if (S.booted) { root.classList.add('theme-fading'); clearTimeout(S.fadeT); S.fadeT = setTimeout(() => root.classList.remove('theme-fading'), 300) }
     if (S.skin === 'auto' || !SKINS.some((k) => k.id === S.skin)) root.removeAttribute('data-skin')
     else root.setAttribute('data-skin', S.skin)
     document.querySelector('.pumpkins')?.remove(); document.querySelector('.elements')?.remove(); document.querySelector('.fruits')?.remove(); document.querySelector('.hparts')?.remove()
@@ -1890,6 +1922,30 @@ function cleanSpecies(data) {
 
 return { CONFIDENCE, GROUPS, DANGER, cleanSpecies }
 })()
+  const { PROGRESS_MS, PROGRESS, lineAt } = (() => {
+// What the loading screens say while a scan runs. The line changes every PROGRESS_MS so a wait feels shorter and
+// says what is happening. Shared with the phone artifact (inlined by artifact/build.py), so keep this file import-free.
+
+const PROGRESS_MS = 1600
+
+const PROGRESS = {
+  read: ['Reading your handwriting…', 'Finding each problem…', 'Checking the symbols…'],
+  formulate: ['Turning the words into an equation…', 'Naming the unknowns…'],
+  solve: ['Working it out…', 'Checking it a second way…', 'Writing the steps…'],
+  identify: ['Figuring out what this is…', 'Naming the brand and model…'],
+  barcode: ['Reading the barcode…', 'Trying it a few ways…'],
+  stores: ['Thinking about who stocks this…', 'Ranking the stores…'],
+  prices: ['Searching stores…', 'Comparing prices…', 'Picking the best deal…'],
+  plant: ['Looking at the leaves…', 'Checking its health…', 'Writing care tips…'],
+  food: ['Looking at your food…', 'Working out portions…', 'Checking for allergens…'],
+  species: ['Looking closely…', 'Checking markings and shape…', 'Weighing up look-alikes…'],
+}
+
+// The line to show on tick `i`; it loops. An empty list shows nothing.
+const lineAt = (i, list) => (Array.isArray(list) && list.length ? list[((i % list.length) + list.length) % list.length] : '')
+
+return { PROGRESS_MS, PROGRESS, lineAt }
+})()
 
   async function loadPhoto(file, max = 2000) {
     let src, w, h2
@@ -2286,7 +2342,8 @@ return { CONFIDENCE, GROUPS, DANGER, cleanSpecies }
 
   // ---------- actions ----------
   function setError(msg) { S.error = msg || ''; render() }
-  function go(screen) { S.error = ''; S.screen = screen; render() }
+  const reducedMotion = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  function go(screen) { S.error = ''; S.screen = screen; render(); try { scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' }) } catch {} }
 
   async function onFile(file, mode = 'solve') {
     if (!file) return
@@ -2430,7 +2487,7 @@ return { CONFIDENCE, GROUPS, DANGER, cleanSpecies }
     const r = gradeAnswer(P.item.problem, P.answer)
     P.fb = r
     if (r.correct) {
-      P.done = true; burst()
+      P.done = true; S.forceReveal = true; burst()
       const streak = P.hint ? st.streak : st.streak + 1
       store.set('practice.stats', { streak, best: Math.max(st.best, streak), solved: st.solved + 1 })
     } else if (r.correct === false && !P.wrong) { P.wrong = true; store.set('practice.stats', { ...st, streak: 0 }) }
@@ -2602,7 +2659,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     const top = S.stores[0]
     const topUrl = top && (links.find((l) => top.name.toLowerCase().includes(l.name.split(' ')[0].toLowerCase()))?.url
       || 'https://www.google.com/search?q=' + encodeURIComponent(S.query.trim() + ' ' + top.name))
-    return [top && h('div', { class: 'card stack rec' },
+    return [h('div', { class: revealCls() }, top && h('div', { class: 'card stack rec' },
         h('span', { class: 'tag' }, 'Most likely to have it'),
         h('div', { class: 'eyebrow' }, 'Recommended store'),
         h('h2', {}, top.name),
@@ -2615,7 +2672,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
       h('p', { class: 'muted' }, 'Each link opens that store’s search for this product. Start with Google Shopping, which compares many stores at once.'),
       h('div', { class: 'links' }, links.map((l, i) => h('a', { class: 'store' + (i === 0 ? ' first' : ''), href: l.url, target: '_blank', rel: 'noopener noreferrer' }, l.name, h('span', {}, l.note)))),
       h('p', { class: 'muted tiny' }, 'These are searches, not verified prices. Check the price and seller on the store’s page before you buy.')),
-      h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('b-confirm') }, 'Edit search'), h('label', { class: 'btn cta grow', for: 'cam2' }, icon('bag'), 'Snap another'))]
+      h('div', { class: 'row' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => go('b-confirm') }, 'Edit search'), h('label', { class: 'btn cta grow', for: 'cam2' }, icon('bag'), 'Snap another')))]
   }
 
   function vBuyUnreadable() {
@@ -2698,12 +2755,24 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
       h('button', { class: 'link', type: 'button', onclick: run({ x: 0, y: 0, w: 1, h: 1 }) }, 'Skip cropping'))]
   }
 
-  function vWait(title, sub) {
-    const withPhoto = (S.screen === 'reading' || S.screen === 'b-identify' || S.screen === 'p-reading' || S.screen === 'f-reading' || S.screen === 'x-reading') && S.photo
+  // the line under a loading title changes every PROGRESS_MS (shared list in frontend/src/lib/progress.js); one timer, cleared on every render
+  let progressTimer = null
+  function startProgress(lines, el) {
+    stopProgress()
+    let i = 0
+    progressTimer = setInterval(() => { i++; el.replaceChildren(h('span', { class: 'progress-text' }, lineAt(i, lines))) }, PROGRESS_MS)
+  }
+  function stopProgress() { if (progressTimer) clearInterval(progressTimer); progressTimer = null }
+
+  function vWait(title, lines) {
+    const withPhoto = (S.screen === 'reading' || S.screen === 'b-identify' || S.screen === 'p-reading' || S.screen === 'f-reading' || S.screen === 's-reading') && S.photo
+    const list = Array.isArray(lines) ? lines : lines ? [lines] : []
+    const line = list.length ? h('p', { class: 'muted' }, h('span', { class: 'progress-text' }, lineAt(0, list))) : null
+    if (list.length > 1) startProgress(list, line)
     return [h('div', { class: 'card stack center scan-card', role: 'status', 'aria-live': 'polite' },
       withPhoto ? h('div', { class: 'scan-loader' }, h('img', { src: S.photo, alt: '' }), h('div', { class: 'scan-frame' }), h('div', { class: 'beam' }))
         : h('div', { class: 'spinner', 'aria-label': title }),
-      h('h2', {}, title), sub && h('p', { class: 'muted' }, sub),
+      h('h2', {}, title), line,
       h('button', { class: 'link', type: 'button', onclick: () => S.ctl?.abort() }, 'Stop'))]
   }
 
@@ -2826,7 +2895,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
           P.fb && P.fb.correct === null && h('div', { class: 'banner info' }, 'I couldn’t read that answer format. ' + P.fb.detail),
           h('div', { class: 'row wrap' }, chk, !P.hint && item.hint && h('button', { class: 'btn secondary', type: 'button', onclick: () => { P.hint = true; render() } }, 'Show hint')),
           h('button', { class: 'link', type: 'button', onclick: revealPractice }, 'Show the answer')),
-        P.done && h('div', { class: 'stack' },
+        P.done && h('div', { class: revealCls() },
           P.fb?.revealed ? h('div', { class: 'banner info' }, h('strong', {}, 'The answer')) : h('div', { class: 'banner ok' }, icon('check', 'b-ico'), 'Correct!' + (P.hint ? ' (with a hint, so the streak stays put)' : st.streak > 1 ? ' ' + st.streak + ' in a row.' : '')),
           item.answer_latex && h('div', { class: 'answer' }, tex(item.answer_latex, true)),
           h('div', { class: 'row wrap' }, h('button', { class: 'btn primary grow', type: 'button', onclick: nextPractice }, 'Next problem'), h('button', { class: 'btn secondary', type: 'button', onclick: () => { S.active = -1; S.word = null; S.uncertain = []; S.latex = item.latex; solve(item.latex, S.simple, null) } }, 'See the steps')))),
@@ -2850,7 +2919,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     return [
       S.busy && h('div', { class: 'banner info' }, 'Rewriting the explanations…'),
       S.problems.length > 1 && S.active >= 0 && h('button', { class: 'link left', type: 'button', onclick: () => go('problems') }, '← All problems'),
-      h('div', { class: 'card stack' },
+      h('div', { class: revealCls() }, h('div', { class: 'card stack' },
         h('div', { class: 'eyebrow' }, 'Problem'), h('div', { class: 'problem' }, tex(S.latex, true)),
         h('div', { class: 'eyebrow' }, 'Answer'), h('div', { class: 'answer' }, tex(r.answer_latex, true)),
         r.answer_text && h('p', { class: 'answer-text' }, r.answer_text), banner,
@@ -2868,7 +2937,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
       h('div', { class: 'row wrap' },
         h('button', { class: 'btn secondary grow', type: 'button', disabled: S.busy || !S.sample, onclick: () => openPractice(S.latex) }, icon('target'), 'Practice similar'),
         h('button', { class: 'btn ghost', type: 'button', onclick: () => go('edit') }, 'Edit problem')),
-      h('label', { class: 'btn cta', for: 'cam' }, icon('camera'), 'Snap another'),
+      h('label', { class: 'btn cta', for: 'cam' }, icon('camera'), 'Snap another')),
     ]
   }
 
@@ -3076,7 +3145,7 @@ Rules:
   function vFoodResult() {
     const r = S.food, t = r.totals
     const more = [['Fiber', t.fiber_g, ' g'], ['Sugar', t.sugar_g, ' g'], ['Sodium', t.sodium_mg, ' mg']].filter(([, v]) => v !== null)
-    return [h('div', { class: 'stack' },
+    return [h('div', { class: revealCls() },
       h('div', { class: 'card stack' },
         h('div', { class: 'plant-id' }, S.photo && h('img', { class: 'plant-photo', src: S.photo, alt: 'Your food' }),
           h('div', {}, h('h2', {}, r.name), r.serving && h('p', { class: 'muted' }, r.serving),
@@ -3093,7 +3162,7 @@ Rules:
       r.confidence !== 'high' && r.photo_tips && h('p', { class: 'muted tiny' }, 'Next photo: ' + r.photo_tips),
       h('p', { class: 'muted tiny center' }, 'Numbers from a photo are estimates, not medical advice.'),
       h('div', { class: 'row wrap' },
-        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.foSaved, onclick: saveMeal }, icon(S.foSaved ? 'check' : 'food'), S.foSaved ? 'Added to today' : 'Add to today'),
+        h('button', { class: 'btn secondary grow' + (S.foSaved ? ' done' : ''), type: 'button', disabled: S.foSaved, onclick: saveMeal }, icon(S.foSaved ? 'check' : 'food'), S.foSaved ? 'Added to today' : 'Add to today'),
         h('button', { class: 'btn cta grow', type: 'button', onclick: () => { S.food = null; S.photo = null; S.foNote = ''; go('f-home') } }, icon('camera'), 'Scan another')))]
   }
 
@@ -3101,7 +3170,7 @@ Rules:
     const r = S.species
     const facts = [['Habitat', r.habitat], ['Diet', r.diet], ['Size', r.size], ['Conservation', r.conservation]].filter(([, v]) => v)
     const bad = r.danger.level === 'dangerous' || r.danger.level === 'use_caution'
-    return [h('div', { class: 'stack' },
+    return [h('div', { class: revealCls() },
       h('div', { class: 'card stack' },
         h('div', { class: 'plant-id' }, S.photo && h('img', { class: 'plant-photo', src: S.photo, alt: 'Your photo' }),
           h('div', {}, h('h2', {}, r.name), r.scientific && h('p', { class: 'muted' }, h('i', {}, r.scientific)),
@@ -3158,7 +3227,7 @@ Rules:
             h('details', { class: 'plant-edit' }, h('summary', {}, 'Edit'),
               h('div', { class: 'row wrap' }, h('label', { class: 'muted tiny', for: 'ev' + p.id }, 'Water every'), every, h('span', { class: 'muted tiny' }, 'days'),
                 h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.plants = S.plants.filter((x) => x.id !== p.id); savePlants(); render() } }, 'Remove')))),
-          h('button', { class: 'btn secondary water', type: 'button', 'aria-label': 'Mark ' + p.name + ' watered', onclick: () => { p.watered = Date.now(); savePlants(); try { navigator.vibrate?.(15) } catch {}; render() } }, icon('drop'), 'Watered'))
+          h('button', { class: 'btn secondary water' + (S.justWatered === p.id ? ' done' : ''), type: 'button', 'aria-label': 'Mark ' + p.name + ' watered', onclick: () => { p.watered = Date.now(); savePlants(); S.justWatered = p.id; setTimeout(() => { S.justWatered = null }, 400); try { navigator.vibrate?.(15) } catch {}; render() } }, icon('drop'), 'Watered'))
       })))
   }
 
@@ -3185,7 +3254,7 @@ Rules:
     const r = S.plant
     const bad = r.health.status === 'needs_attention'
     const care = [['Light', r.care.light], ['Water', r.care.water], ['Soil', r.care.soil], ['Temperature', r.care.temperature], ['Humidity', r.care.humidity], ['Feeding', r.care.feeding]].filter(([, v]) => v)
-    return [h('div', { class: 'stack' },
+    return [h('div', { class: revealCls() },
       h('div', { class: 'card stack' },
         h('div', { class: 'plant-id' }, S.photo && h('img', { class: 'plant-photo', src: S.photo, alt: 'Your plant' }),
           h('div', {}, h('h2', {}, r.name), r.scientific && h('p', { class: 'muted' }, h('i', {}, r.scientific)),
@@ -3207,7 +3276,7 @@ Rules:
         h('p', { class: 'muted tiny' }, 'Check a trusted source or your vet before you rely on this. Never eat a plant, berry or mushroom because of a photo scan.')),
       r.fun_fact && h('p', { class: 'muted center' }, r.fun_fact),
       h('div', { class: 'row wrap' },
-        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.plSaved, onclick: savePlant }, icon(S.plSaved ? 'check' : 'leaf'), S.plSaved ? 'Saved to My Plants' : 'Save to My Plants'),
+        h('button', { class: 'btn secondary grow' + (S.plSaved ? ' done' : ''), type: 'button', disabled: S.plSaved, onclick: savePlant }, icon(S.plSaved ? 'check' : 'leaf'), S.plSaved ? 'Saved to My Plants' : 'Save to My Plants'),
         h('button', { class: 'btn cta grow', type: 'button', onclick: () => { S.plant = null; S.photo = null; S.plNote = ''; go('p-home') } }, icon('camera'), 'Scan another')))]
   }
 
@@ -3235,7 +3304,12 @@ Rules:
       h('button', { type: 'button', id: 'tab-hist', 'aria-current': String(S.tab === 'history'), onclick: () => { S.tab = 'history'; render() } }, h('span', { class: 'ico' }, icon('history')), 'History'))
   }
 
+  // a result pops in only when its screen is new (a Save re-render must not replay it), and an error shakes only when its text is new
+  const revealCls = () => 'stack' + (S.fresh ? ' reveal' : '')
   function render() {
+    stopProgress()
+    S.fresh = S.screen !== S.lastScreen || S.forceReveal; S.lastScreen = S.screen; S.forceReveal = false
+    const shake = !!S.error && S.error !== S.lastError; S.lastError = S.error
     $('#eli').checked = S.simple
     $('#themebtn').setAttribute('aria-expanded', String(S.themeOpen))
     paintNav()
@@ -3243,25 +3317,25 @@ Rules:
     if (S.tab === 'history') body = vHistory()
     else if (S.tab === 'buy') {
       const sc = S.screen.startsWith('b-') || S.screen === 'crop' ? S.screen : 'b-home'
-      body = sc === 'crop' ? vCrop() : sc === 'b-picking' ? vWait('Picking the best store…', 'Thinking about who usually stocks this.') : sc === 'b-identify' ? vWait('Figuring out what this is…', 'This can take a few seconds.') : sc === 'b-scanning' ? vWait('Reading the barcode…', '') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
+      body = sc === 'crop' ? vCrop() : sc === 'b-picking' ? vWait('Picking the best store…', PROGRESS.stores) : sc === 'b-identify' ? vWait('Figuring out what this is…', PROGRESS.identify) : sc === 'b-scanning' ? vWait('Reading the barcode…', PROGRESS.barcode) : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
     }
     else if (S.tab === 'extras') {
-      body = S.screen === 'p-reading' ? vWait('Looking at your plant…', 'Checking the leaves, shape and health.') : S.screen === 'p-result' && S.plant ? vPlantResult() : S.screen === 'p-home' ? vPlantHome()
-        : S.screen === 'f-reading' ? vWait('Looking at your food…', 'Working out what’s on the plate.') : S.screen === 'f-result' && S.food ? vFoodResult() : S.screen === 'f-home' ? vFoodHome()
-        : S.screen === 's-reading' ? vWait('Looking closely…', 'Checking markings, shape and size.') : S.screen === 's-result' && S.species ? vSpeciesResult() : S.screen === 's-home' ? vSpeciesHome() : vExtras()
+      body = S.screen === 'p-reading' ? vWait('Looking at your plant…', PROGRESS.plant) : S.screen === 'p-result' && S.plant ? vPlantResult() : S.screen === 'p-home' ? vPlantHome()
+        : S.screen === 'f-reading' ? vWait('Looking at your food…', PROGRESS.food) : S.screen === 'f-result' && S.food ? vFoodResult() : S.screen === 'f-home' ? vFoodHome()
+        : S.screen === 's-reading' ? vWait('Looking closely…', PROGRESS.species) : S.screen === 's-result' && S.species ? vSpeciesResult() : S.screen === 's-home' ? vSpeciesHome() : vExtras()
     }
     else if (S.screen === 'home') body = vHome()
     else if (S.screen === 'crop') body = vCrop()
-    else if (S.screen === 'reading') body = vWait('Reading your handwriting…', 'This can take a few seconds.')
-    else if (S.screen === 'formulating') body = vWait('Turning the words into an equation…', 'This can take a few seconds.')
+    else if (S.screen === 'reading') body = vWait('Reading your handwriting…', PROGRESS.read)
+    else if (S.screen === 'formulating') body = vWait('Turning the words into an equation…', PROGRESS.formulate)
     else if (S.screen === 'unreadable') body = vUnreadable()
     else if (S.screen === 'problems') body = vProblems()
     else if (S.screen === 'practice' && S.pr) body = vPractice()
-    else if (S.screen === 'edit') body = S.busy ? vWait('Solving…', 'Working it out, then checking it a second way.') : vEdit()
+    else if (S.screen === 'edit') body = S.busy ? vWait('Solving…', PROGRESS.solve) : vEdit()
     else if (S.screen === 'result' && S.result) body = vResult()
     else body = vHome()
     const themes = S.themeOpen && vThemes()
-    const err = S.error && h('div', { class: 'banner warn', role: 'alert' }, S.error)
+    const err = S.error && h('div', { class: 'banner warn' + (shake ? ' shake' : ''), role: 'alert' }, S.error)
     view.replaceChildren(...[themes, err, ...body].filter(Boolean))
   }
 
@@ -3281,6 +3355,7 @@ Rules:
     if (S.tab === 'solve' && S.screen === 'result' && S.sample && !S.busy) solve(S.latex, S.simple, S.word); else render()
   })
   applySkin()
+  S.booted = true
   render()
   initSample()
   window.__hunterscan = { verify } // handy for debugging in the console

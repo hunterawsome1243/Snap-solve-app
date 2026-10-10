@@ -6,6 +6,8 @@ import { buzz } from '../lib/haptics.js'
 import { clampEvery, CONFIDENCE, HEALTH, PETS, sortPlants, waterStatus } from '../lib/plants.js'
 import Icon from './Icon.jsx'
 import ScanLoader from './ScanLoader.jsx'
+import Reveal, { scrollTop } from './Reveal.jsx'
+import { PROGRESS } from '../lib/progress.js'
 
 const uid = () => 'pl' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
 
@@ -24,7 +26,7 @@ function Result({ photo, r, saved, onSave, onAgain }) {
   const care = [['Light', r.care.light], ['Water', r.care.water], ['Soil', r.care.soil], ['Temperature', r.care.temperature], ['Humidity', r.care.humidity], ['Feeding', r.care.feeding]].filter(([, v]) => v)
   const bad = r.health.status === 'needs_attention'
   return (
-    <div className="stack">
+    <Reveal>
       <div className="card stack plant-head">
         <div className="plant-id">
           {photo && <img className="plant-photo" src={photo} alt="Your plant" />}
@@ -78,21 +80,22 @@ function Result({ photo, r, saved, onSave, onAgain }) {
       {r.fun_fact && <p className="muted center-text">{r.fun_fact}</p>}
 
       <div className="row wrap">
-        <button className="btn secondary grow" disabled={saved} onClick={onSave}>
+        <button className={`btn secondary grow ${saved ? 'done' : ''}`} disabled={saved} onClick={onSave}>
           <Icon name={saved ? 'check' : 'leaf'} />{saved ? 'Saved to My Plants' : 'Save to My Plants'}
         </button>
         <button className="btn cta grow" onClick={onAgain}><Icon name="camera" />Scan another</button>
       </div>
-    </div>
+    </Reveal>
   )
 }
 
 function MyPlants({ plants, setPlants, onOpen }) {
   const [now, setNow] = useState(Date.now())
+  const [justWatered, setJustWatered] = useState(null) // which plant's button just confirmed, for the pop
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 60_000); return () => clearInterval(t) }, [])
   const update = (id, patch) => setPlants(store.savePlants(plants.map((p) => (p.id === id ? { ...p, ...patch } : p))))
   const remove = (id) => setPlants(store.savePlants(plants.filter((p) => p.id !== id)))
-  const water = (id) => { buzz(15); const t = Date.now(); setNow(t); update(id, { watered: t }) }
+  const water = (id) => { buzz(15); const t = Date.now(); setNow(t); setJustWatered(id); update(id, { watered: t }) }
   if (!plants.length) return null
   return (
     <div className="card stack" data-testid="my-plants">
@@ -117,7 +120,7 @@ function MyPlants({ plants, setPlants, onOpen }) {
                   </div>
                 </details>
               </div>
-              <button className="btn secondary water" onClick={() => water(p.id)} aria-label={`Mark ${p.name} watered`}><Icon name="drop" />Watered</button>
+              <button className={`btn secondary water ${justWatered === p.id ? 'done' : ''}`} onClick={() => water(p.id)} onAnimationEnd={() => setJustWatered(null)} aria-label={`Mark ${p.name} watered`}><Icon name="drop" />Watered</button>
             </li>
           )
         })}
@@ -135,6 +138,7 @@ export default function PlantScan({ onBack }) {
   const [plants, setPlants] = useState(store.loadPlants)
   const [savedId, setSavedId] = useState(null)
   const abort = useRef(0)
+  useEffect(() => { scrollTop() }, [screen])
 
   async function pick(e) {
     const file = e.target.files?.[0]
@@ -184,7 +188,7 @@ export default function PlantScan({ onBack }) {
       {screen === 'home' && (
         <button className="link back" onClick={onBack}><Icon name="back" />Extras</button>
       )}
-      {error && <div className="banner warn" role="alert">{error}</div>}
+      {error && <div className="banner warn" role="alert" key={error}>{error}</div>}
 
       {screen === 'home' && (
         <>
@@ -202,7 +206,7 @@ export default function PlantScan({ onBack }) {
           <MyPlants plants={plants} setPlants={setPlants} />
         </>
       )}
-      {screen === 'reading' && <ScanLoader photo={photo} title="Looking at your plant…" sub="Checking the leaves, shape and health." onStop={() => { abort.current++; setScreen('home') }} />}
+      {screen === 'reading' && <ScanLoader photo={photo} title="Looking at your plant…" lines={PROGRESS.plant} onStop={() => { abort.current++; setScreen('home') }} />}
       {screen === 'result' && result && <Result photo={photo} r={result} saved={!!savedId} onSave={save} onAgain={again} />}
       {input('plant-cam', true)}
       {input('plant-pick', false)}

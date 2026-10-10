@@ -263,6 +263,46 @@ test('favourites: all scanners are in Extras, the star pins up to two to the bot
   expect(await names()).toEqual(['Species', 'Favorite', 'Extras', 'History'])
 })
 
+test('polish: results pop in once, saves confirm with a pop, waits talk, errors shake, themes cross-fade', async ({ page }) => {
+  const anim = (s) => page.evaluate((sel) => getComputedStyle(document.querySelector(sel)).animationName, s)
+  const fading = () => page.evaluate(() => document.documentElement.classList.contains('theme-fading'))
+  await page.locator('#tab-extras').click()
+  await page.getByText('Plant Scan').first().click()
+  await page.setInputFiles('#plantpick', PAPER_PNG)
+  await expect(page.getByRole('heading', { name: 'Monstera' })).toBeVisible()
+  expect(await anim('main > .reveal > :first-child')).toBe('pop')
+  expect(await anim('main > .reveal > :nth-child(2)')).toBe('rise-up')
+  await page.getByRole('button', { name: 'Save to My Plants' }).click()
+  await expect(page.locator('.btn.done')).toHaveText(/Saved to My Plants/)
+  await expect(page.locator('main > .reveal')).toHaveCount(0) // a re-render on the same screen does not replay the reveal
+  await page.getByRole('button', { name: 'Scan another' }).click()
+
+  await page.getByLabel('Anything wrong with it? (optional)').fill('it is a rock')
+  await page.setInputFiles('#plantpick', PAPER_PNG)
+  await expect(page.getByRole('alert')).toContainText('closer photo')
+  expect(await anim('.banner.warn[role="alert"]')).toBe('shake')
+
+  await page.locator('#themebtn').click()
+  await page.getByRole('button', { name: /^Fun,/ }).click()
+  await page.locator('.theme', { hasText: 'Tropical' }).click()
+  expect(await fading()).toBe(true)
+  await expect.poll(fading).toBe(false)
+})
+
+test('polish: the loading line moves on while a scan runs', async ({ page }) => {
+  await page.clock.install()
+  await page.locator('#tab-extras').click()
+  await page.getByText('Plant Scan').first().click()
+  await page.getByLabel('Anything wrong with it? (optional)').fill('hang the test')
+  await page.setInputFiles('#plantpick', PAPER_PNG)
+  const line = page.locator('.progress-text')
+  await expect(line).toHaveText('Looking at the leaves…')
+  await page.clock.runFor(1700)
+  await expect(line).toHaveText('Checking its health…')
+  await page.clock.runFor(1600)
+  await expect(line).toHaveText('Writing care tips…')
+})
+
 test('themes are sorted into categories, and a category opens a wider view of its themes', async ({ page }) => {
   await page.locator('#themebtn').click()
   await expect(page.locator('.cat-card b')).toHaveText(['Everyday', 'Nature', 'Fun', 'Holidays'])

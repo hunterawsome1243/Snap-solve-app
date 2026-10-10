@@ -7,6 +7,9 @@ import { ago, isStale } from '../lib/time.js'
 import Cropper from './Cropper.jsx'
 import Icon from './Icon.jsx'
 import ScanLoader from './ScanLoader.jsx'
+import Progress from './Progress.jsx'
+import Reveal, { scrollTop } from './Reveal.jsx'
+import { PROGRESS } from '../lib/progress.js'
 import BarcodeCamera from './BarcodeCamera.jsx'
 
 const NO_FILTERS = { new_only: false, free_shipping: false, max_price: null, preferred_store: '' }
@@ -262,7 +265,7 @@ export default function BuyFlow({ initial, onHistory }) {
         </button>
       </div>
 
-      {error && <div className="banner warn" role="alert">{error}</div>}
+      {error && <div className="banner warn" role="alert" key={error}>{error}</div>}
       {notice && <div className="banner ok" role="status">{notice}</div>}
 
       {view === 'tracked' && (
@@ -360,13 +363,14 @@ export default function BuyFlow({ initial, onHistory }) {
 
           {screen === 'crop' && photo && <Cropper src={photo} onDone={onCropped} onCancel={reset} />}
 
-          {screen === 'identifying' && <ScanLoader photo={photo} title="Figuring out what this is…" sub="Looking for the brand and model." />}
-          {screen === 'scanning' && <ScanLoader title="Reading the barcode…" />}
+          {screen === 'identifying' && <ScanLoader photo={photo} title="Figuring out what this is…" lines={PROGRESS.identify} />}
+          {screen === 'scanning' && <ScanLoader title="Reading the barcode…" lines={PROGRESS.barcode} />}
           {screen === 'searching' && (
             <div className="card center stack scan-card" role="status">
               <div className="spinner" />
               <h2>Comparing prices…</h2>
-              <p className="muted">Searching stores. This can take up to a minute.</p>
+              <Progress lines={PROGRESS.prices} />
+              <p className="muted tiny">This can take up to a minute.</p>
             </div>
           )}
 
@@ -397,11 +401,13 @@ export default function BuyFlow({ initial, onHistory }) {
           )}
 
           {screen === 'results' && raw && ranked && (
-            <div className="stack">
-              <div className="label">Results for {raw.product || raw.query}</div>
-              {raw.product && barcode && <div className="tiny muted">Barcode {barcode}</div>}
-              {barcode && !raw.product && <div className="banner info">I couldn't tell which product barcode {barcode} is. Type its name for a better match.</div>}
-              <div className={`tiny ${isStale(raw.checked_at * 1000) ? 'stale' : 'muted'}`}>Prices checked {ago(raw.checked_at * 1000)}</div>
+            <Reveal>
+              <div className="results-head">
+                <div className="label">Results for {raw.product || raw.query}</div>
+                {raw.product && barcode && <div className="tiny muted">Barcode {barcode}</div>}
+                {barcode && !raw.product && <div className="banner info">I couldn't tell which product barcode {barcode} is. Type its name for a better match.</div>}
+                <div className={`tiny ${isStale(raw.checked_at * 1000) ? 'stale' : 'muted'}`}>Prices checked {ago(raw.checked_at * 1000)}</div>
+              </div>
               {isStale(raw.checked_at * 1000) && (
                 <div className="banner warn" role="alert">
                   <strong>These prices are over a day old.</strong>
@@ -451,7 +457,7 @@ export default function BuyFlow({ initial, onHistory }) {
               </div>
 
               <div className="row wrap">
-                <button className="btn secondary grow" disabled={isTracked || !trackPrice(raw.offers)} onClick={track}><Icon name={isTracked ? 'check' : 'trend'} />{isTracked ? 'Tracking this price' : 'Track this price'}</button>
+                <button className={`btn secondary grow ${isTracked ? 'done' : ''}`} disabled={isTracked || !trackPrice(raw.offers)} onClick={track}><Icon name={isTracked ? 'check' : 'trend'} />{isTracked ? 'Tracking this price' : 'Track this price'}</button>
                 <button className="btn ghost" onClick={() => runSearch(raw.query, true)}>Re-check</button>
               </div>
               <p className="muted tiny center-text">
@@ -459,7 +465,7 @@ export default function BuyFlow({ initial, onHistory }) {
                 Check the price on the store&apos;s page before you buy.
               </p>
               <button className="btn cta" onClick={reset}><Icon name="bag" />Snap another</button>
-            </div>
+            </Reveal>
           )}
         </>
       )}

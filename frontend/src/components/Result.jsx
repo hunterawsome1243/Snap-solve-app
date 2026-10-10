@@ -2,6 +2,7 @@ import { lazy, Suspense, useRef, useState } from 'react'
 import Math from './Math.jsx'
 import SolutionSheet from './SolutionSheet.jsx'
 import Icon from './Icon.jsx'
+import Reveal from './Reveal.jsx'
 import { saveImage, savePdf } from '../lib/exportSolution.js'
 
 const Graph = lazy(() => import('./Graph.jsx'))
@@ -59,8 +60,9 @@ export default function Result({ problem, result, busy, onPractice, onNew, onEdi
   }
 
   return (
-    <div className="stack">
+    <>
       {onBackToProblems && <button className="link left" onClick={onBackToProblems}><Icon name="back" />All problems</button>}
+    <Reveal>
       <div className="card answer-card">
         <div className="label">Problem</div>
         <div className="problem-line"><Math latex={problem} display /></div>
@@ -113,6 +115,7 @@ export default function Result({ problem, result, busy, onPractice, onNew, onEdi
       <button className="btn cta" onClick={onNew}><Icon name="camera" />Snap another</button>
 
       <SolutionSheet ref={sheet} problem={problem} result={result} />
-    </div>
+    </Reveal>
+    </>
   )
 }

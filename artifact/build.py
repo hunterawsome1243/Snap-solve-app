@@ -55,6 +55,7 @@ def private_module(path, names):
 lib = root.parent / "frontend" / "src" / "lib"
 src = src.replace("/*FOOD_JS*/", private_module(lib / "food.js", {"CONFIDENCE": "FOOD_CONFIDENCE"}))
 src = src.replace("/*FAVS_JS*/", private_module(lib / "favorites.js", {}))
+src = src.replace("/*PROGRESS_JS*/", private_module(lib / "progress.js", {}))
 src = src.replace("/*SPECIES_JS*/", private_module(lib / "species.js", {"CONFIDENCE": "SPECIES_CONFIDENCE"}))
 # barcode reading (many views of a photo, shared with the React app) is inlined inside a function so its helper names stay private
 barcode = re.sub(r"^export ", "", (root.parent / "frontend" / "src" / "lib" / "barcode.js").read_text(), flags=re.M)

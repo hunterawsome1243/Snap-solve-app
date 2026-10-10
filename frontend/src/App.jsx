@@ -17,6 +17,9 @@ import InstallHint from './components/InstallHint.jsx'
 import Extras from './components/Extras.jsx'
 import Icon from './components/Icon.jsx'
 import ScanLoader from './components/ScanLoader.jsx'
+import Progress from './components/Progress.jsx'
+import { scrollTop } from './components/Reveal.jsx'
+import { PROGRESS } from './lib/progress.js'
 import { buzz } from './lib/haptics.js'
 import { scannerById } from './lib/favorites.js'
 import { CATEGORIES, HOLIDAYS, holidayById, inSeasonIds, themesIn } from './lib/themes.js'
@@ -61,19 +64,27 @@ export default function App() {
   const camRef = useRef(null)
   const fileRef = useRef(null)
 
+  const themed = useRef(false) // the first theme is applied silently; later changes cross-fade
   useEffect(() => {
     const root = document.documentElement
+    const fade = themed.current
+    themed.current = true
+    if (fade) root.classList.add('theme-fading')
     const skin = SKINS.includes(theme)
     if (skin) root.setAttribute('data-skin', theme)
     else root.removeAttribute('data-skin')
     if (skin || theme === 'auto') root.removeAttribute('data-theme')
     else root.setAttribute('data-theme', theme)
     store.setPref('theme', theme)
+    if (!fade) return undefined
+    const t = setTimeout(() => root.classList.remove('theme-fading'), 300)
+    return () => { clearTimeout(t); root.classList.remove('theme-fading') }
   }, [theme])
 
   const go = (s) => {
     setError('')
     setScreen(s)
+    scrollTop()
   }
   const fail = (e) => setError(e.message || 'Something went wrong.')
 
@@ -368,7 +379,7 @@ export default function App() {
             )}
           </div>
         )}
-        {error && <div className="banner warn" role="alert">{error}</div>}
+        {error && <div className="banner warn" role="alert" key={error}>{error}</div>}
         {tab === 'solve' && screen === 'home' && <InstallHint />}
 
         {tab === 'buy' && <BuyFlow initial={buyInitial} onHistory={(e) => setHistory(store.addHistory(e))} />}
@@ -428,13 +439,14 @@ export default function App() {
         )}
 
         {tab === 'solve' && screen === 'reading' && (
-          <ScanLoader photo={photo} title="Reading your handwriting…" sub="Finding every symbol." />
+          <ScanLoader photo={photo} title="Reading your handwriting…" lines={PROGRESS.read} />
         )}
 
         {tab === 'solve' && screen === 'formulating' && (
           <div className="card center stack scan-card" role="status">
             <div className="spinner" />
             <h2>Turning the words into an equation…</h2>
+            <Progress lines={PROGRESS.formulate} />
           </div>
         )}
 
