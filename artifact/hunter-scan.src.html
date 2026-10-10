@@ -430,6 +430,41 @@ a.store { border-radius: 14px; }
   .confetti { display: none; }
   .btn, .chip, .tile { transition: none; }
 }
+/* extras + plant scan */
+.tool { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.tool:active { transform: scale(.985); }
+.tool-ico { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--soft); color: var(--accent); }
+.tool-ico .ico-svg { width: 28px; height: 28px; }
+.tool-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tool-text b { font-size: 1.05rem; }
+.quick.two { grid-template-columns: repeat(2, 1fr); }
+.plant-id { display: flex; gap: 14px; align-items: center; }
+.plant-photo { width: 92px; height: 92px; border-radius: 16px; object-fit: cover; flex: none; box-shadow: var(--shadow); }
+.pill { display: inline-block; padding: 4px 10px; border-radius: 999px; font: 700 .72rem var(--mono); text-transform: uppercase; letter-spacing: .05em; background: var(--soft); color: var(--muted); }
+.pill.conf-high { background: var(--ok-bg); color: var(--ok); }
+.pill.conf-medium { background: var(--info-bg); color: var(--info); }
+.pill.conf-low { background: var(--warn-bg); color: var(--warn); }
+.issues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.issue { padding-left: 12px; border-left: 4px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.issue.sev-moderate { border-left-color: var(--warn-line); }
+.issue.sev-serious { border-left-color: #d64545; }
+.issue-head { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.issue-head .tag { background: var(--soft); color: var(--muted); }
+.care { margin: 0; display: grid; gap: 10px; }
+.care dt { font: 700 .72rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.care dd { margin: 0; }
+.pets-toxic { border-color: var(--warn-line); background: var(--warn-bg); }
+.plant-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.plant-row { display: flex; align-items: center; gap: 12px; }
+.plant-row img, .plant-ph { width: 54px; height: 54px; border-radius: 14px; object-fit: cover; flex: none; background: var(--soft); display: grid; place-items: center; color: var(--accent); }
+.plant-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.plant-info b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.due { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.due.now { color: var(--warn); }
+.plant-edit summary { cursor: pointer; font-size: .78rem; color: var(--muted); }
+.plant-edit .row { margin-top: 6px; }
+.field.small { width: 4.5em; padding: 8px; }
+.btn.water { min-height: 44px; flex: none; }
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Creepster&family=Fredoka:wght@500;600&family=Space+Grotesk:wght@500;700&display=swap">
 <style>/*KATEX_CSS*/</style>
@@ -446,10 +481,13 @@ a.store { border-radius: 14px; }
 <input class="sr" id="pick" type="file" accept="image/*" aria-label="Choose an image">
 <input class="sr" id="cam2" type="file" accept="image/*" capture="environment" aria-label="Take a photo of a product">
 <input class="sr" id="scan" type="file" accept="image/*" capture="environment" aria-label="Scan a barcode">
+<input class="sr" id="plantcam" type="file" accept="image/*" capture="environment" aria-label="Take a photo of a plant">
+<input class="sr" id="plantpick" type="file" accept="image/*" aria-label="Choose a plant image">
 <input class="sr" id="pick2" type="file" accept="image/*" aria-label="Choose a product image">
 <nav class="tabs"><div class="in">
   <button type="button" id="tab-solve"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>Solve</button>
   <button type="button" id="tab-buy"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></span>Snap Buy</button>
+  <button type="button" id="tab-extras"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span>Extras</button>
   <button type="button" id="tab-hist"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>History</button>
 </div></nav>
 
@@ -471,7 +509,7 @@ a.store { border-radius: 14px; }
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
     shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
-    ctl: null,
+    ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false,
   }
 
 
@@ -531,6 +569,10 @@ a.store { border-radius: 14px; }
   // ---------- icons (one set, so every phone draws the same pictures) ----------
   const ICON_PATHS = {
     scan: '<path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>',
+    leaf: '<path d="M5 19c0-8 5-14 15-14 0 10-5 15-13 15M5 19c2-4 5-7 9-9"/>',
+    grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+    drop: '<path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/>',
+    back: '<path d="m15 6-6 6 6 6"/>',
     camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
     upload: '<path d="M12 16V4m0 0L8 8m4-4 4 4M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/>',
     text: '<path d="M8 4h8M12 4v16M8 20h8"/>',
@@ -679,6 +721,10 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
 
   // ---------- images ----------
   /*SCANNER_JS*/
+
+  // ---------- plants (shared with the React app: frontend/src/lib/plants.js) ----------
+  const DAY = 24 * 60 * 60 * 1000
+  /*PLANTS_JS*/
 
   async function loadPhoto(file, max = 2000) {
     let src, w, h2
@@ -1499,7 +1545,7 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   }
 
   function vWait(title, sub) {
-    const withPhoto = (S.screen === 'reading' || S.screen === 'b-identify') && S.photo
+    const withPhoto = (S.screen === 'reading' || S.screen === 'b-identify' || S.screen === 'p-reading') && S.photo
     return [h('div', { class: 'card stack center scan-card', role: 'status', 'aria-live': 'polite' },
       withPhoto ? h('div', { class: 'scan-loader' }, h('img', { src: S.photo, alt: '' }), h('div', { class: 'scan-frame' }), h('div', { class: 'beam' }))
         : h('div', { class: 'spinner', 'aria-label': title }),
@@ -1691,17 +1737,171 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
     ]
   }
 
+  // ---------- extras: plant scan ----------
+  const PLANT_PROMPT = `You are a careful plant identification and plant-care assistant. Look at the photo and reply with
+ONLY a JSON object:
+{"is_plant": boolean, "message": string,
+ "name": string, "scientific": string, "confidence": "high" | "medium" | "low", "kind": string,
+ "alternatives": [{"name": string, "scientific": string}],
+ "health": {"status": "healthy" | "needs_attention" | "unclear", "summary": string,
+            "issues": [{"name": string, "signs": string, "cause": string, "fix": string,
+                        "severity": "mild" | "moderate" | "serious"}]},
+ "care": {"light": string, "water": string, "water_every_days": integer or null, "soil": string,
+          "temperature": string, "humidity": string, "feeding": string},
+ "pets": {"status": "toxic" | "mostly_safe" | "unknown", "note": string},
+ "fun_fact": string, "photo_tips": string}
+
+Rules:
+- Only describe what you can see. Identification from one photo is a best guess: say "medium" or "low"
+  confidence unless the leaves, shape and (if visible) flowers clearly match one species. Give up to 3
+  "alternatives" when unsure.
+- If the photo shows no plant, or is too blurry or dark, set "is_plant": false and write a short friendly
+  "message" asking for a clearer, closer photo. Do not guess a species from nothing.
+- Health: list issues you can actually see (yellow or brown leaves, spots, wilting, pests, mould, leggy growth).
+  Give plain, practical fixes. If nothing looks wrong, say "healthy" with an empty "issues" list. If you cannot tell,
+  say "unclear" and put what to photograph next in "photo_tips".
+- "water_every_days" is a typical watering interval for a home plant of this kind (a whole number), or null if it
+  depends too much on the setting (e.g. a tree in the ground).
+- Pets: say "toxic" for plants known to be toxic to cats or dogs, "mostly_safe" only when you are confident, and
+  "unknown" otherwise. Add a one-line "note", and when toxic say which pets if you know.
+- NEVER say a wild plant, berry, or mushroom is safe to eat, and never recommend eating anything from a photo.
+  If the photo shows a mushroom or fungus, set "is_plant": false and say mushrooms cannot be identified safely
+  from a picture.
+- Keep every string short (one or two sentences).`
+
+  const thumbOfCanvas = (cv, max = 240) => {
+    const k = Math.min(1, max / Math.max(cv.width, cv.height))
+    const c = document.createElement('canvas')
+    c.width = Math.max(1, Math.round(cv.width * k)); c.height = Math.max(1, Math.round(cv.height * k))
+    c.getContext('2d').drawImage(cv, 0, 0, c.width, c.height)
+    return c.toDataURL('image/jpeg', 0.75)
+  }
+  const savePlants = () => store.set('plants', S.plants.slice(0, 40))
+
+  async function plantFile(file) {
+    if (!file) return
+    S.tab = 'extras'
+    if (!file.type.startsWith('image/')) return setError('Please choose an image file.')
+    if (!S.sample) return setError('Claude isn’t available in this view, so plant scanning is off.')
+    let canvas
+    try { canvas = await loadPhoto(file, 1600) } catch { return setError('Couldn’t open that image. Try a JPG or PNG.') }
+    S.photo = canvas.toDataURL('image/jpeg', 0.7); S.plThumb = thumbOfCanvas(canvas)
+    go('p-reading')
+    S.ctl = new AbortController()
+    try {
+      const note = S.plNote.trim().slice(0, 200)
+      const raw = await S.sample.json(PLANT_PROMPT + '\n\nWhat plant is this, and is it healthy?' + (note ? ' The owner says: ' + note : ''), { images: await blobOf(canvas), signal: S.ctl.signal, cache: false })
+      const r = cleanPlant(raw)
+      if (!r.is_plant) { S.screen = 'p-home'; return setError(r.message) }
+      S.plant = r; S.plSaved = false
+      go('p-result')
+    } catch (e) {
+      if (e?.code === 'cancelled') return go('p-home')
+      S.screen = 'p-home'; setError(errText(e))
+    }
+  }
+
+  function savePlant() {
+    const r = S.plant
+    S.plants = [{ id: uid(), name: r.name, scientific: r.scientific, photo: S.plThumb || '', every: r.care.water_every_days, watered: Date.now(), saved: Date.now(), pets: r.pets.status }, ...S.plants]
+    savePlants(); S.plSaved = true
+    try { navigator.vibrate?.(18) } catch {}
+    render()
+  }
+
+  function vExtras() {
+    const due = dueCount(S.plants)
+    return [h('div', { class: 'stack' },
+      h('div', {}, h('h1', {}, 'Extras'), h('p', { class: 'muted' }, 'More ways to use the camera.')),
+      h('button', { class: 'card tool', type: 'button', onclick: () => go('p-home') },
+        h('span', { class: 'tool-ico' }, icon('leaf')),
+        h('span', { class: 'tool-text' }, h('b', {}, 'Plant Scan'), h('span', { class: 'muted' }, 'Identify a plant, check its health and get care tips.'),
+          S.plants.length > 0 && h('span', { class: 'due' + (due ? ' now' : '') }, due ? due + ' need' + (due === 1 ? 's' : '') + ' water' : S.plants.length + ' saved plant' + (S.plants.length === 1 ? '' : 's')))),
+      h('p', { class: 'muted tiny center' }, 'More tools are on the way.'))]
+  }
+
+  function vMyPlants() {
+    if (!S.plants.length) return null
+    return h('div', { class: 'card stack', 'data-testid': 'my-plants' }, h('h2', {}, 'My Plants'),
+      h('ul', { class: 'plant-list' }, sortPlants(S.plants).map((p) => {
+        const due = h('span', { class: 'due' }); const paint = () => { const st = waterStatus(p); due.textContent = st.label; due.className = 'due' + (st.due ? ' now' : '') }; paint()
+        const every = h('input', { class: 'field small', id: 'ev' + p.id, type: 'number', min: '1', max: '60', inputmode: 'numeric', placeholder: 'days', 'aria-label': 'Water every' })
+        every.value = p.every ?? ''
+        every.addEventListener('input', () => { p.every = every.value === '' ? null : clampEvery(every.value); savePlants(); paint() })
+        return h('li', { class: 'plant-row' },
+          p.photo ? h('img', { src: p.photo, alt: '' }) : h('span', { class: 'plant-ph' }, icon('leaf')),
+          h('div', { class: 'plant-info' }, h('b', {}, p.name), due,
+            h('details', { class: 'plant-edit' }, h('summary', {}, 'Edit'),
+              h('div', { class: 'row wrap' }, h('label', { class: 'muted tiny', for: 'ev' + p.id }, 'Water every'), every, h('span', { class: 'muted tiny' }, 'days'),
+                h('button', { class: 'btn ghost', type: 'button', onclick: () => { S.plants = S.plants.filter((x) => x.id !== p.id); savePlants(); render() } }, 'Remove')))),
+          h('button', { class: 'btn secondary water', type: 'button', 'aria-label': 'Mark ' + p.name + ' watered', onclick: () => { p.watered = Date.now(); savePlants(); try { navigator.vibrate?.(15) } catch {}; render() } }, icon('drop'), 'Watered'))
+      })))
+  }
+
+  function vPlantHome() {
+    const note = h('input', { class: 'field', type: 'text', maxlength: '200', placeholder: 'Anything wrong? e.g. yellow leaves', 'aria-label': 'Anything wrong with it? (optional)' })
+    note.value = S.plNote
+    note.addEventListener('input', () => { S.plNote = note.value })
+    return [
+      h('button', { class: 'link left', type: 'button', onclick: () => go('x-home') }, icon('back'), 'Extras'),
+      S.ready && (!S.sample || !S.canReadImages) && h('div', { class: 'banner info' }, 'Reading photos isn’t available in this view, so plant scanning won’t work here.'),
+      h('div', { class: 'hero' },
+        h('h1', {}, 'Scan a plant'),
+        h('p', { class: 'muted lead' }, 'Snap a leaf or the whole plant. I’ll tell you what it is, how it looks, and how to care for it.'),
+        h('label', { class: 'snap', for: 'plantcam', 'aria-label': 'Snap Plant' }, icon('leaf'), 'Snap Plant'),
+        h('div', { class: 'quick two' },
+          tile('label', { for: 'plantpick' }, 'upload', 'Upload'),
+          tile('label', { for: 'plantcam' }, 'camera', 'Camera')),
+        note),
+      vMyPlants(),
+    ]
+  }
+
+  function vPlantResult() {
+    const r = S.plant
+    const bad = r.health.status === 'needs_attention'
+    const care = [['Light', r.care.light], ['Water', r.care.water], ['Soil', r.care.soil], ['Temperature', r.care.temperature], ['Humidity', r.care.humidity], ['Feeding', r.care.feeding]].filter(([, v]) => v)
+    return [h('div', { class: 'stack' },
+      h('div', { class: 'card stack' },
+        h('div', { class: 'plant-id' }, S.photo && h('img', { class: 'plant-photo', src: S.photo, alt: 'Your plant' }),
+          h('div', {}, h('h2', {}, r.name), r.scientific && h('p', { class: 'muted' }, h('i', {}, r.scientific)),
+            h('div', { class: 'chips' }, h('span', { class: 'pill conf-' + r.confidence }, CONFIDENCE[r.confidence]), r.kind && h('span', { class: 'pill' }, r.kind)))),
+        r.confidence !== 'high' && h('p', { class: 'muted tiny' }, 'This is a guess from one photo. A close-up of a leaf and a flower (if it has one) makes it much better.'),
+        r.alternatives.length > 0 && h('div', {}, h('p', { class: 'eyebrow' }, 'Could also be'), h('div', { class: 'chips' }, r.alternatives.map((a) => h('span', { class: 'chip', title: a.scientific }, a.name))))),
+      h('div', { class: 'banner ' + (bad ? 'warn' : r.health.status === 'healthy' ? 'ok' : 'info') }, icon(bad ? 'alert' : 'check', 'b-ico'), h('span', {}, h('strong', {}, HEALTH[r.health.status] + '. '), r.health.summary)),
+      r.health.issues.length > 0 && h('div', { class: 'card stack' }, h('h2', {}, 'What I can see'),
+        h('ul', { class: 'issues' }, r.health.issues.map((i) => h('li', { class: 'issue sev-' + i.severity },
+          h('div', { class: 'issue-head' }, h('b', {}, i.name), h('span', { class: 'tag' }, i.severity)),
+          i.signs && h('p', { class: 'muted tiny' }, 'Seen: ' + i.signs), i.cause && h('p', { class: 'tiny' }, 'Likely cause: ' + i.cause),
+          i.fix && h('p', {}, h('b', {}, 'What to do: '), i.fix))))),
+      r.photo_tips && h('p', { class: 'muted tiny' }, 'Next photo: ' + r.photo_tips),
+      care.length > 0 && h('div', { class: 'card stack' }, h('h2', {}, 'How to look after it'),
+        h('dl', { class: 'care' }, care.map(([k, v]) => h('div', {}, h('dt', {}, k), h('dd', {}, v))))),
+      h('div', { class: 'card stack pets-' + r.pets.status },
+        h('div', { class: 'row' }, icon(r.pets.status === 'toxic' ? 'alert' : 'leaf'), h('b', {}, PETS[r.pets.status])),
+        r.pets.note && h('p', {}, r.pets.note),
+        h('p', { class: 'muted tiny' }, 'Check a trusted source or your vet before you rely on this. Never eat a plant, berry or mushroom because of a photo scan.')),
+      r.fun_fact && h('p', { class: 'muted center' }, r.fun_fact),
+      h('div', { class: 'row wrap' },
+        h('button', { class: 'btn secondary grow', type: 'button', disabled: S.plSaved, onclick: savePlant }, icon(S.plSaved ? 'check' : 'leaf'), S.plSaved ? 'Saved to My Plants' : 'Save to My Plants'),
+        h('button', { class: 'btn cta grow', type: 'button', onclick: () => { S.plant = null; S.photo = null; S.plNote = ''; go('p-home') } }, icon('camera'), 'Scan another')))]
+  }
+
   function render() {
     $('#eli').checked = S.simple
     $('#themebtn').setAttribute('aria-expanded', String(S.themeOpen))
     $('#tab-solve').setAttribute('aria-current', S.tab === 'solve')
     $('#tab-hist').setAttribute('aria-current', S.tab === 'history')
     $('#tab-buy').setAttribute('aria-current', S.tab === 'buy')
+    $('#tab-extras').setAttribute('aria-current', S.tab === 'extras')
     let body
     if (S.tab === 'history') body = vHistory()
     else if (S.tab === 'buy') {
       const sc = S.screen.startsWith('b-') || S.screen === 'crop' ? S.screen : 'b-home'
       body = sc === 'crop' ? vCrop() : sc === 'b-picking' ? vWait('Picking the best store…', 'Thinking about who usually stocks this.') : sc === 'b-identify' ? vWait('Figuring out what this is…', 'This can take a few seconds.') : sc === 'b-scanning' ? vWait('Reading the barcode…', '') : sc === 'b-confirm' ? vBuyConfirm() : sc === 'b-results' ? vBuyResults() : sc === 'b-unreadable' ? vBuyUnreadable() : vBuyHome()
+    }
+    else if (S.tab === 'extras') {
+      body = S.screen === 'p-reading' ? vWait('Looking at your plant…', 'Checking the leaves, shape and health.') : S.screen === 'p-result' && S.plant ? vPlantResult() : S.screen === 'p-home' ? vPlantHome() : vExtras()
     }
     else if (S.screen === 'home') body = vHome()
     else if (S.screen === 'crop') body = vCrop()
@@ -1723,7 +1923,10 @@ Reply with ONLY JSON: {"stores":[{"name":string,"why":string}]}`
   $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; S.latex = ''; S.result = null; S.word = null; S.problems = []; S.active = -1; go('home') })
-  $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; if (S.screen.startsWith('b-')) S.screen = 'home'; render() })
+  $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; if (/^[bpx]-/.test(S.screen)) S.screen = 'home'; render() })
+  $('#tab-extras').addEventListener('click', () => { S.tab = 'extras'; S.mode = 'solve'; if (!/^[px]-/.test(S.screen)) S.screen = 'x-home'; render() })
+  $('#plantcam').addEventListener('change', (e) => { plantFile(e.target.files[0]); e.target.value = '' })
+  $('#plantpick').addEventListener('change', (e) => { plantFile(e.target.files[0]); e.target.value = '' })
   $('#tab-hist').addEventListener('click', () => { S.tab = 'history'; render() })
   $('#tab-buy').addEventListener('click', () => { S.tab = 'buy'; S.mode = 'buy'; if (!S.screen.startsWith('b-') && S.screen !== 'crop') S.screen = 'b-home'; render() })
   $('#scan').addEventListener('change', (e) => { scanBarcode(e.target.files[0]); e.target.value = '' })

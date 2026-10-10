@@ -37,6 +37,16 @@ export function fakeRuntime() {
         ? { latex: 'x^2-5x+6=0', hint: 'Try factoring.', problem: { kind: 'solve', equation: 'x^2-5*x+6=0', variable: 'x' }, answer: { values: ['2', '3'] }, answer_latex: 'x = 2,\\ 3' }
         : { latex: 'x^2-7x+12=0', hint: 'Factor.', problem: { kind: 'solve', equation: 'x^2-7*x+12=0', variable: 'x' }, answer: { values: ['3', '4'] }, answer_latex: 'x = 3,\\ 4' }
     }
+    if (prompt.startsWith('You are a careful plant')) {
+      if (/rock/.test(prompt)) return { is_plant: false, message: 'I could not see a plant. Try a closer photo.' }
+      return {
+        is_plant: true, message: '', name: 'Monstera', scientific: 'Monstera deliciosa', confidence: 'medium', kind: 'houseplant',
+        alternatives: [{ name: 'Philodendron', scientific: 'Philodendron bipinnatifidum' }],
+        health: { status: 'healthy', summary: 'One lower leaf is yellowing.', issues: [{ name: 'Yellow leaf', signs: 'one lower leaf', cause: 'too much water', fix: 'Let the top of the soil dry out.', severity: 'mild' }] },
+        care: { light: 'Bright, indirect', water: 'When the top 5 cm is dry', water_every_days: 7, soil: 'Airy mix', temperature: '18-27 C', humidity: 'Average', feeding: 'Monthly in summer' },
+        pets: { status: 'toxic', note: 'Toxic to cats and dogs.' }, fun_fact: 'The holes in the leaves are called fenestrations.', photo_tips: '',
+      }
+    }
     if (prompt.startsWith('You identify')) return { identifiable: true, name: 'X', query: 'Sony WH-1000XM5 headphones', message: '' }
     if (prompt.startsWith('You advise')) return { stores: [{ name: 'Best Buy', why: 'Wide range.' }] }
     const latex = prompt.split('Problem (LaTeX):\n')[1].split('\n')[0]

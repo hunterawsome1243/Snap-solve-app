@@ -12,3 +12,8 @@ services:
         generateValue: true   # Render makes a random code; read it under Environment, type it once on your phone
       - key: RATE_PER_HOUR
         value: "60"       # AI calls per visitor per hour
+      # Optional cost controls, off unless added (see "Watching and trimming API cost" in the README):
+      # - key: EFFORT_IDENTIFY
+      #   value: low
+      # - key: WEB_SEARCH_MAX_USES
+      #   value: "3"
