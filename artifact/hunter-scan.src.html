@@ -284,7 +284,7 @@ select.field { appearance: auto; }
 }
 :root[data-skin="tropical"] body {
   background-image: radial-gradient(520px 380px at 100% 0%, rgba(255, 154, 31, .28), transparent 70%), radial-gradient(480px 420px at 0% 100%, rgba(32, 201, 166, .22), transparent 70%), radial-gradient(360px 300px at 0% 18%, rgba(255, 61, 127, .13), transparent 70%);
-  background-attachment: fixed;
+  background-size: auto, auto, auto; background-attachment: fixed;
 }
 :root[data-skin="tropical"] h1, :root[data-skin="tropical"] h2, :root[data-skin="tropical"] .logo { letter-spacing: 0; font-weight: 600; }
 :root[data-skin="tropical"] .card { border-color: #f7d3a8; }
@@ -465,6 +465,31 @@ a.store { border-radius: 14px; }
 .plant-edit .row { margin-top: 6px; }
 .field.small { width: 4.5em; padding: 8px; }
 .btn.water { min-height: 44px; flex: none; }
+/* theme picker groups, holiday particles, and the generated holiday themes */
+.theme-group { display: flex; flex-direction: column; gap: 8px; }
+.theme-group h3 { margin: 6px 0 0; font: 700 .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.theme-card { max-height: 72vh; overflow-y: auto; }
+.cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.cat-card { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; text-align: left; min-height: 96px; padding: 14px; background: var(--bg); border: 2px solid var(--line); border-radius: 16px; color: var(--ink); font: inherit; cursor: pointer; }
+.cat-card:active { transform: scale(.97); }
+.cat-card.has-current { border-color: var(--accent); }
+.cat-card .dots { display: flex; }
+.cat-card .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); margin-right: -6px; }
+.cat-card b { font-size: 1rem; margin-top: 4px; }
+.themes.wide { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.themes.wide .theme { padding: 14px; min-height: 84px; }
+.themes.wide .theme .dots i { width: 28px; height: 28px; }
+.theme-card .row h2 { margin: 0; }
+.hparts { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.hpart { position: absolute; opacity: .65; will-change: transform; }
+.hpart.fall { top: -56px; animation: hpart-fall linear infinite; }
+.hpart.rise { bottom: -56px; animation: hpart-rise linear infinite; }
+.hpart i { display: block; font-style: normal; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .25)); animation: pumpkin-sway ease-in-out infinite alternate; animation-duration: 4.4s; }
+.hpart:nth-child(2n) i { animation-duration: 5.6s; }
+.hpart:nth-child(3n) i { animation-duration: 6.4s; animation-direction: alternate-reverse; }
+@keyframes hpart-fall { to { transform: translateY(calc(100vh + 110px)) rotate(150deg); } }
+@keyframes hpart-rise { to { transform: translateY(calc(-100vh - 110px)) rotate(-20deg); } }
+/*HOLIDAY_CSS*/
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Creepster&family=Fredoka:wght@500;600&family=Space+Grotesk:wght@500;700&display=swap">
 <style>/*KATEX_CSS*/</style>
@@ -508,29 +533,24 @@ a.store { border-radius: 14px; }
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
-    shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
+    shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, themeCat: null, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
     ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false,
   }
 
 
   // ---------- themes ----------
-  const SKINS = [
-    { id: 'auto', name: 'Match device', colors: ['#f2f5f7', '#1456d6', '#0c1322'] },
-    { id: 'halloween', name: 'Halloween', colors: ['#150c20', '#ff8a1f', '#f7ead9'] },
-    { id: 'ocean', name: 'Ocean', colors: ['#eaf6f8', '#087f92', '#07313c'] },
-    { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
-    { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
-    { id: 'science', name: 'Science', colors: ['#06121c', '#22e6d4', '#e6fbff'] },
-    { id: 'tropical', name: 'Tropical', colors: ['#fff6e0', '#d6246e', '#ff9a1f'] },
-  ]
+  /*THEMES_JS*/
+  // the artifact follows the viewer's own light/dark setting, so only 'Match device' is offered from the Everyday group
+  const SKINS = THEMES.filter((t) => t.id !== 'light' && t.id !== 'dark')
   function applySkin() {
     const root = document.documentElement
     if (S.skin === 'auto' || !SKINS.some((k) => k.id === S.skin)) root.removeAttribute('data-skin')
     else root.setAttribute('data-skin', S.skin)
-    document.querySelector('.pumpkins')?.remove(); document.querySelector('.elements')?.remove(); document.querySelector('.fruits')?.remove()
+    document.querySelector('.pumpkins')?.remove(); document.querySelector('.elements')?.remove(); document.querySelector('.fruits')?.remove(); document.querySelector('.hparts')?.remove()
     if (S.skin === 'halloween') document.body.append(pumpkins())
     if (S.skin === 'science') document.body.append(elements())
     if (S.skin === 'tropical') document.body.append(fruits())
+    if (holidayById(S.skin)) document.body.append(holidayParticles(S.skin))
   }
   function elements() {
     const box = h('div', { class: 'elements', 'aria-hidden': 'true' })
@@ -539,6 +559,16 @@ a.store { border-radius: 14px; }
       t.style.cssText = 'left:' + ((i * 7.9 + 3) % 92) + '%;animation-duration:' + (20 + ((i * 7) % 11)) + 's;animation-delay:-' + ((i * 4.3) % 22) + 's'
       box.append(t)
     })
+    return box
+  }
+  function holidayParticles(id) {
+    const hd = holidayById(id)
+    const box = h('div', { class: 'hparts', 'aria-hidden': 'true' })
+    for (let i = 0; i < 12; i++) {
+      const p = h('span', { class: 'hpart ' + hd.motion }, h('i', {}, hd.emoji[i % hd.emoji.length]))
+      p.style.cssText = 'left:' + ((i * 8.3 + 4) % 94) + '%;font-size:' + (20 + ((i * 7) % 5) * 5) + 'px;animation-duration:' + (14 + ((i * 5) % 9)) + 's;animation-delay:-' + ((i * 3.7) % 16) + 's;--sway:' + (12 + ((i * 11) % 22)) + 'px'
+      box.append(p)
+    }
     return box
   }
   function fruits() {
@@ -560,10 +590,23 @@ a.store { border-radius: 14px; }
     return box
   }
   function vThemes() {
-    return h('div', { class: 'card stack' }, h('h2', {}, 'Theme'),
-      h('div', { class: 'themes' }, SKINS.map((k) =>
+    if (!S.themeCat) {
+      return h('div', { class: 'card stack theme-card' }, h('h2', {}, 'Theme'),
+        h('div', { class: 'cat-grid' }, CATEGORIES.map((c) => {
+          const list = SKINS.filter((t) => t.category === c.id)
+          if (!list.length) return null
+          const current = list.find((t) => t.id === S.skin)
+          return h('button', { class: 'cat-card' + (current ? ' has-current' : ''), type: 'button', 'aria-label': c.name + ', ' + list.length + ' themes', onclick: () => { S.themeCat = c.id; render() } },
+            h('span', { class: 'dots' }, list.slice(0, 4).map((t) => h('i', { style: 'background:' + t.colors[1] }))),
+            h('b', {}, c.name), h('span', { class: 'muted tiny' }, current ? 'Using ' + current.name : list.length + (list.length === 1 ? ' theme' : ' themes')))
+        })))
+    }
+    const cat = CATEGORIES.find((c) => c.id === S.themeCat)
+    return h('div', { class: 'card stack theme-card' },
+      h('div', { class: 'row' }, h('button', { class: 'link left', type: 'button', onclick: () => { S.themeCat = null; render() } }, icon('back'), 'Themes'), h('h2', {}, cat.name)),
+      h('div', { class: 'themes wide' }, SKINS.filter((t) => t.category === cat.id).map((k) =>
         h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
-          h('span', { class: 'dots' }, k.colors.map((c) => h('i', { style: 'background:' + c }))), h('b', {}, k.name)))))
+          h('span', { class: 'dots' }, k.colors.map((col) => h('i', { style: 'background:' + col }))), h('b', {}, k.name)))))
   }
 
   // ---------- icons (one set, so every phone draws the same pictures) ----------
@@ -1919,7 +1962,7 @@ Rules:
   }
 
   // ---------- wiring ----------
-  $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; render() })
+  $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; S.themeCat = null; render() })
   $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; S.latex = ''; S.result = null; S.word = null; S.problems = []; S.active = -1; go('home') })

@@ -598,3 +598,31 @@ input[type='checkbox'], input[type='radio'], progress { accent-color: var(--bran
 .plant-edit summary { cursor: pointer; font-size: .78rem; color: var(--muted); }
 .plant-edit .row { margin-top: 6px; }
 .btn.water { min-height: 44px; flex: none; }
+
+/* theme picker groups + holiday particles (the holiday colours are generated from lib/themes.js) */
+.theme-group { display: flex; flex-direction: column; gap: 8px; }
+.theme-group h3 { margin: 6px 0 0; font-size: .74rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.hparts { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.hpart { position: absolute; opacity: .65; will-change: transform; }
+.hpart.fall { top: -56px; animation: hpart-fall linear infinite; }
+.hpart.rise { bottom: -56px; animation: hpart-rise linear infinite; }
+.hpart i { display: block; font-style: normal; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .25)); animation: pumpkin-sway ease-in-out infinite alternate; animation-duration: 4.4s; }
+.hpart:nth-child(2n) i { animation-duration: 5.6s; }
+.hpart:nth-child(3n) i { animation-duration: 6.4s; animation-direction: alternate-reverse; }
+@keyframes hpart-fall { to { transform: translateY(calc(100vh + 110px)) rotate(150deg); } }
+@keyframes hpart-rise { to { transform: translateY(calc(-100vh - 110px)) rotate(-20deg); } }
+.theme-card { max-height: 72vh; overflow-y: auto; }
+
+/* theme picker: categories first, then a wider view of one category */
+.cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.cat-card { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; text-align: left; min-height: 96px; padding: 14px; background: var(--bg); border: 2px solid var(--line); border-radius: 16px; color: var(--text); cursor: pointer; transition: transform .1s, border-color .15s; }
+.cat-card:active { transform: scale(.97); }
+.cat-card.has-current { border-color: var(--brand); }
+.cat-card .dots { display: flex; }
+.cat-card .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--card); margin-right: -6px; }
+.cat-card b { font-size: 1rem; margin-top: 4px; }
+.themes.wide { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.themes.wide .theme { padding: 14px; min-height: 84px; }
+.themes.wide .theme .dots i { width: 28px; height: 28px; }
+.themes.wide .theme b { font-size: .95rem; }
+.theme-card .row h2 { margin: 0; }

@@ -1,8 +1,14 @@
 import { expect, test } from '@playwright/test'
 import { blockFonts } from './support/mocks.js'
 
+// which category each theme lives in (the picker shows categories first, then a wider view of one)
+const CATEGORY_OF = {
+  'Match device': 'Everyday', Light: 'Everyday', Dark: 'Everyday', Ocean: 'Nature', Forest: 'Nature', Sunset: 'Nature',
+  Science: 'Fun', Tropical: 'Fun', Halloween: 'Holidays',
+}
 async function pick(page, name) {
   await page.getByLabel('Choose theme').click()
+  await page.getByRole('button', { name: new RegExp(`^${CATEGORY_OF[name] || 'Holidays'},`) }).click()
   await page.locator('.theme', { hasText: name }).click()
   await page.getByLabel('Choose theme').click()
 }
@@ -69,4 +75,71 @@ test('the chosen theme is remembered', async ({ page }) => {
   await pick(page, 'Forest')
   await page.reload()
   expect(await page.evaluate(() => document.documentElement.dataset.skin)).toBe('forest')
+})
+
+const HOLIDAY_THEMES = [
+  ['newyear', "New Year's", 'fall'], ['lunar', 'Lunar New Year', 'fall'], ['valentine', "Valentine's Day", 'rise'], ['stpatrick', "St. Patrick's Day", 'fall'],
+  ['easter', 'Easter', 'fall'], ['july4', '4th of July', 'rise'], ['thanksgiving', 'Thanksgiving', 'fall'], ['christmas', 'Christmas', 'fall'],
+]
+
+test('the picker shows four categories, and a category opens a wider view of its themes', async ({ page }) => {
+  await page.getByLabel('Choose theme').click()
+  // compact: only the categories, no individual themes yet
+  await expect(page.locator('.cat-card b')).toHaveText(['Everyday', 'Nature', 'Fun', 'Holidays'])
+  await expect(page.locator('.theme')).toHaveCount(0)
+  const open = (cat) => page.getByRole('button', { name: new RegExp(`^${cat},`) }).click()
+  const names = () => page.locator('.themes.wide .theme b').allTextContents()
+  await open('Everyday'); expect(await names()).toEqual(['Match device', 'Light', 'Dark'])
+  await page.getByRole('button', { name: 'Themes' }).click()
+  await open('Nature'); expect(await names()).toEqual(['Ocean', 'Forest', 'Sunset'])
+  await page.getByRole('button', { name: 'Themes' }).click()
+  await open('Fun'); expect(await names()).toEqual(['Science', 'Tropical'])
+  await page.getByRole('button', { name: 'Themes' }).click()
+  // in the order the year brings them round, with Halloween in its place (and no Eid, Diwali or Hanukkah)
+  await open('Holidays')
+  expect(await names()).toEqual(["New Year's", 'Lunar New Year', "Valentine's Day", "St. Patrick's Day", 'Easter', '4th of July', 'Halloween', 'Thanksgiving', 'Christmas'])
+  // the wider view really is wider: its tiles are bigger than the small swatches were
+  expect((await page.locator('.themes.wide .theme').first().boundingBox()).width).toBeGreaterThan(130)
+})
+
+test('the category you are using says so, and the picker starts at the categories each time', async ({ page }) => {
+  await pick(page, 'Christmas')
+  await page.getByLabel('Choose theme').click()
+  await expect(page.getByRole('button', { name: /^Holidays,/ })).toContainText('Using Christmas')
+  await expect(page.getByRole('button', { name: /^Nature,/ })).toContainText('3 themes')
+  await page.getByRole('button', { name: /^Nature,/ }).click()
+  await page.getByLabel('Choose theme').click() // close
+  await page.getByLabel('Choose theme').click() // open again: back at the categories
+  await expect(page.locator('.cat-card')).toHaveCount(4)
+})
+
+for (const [id, name, motion] of HOLIDAY_THEMES) {
+  test(`holiday theme: ${name}`, async ({ page }) => {
+    await pick(page, name)
+    expect(await page.evaluate(() => document.documentElement.dataset.skin)).toBe(id)
+    await expect(page.locator(`.hpart.${motion}`)).toHaveCount(12)
+    // the theme really changes the colours, and the logo becomes the holiday's emoji
+    const page_bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+    expect(page_bg).not.toBe('rgb(243, 246, 241)')
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.logo-mark'), '::after').content)).not.toBe('none')
+    // it moves, and is gone on the next theme
+    const top = () => page.evaluate(() => document.querySelector('.hpart').getBoundingClientRect().top)
+    const before = await top()
+    await page.waitForTimeout(1200)
+    const after = await top()
+    if (motion === 'fall') expect(after).toBeGreaterThan(before)
+    else expect(after).toBeLessThan(before)
+    await pick(page, 'Ocean')
+    await expect(page.locator('.hpart')).toHaveCount(0)
+  })
+}
+
+test('holiday particles stop for people who ask for less motion', async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: 'reduce', viewport: { width: 390, height: 844 } })
+  const page = await ctx.newPage()
+  await blockFonts(page)
+  await page.goto('/')
+  await pick(page, 'Christmas')
+  expect(await page.evaluate(() => getComputedStyle(document.querySelector('.hparts')).display)).toBe('none')
+  await ctx.close()
 })

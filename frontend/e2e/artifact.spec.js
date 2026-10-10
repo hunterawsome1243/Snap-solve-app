@@ -117,15 +117,19 @@ test('snap buy: barcode → store recommendation → shared history', async ({ p
 
 test('themes: halloween pumpkins and the science lab', async ({ page }) => {
   await page.locator('#themebtn').click()
+  await page.getByRole('button', { name: /^Holidays,/ }).click()
   await page.locator('.theme', { hasText: 'Halloween' }).click()
   await expect(page.locator('.pumpkin')).toHaveCount(11)
+  await page.getByRole('button', { name: 'Themes' }).click()
+  await page.getByRole('button', { name: /^Fun,/ }).click()
   await page.locator('.theme', { hasText: 'Science' }).click()
   await expect(page.locator('.pumpkin')).toHaveCount(0)
   await expect(page.locator('.element')).toHaveCount(13)
   await page.locator('#themebtn').click()
   await expect(page.locator('.logo')).toHaveText(/Hunter Scan/)
   expect(await page.evaluate(() => getComputedStyle(document.querySelector('.snap'), '::after').animationName)).toBe('laser')
-  await page.locator('#themebtn').click()
+  await page.locator('#themebtn').click() // open again: back at the categories
+  await page.getByRole('button', { name: /^Nature,/ }).click()
   await page.locator('.theme', { hasText: 'Ocean' }).click()
   await expect(page.locator('.element')).toHaveCount(0)
 })
@@ -171,4 +175,28 @@ test('extras tab: a photo with no plant asks for a better one, and the other tab
   await page.locator('#tab-solve').click()
   await expect(page.locator('.snap')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Scan a plant' })).toHaveCount(0)
+})
+
+test('themes are sorted into categories, and a category opens a wider view of its themes', async ({ page }) => {
+  await page.locator('#themebtn').click()
+  await expect(page.locator('.cat-card b')).toHaveText(['Everyday', 'Nature', 'Fun', 'Holidays'])
+  await expect(page.locator('.theme')).toHaveCount(0) // compact until a category is opened
+  const open = (cat) => page.getByRole('button', { name: new RegExp(`^${cat},`) }).click()
+  const names = () => page.locator('.themes.wide .theme b').allTextContents()
+  await open('Everyday'); expect(await names()).toEqual(['Match device']) // light and dark follow the viewer's own setting here
+  await page.getByRole('button', { name: 'Themes' }).click()
+  await open('Holidays')
+  expect(await names()).toEqual(["New Year's", 'Lunar New Year', "Valentine's Day", "St. Patrick's Day", 'Easter', '4th of July', 'Halloween', 'Thanksgiving', 'Christmas'])
+  for (const [name, id, motion] of [['Christmas', 'christmas', 'fall'], ["Valentine's Day", 'valentine', 'rise'], ['4th of July', 'july4', 'rise']]) {
+    await page.locator('.theme', { hasText: name }).click()
+    expect(await page.evaluate(() => document.documentElement.dataset.skin)).toBe(id)
+    await expect(page.locator(`.hpart.${motion}`)).toHaveCount(12)
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe('rgb(243, 246, 241)')
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.logo-mark'), '::after').content)).not.toBe('none')
+  }
+  await page.getByRole('button', { name: 'Themes' }).click()
+  await expect(page.getByRole('button', { name: /^Holidays,/ })).toContainText('Using 4th of July')
+  await open('Nature')
+  await page.locator('.theme', { hasText: 'Ocean' }).click()
+  await expect(page.locator('.hpart')).toHaveCount(0)
 })
