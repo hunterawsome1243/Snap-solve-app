@@ -37,6 +37,7 @@ export function fakeRuntime() {
         ? { latex: 'x^2-5x+6=0', hint: 'Try factoring.', problem: { kind: 'solve', equation: 'x^2-5*x+6=0', variable: 'x' }, answer: { values: ['2', '3'] }, answer_latex: 'x = 2,\\ 3' }
         : { latex: 'x^2-7x+12=0', hint: 'Factor.', problem: { kind: 'solve', equation: 'x^2-7*x+12=0', variable: 'x' }, answer: { values: ['3', '4'] }, answer_latex: 'x = 3,\\ 4' }
     }
+    if (/hang the test/.test(prompt)) return new Promise(() => {}) // a wait that never ends, for loading-screen tests
     if (prompt.startsWith('You are a careful plant')) {
       if (/rock/.test(prompt)) return { is_plant: false, message: 'I could not see a plant. Try a closer photo.' }
       return {

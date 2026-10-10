@@ -99,7 +99,8 @@ npm run test:all    # everything
 ```
 
 The browser tests use a fake backend, a fake Claude for the artifact, and a fake camera that plays a video of a
-skewed sheet of paper, so they need no API key and no network. The first run needs
+skewed sheet of paper, so they need no API key and no network. `e2e/polish.spec.js` covers the motion (and its
+reduced-motion switch-off) with a fake clock. The first run needs
 `npx playwright install chromium` (inside `frontend/`).
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and on pushes to `main`: backend tests, frontend unit tests
@@ -196,6 +197,11 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
 - **Stale-price honesty**: every result shows when it was checked, each offer shows how old the page was when the
   search saw it, and anything over a day old gets a warning with a one-tap re-check.
 - **History** shows math and Snap Buy side by side.
+
+**Small touches.** A result pops in (the first card, then the rest, and the "verified" or "healthy" check draws itself),
+an error gives a quick shake, Save / Add / Track confirm with a pop, loading screens say what they are doing (the lines live
+in `frontend/src/lib/progress.js`, which is inlined into the artifact), themes cross-fade, every new screen starts at the top,
+and everything you tap presses the same way. All of it is off for people who ask the OS for less motion.
 
 **Favourite scanners.** Every scanner (Math Solver, Snap Buy, Plant Scan, Food Scan, Species Scan) is listed in the **Extras** tab. The two
 slots at the left of the bottom bar are favourites: tap the star on a scanner to pin it there (a third star replaces the oldest;

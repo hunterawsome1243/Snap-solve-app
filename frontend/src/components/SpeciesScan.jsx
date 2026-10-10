@@ -1,15 +1,17 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { loadPhoto } from '../image.js'
 import * as api from '../api.js'
 import { CONFIDENCE, DANGER, GROUPS } from '../lib/species.js'
 import Icon from './Icon.jsx'
 import ScanLoader from './ScanLoader.jsx'
+import Reveal, { scrollTop } from './Reveal.jsx'
+import { PROGRESS } from '../lib/progress.js'
 
 function Result({ photo, r, onAgain }) {
   const facts = [['Habitat', r.habitat], ['Diet', r.diet], ['Size', r.size], ['Conservation', r.conservation]].filter(([, v]) => v)
   const bad = r.danger.level === 'dangerous' || r.danger.level === 'use_caution'
   return (
-    <div className="stack">
+    <Reveal>
       <div className="card stack plant-head">
         <div className="plant-id">
           {photo && <img className="plant-photo" src={photo} alt="Your photo" />}
@@ -49,7 +51,7 @@ function Result({ photo, r, onAgain }) {
       {r.confidence === 'low' && r.photo_tips && <p className="muted tiny">Next photo: {r.photo_tips}</p>}
       <p className="muted tiny center-text">Keep your distance from wild animals, and never handle one because of an app.</p>
       <button className="btn cta" onClick={onAgain}><Icon name="camera" />Scan another</button>
-    </div>
+    </Reveal>
   )
 }
 
@@ -60,6 +62,7 @@ export default function SpeciesScan({ onBack }) {
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
   const abort = useRef(0)
+  useEffect(() => { scrollTop() }, [screen])
 
   async function pick(e) {
     const file = e.target.files?.[0]
@@ -95,7 +98,7 @@ export default function SpeciesScan({ onBack }) {
   return (
     <>
       {screen === 'home' && <button className="link back" onClick={onBack}><Icon name="back" />Extras</button>}
-      {error && <div className="banner warn" role="alert">{error}</div>}
+      {error && <div className="banner warn" role="alert" key={error}>{error}</div>}
 
       {screen === 'home' && (
         <div className="hero">
@@ -110,7 +113,7 @@ export default function SpeciesScan({ onBack }) {
             value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
       )}
-      {screen === 'reading' && <ScanLoader photo={photo} title="Looking closely…" sub="Checking markings, shape and size." onStop={() => { abort.current++; setScreen('home') }} />}
+      {screen === 'reading' && <ScanLoader photo={photo} title="Looking closely…" lines={PROGRESS.species} onStop={() => { abort.current++; setScreen('home') }} />}
       {screen === 'result' && result && <Result photo={photo} r={result} onAgain={again} />}
       {input('species-cam', true)}
       {input('species-pick', false)}

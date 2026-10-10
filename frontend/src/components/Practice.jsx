@@ -4,6 +4,7 @@ import * as store from '../storage.js'
 import MathView from './Math.jsx'
 import Icon from './Icon.jsx'
 import Confetti from './Confetti.jsx'
+import Reveal from './Reveal.jsx'
 import { buzz } from '../lib/haptics.js'
 
 const LEVELS = [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']]
@@ -104,7 +105,7 @@ export default function Practice({ seed, onSteps, onExit }) {
         </select>
       </div>
 
-      {error && <div className="banner warn" role="alert">{error}</div>}
+      {error && <div className="banner warn" role="alert" key={error}>{error}</div>}
 
       {loading && <div className="card center"><div className="spinner" /><p className="muted">Writing a problem…</p></div>}
 
@@ -130,7 +131,7 @@ export default function Practice({ seed, onSteps, onExit }) {
           )}
 
           {done && (
-            <div className="stack">
+            <Reveal>
               {fb?.revealed ? (
                 <div className="banner info"><strong>The answer</strong></div>
               ) : (
@@ -141,7 +142,7 @@ export default function Practice({ seed, onSteps, onExit }) {
                 <button className="btn primary grow" onClick={() => next()}>Next problem</button>
                 <button className="btn secondary" onClick={() => onSteps(item.latex)}>See the steps</button>
               </div>
-            </div>
+            </Reveal>
           )}
         </div>
       )}

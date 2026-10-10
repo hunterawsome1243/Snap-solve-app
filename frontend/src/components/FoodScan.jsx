@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { loadPhoto, thumbOf } from '../image.js'
 import * as api from '../api.js'
 import * as store from '../storage.js'
@@ -6,6 +6,8 @@ import { buzz } from '../lib/haptics.js'
 import { CONFIDENCE, dayTotals, fmtVal, mealsOn } from '../lib/food.js'
 import Icon from './Icon.jsx'
 import ScanLoader from './ScanLoader.jsx'
+import Reveal, { scrollTop } from './Reveal.jsx'
+import { PROGRESS } from '../lib/progress.js'
 
 const uid = () => 'ml' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
 const timeOf = (t) => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
@@ -14,7 +16,7 @@ function Result({ photo, r, saved, onSave, onAgain }) {
   const t = r.totals
   const more = [['Fiber', t.fiber_g, ' g'], ['Sugar', t.sugar_g, ' g'], ['Sodium', t.sodium_mg, ' mg']].filter(([, v]) => v !== null)
   return (
-    <div className="stack">
+    <Reveal>
       <div className="card stack plant-head">
         <div className="plant-id">
           {photo && <img className="plant-photo" src={photo} alt="Your food" />}
@@ -59,12 +61,12 @@ function Result({ photo, r, saved, onSave, onAgain }) {
       <p className="muted tiny center-text">Numbers from a photo are estimates, not medical advice.</p>
 
       <div className="row wrap">
-        <button className="btn secondary grow" disabled={saved} onClick={onSave}>
+        <button className={`btn secondary grow ${saved ? 'done' : ''}`} disabled={saved} onClick={onSave}>
           <Icon name={saved ? 'check' : 'food'} />{saved ? 'Added to today' : 'Add to today'}
         </button>
         <button className="btn cta grow" onClick={onAgain}><Icon name="camera" />Scan another</button>
       </div>
-    </div>
+    </Reveal>
   )
 }
 
@@ -99,6 +101,7 @@ export default function FoodScan({ onBack }) {
   const [meals, setMeals] = useState(store.loadMeals)
   const [saved, setSaved] = useState(false)
   const abort = useRef(0)
+  useEffect(() => { scrollTop() }, [screen])
 
   async function pick(e) {
     const file = e.target.files?.[0]
@@ -143,7 +146,7 @@ export default function FoodScan({ onBack }) {
   return (
     <>
       {screen === 'home' && <button className="link back" onClick={onBack}><Icon name="back" />Extras</button>}
-      {error && <div className="banner warn" role="alert">{error}</div>}
+      {error && <div className="banner warn" role="alert" key={error}>{error}</div>}
 
       {screen === 'home' && (
         <>
@@ -161,7 +164,7 @@ export default function FoodScan({ onBack }) {
           <Today meals={meals} setMeals={setMeals} />
         </>
       )}
-      {screen === 'reading' && <ScanLoader photo={photo} title="Looking at your food…" sub="Working out what's on the plate." onStop={() => { abort.current++; setScreen('home') }} />}
+      {screen === 'reading' && <ScanLoader photo={photo} title="Looking at your food…" lines={PROGRESS.food} onStop={() => { abort.current++; setScreen('home') }} />}
       {screen === 'result' && result && <Result photo={photo} r={result} saved={saved} onSave={save} onAgain={again} />}
       {input('food-cam', true)}
       {input('food-pick', false)}
