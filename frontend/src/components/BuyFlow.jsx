@@ -141,11 +141,7 @@ export default function BuyFlow({ initial, onHistory }) {
         setScreen('home')
         return fail(new Error("Couldn't read a barcode. Fill the frame with it, hold steady in good light, or type the product name."))
       }
-      setBarcode(code)
-      setProduct(null)
-      setPhoto(null)
-      setQuery(`UPC ${code}`)
-      return setScreen('confirm')
+      return foundBarcode(code)
     }
     try {
       setBarcode(null)
@@ -154,6 +150,15 @@ export default function BuyFlow({ initial, onHistory }) {
     } catch {
       fail(new Error("Couldn't open that image. Try a JPG or PNG."))
     }
+  }
+
+  // A barcode is a number, not a product: go straight to the search, which works out what it is and prices it.
+  function foundBarcode(code) {
+    setBarcode(code)
+    setProduct(null)
+    setPhoto(null)
+    setQuery(`UPC ${code}`)
+    return runSearch(`UPC ${code}`)
   }
 
   async function onCropped(dataUrl) {
@@ -346,7 +351,7 @@ export default function BuyFlow({ initial, onHistory }) {
 
           {screen === 'live-barcode' && (
             <BarcodeCamera
-              onFound={(code) => { setBarcode(code); setProduct(null); setPhoto(null); setQuery(`UPC ${code}`); setScreen('confirm') }}
+              onFound={foundBarcode}
               onCancel={() => setScreen('home')}
               onUnavailable={() => { setLiveBlocked(true); setScreen('home'); setNotice('The live camera isn’t available, so “Scan barcode” will take a photo instead.') }}
               onPhoto={() => { setScreen('home'); document.getElementById('buy-scan')?.click() }}
@@ -393,7 +398,9 @@ export default function BuyFlow({ initial, onHistory }) {
 
           {screen === 'results' && raw && ranked && (
             <div className="stack">
-              <div className="label">Results for {raw.query}</div>
+              <div className="label">Results for {raw.product || raw.query}</div>
+              {raw.product && barcode && <div className="tiny muted">Barcode {barcode}</div>}
+              {barcode && !raw.product && <div className="banner info">I couldn't tell which product barcode {barcode} is. Type its name for a better match.</div>}
               <div className={`tiny ${isStale(raw.checked_at * 1000) ? 'stale' : 'muted'}`}>Prices checked {ago(raw.checked_at * 1000)}</div>
               {isStale(raw.checked_at * 1000) && (
                 <div className="banner warn" role="alert">

@@ -20,6 +20,6 @@ test.beforeEach(async ({ page }) => {
 test('live barcode scan: hold a product up and it reads on its own', async ({ page }) => {
   await page.getByRole('button', { name: 'Scan barcode' }).click()
   await expect(page.getByTestId('barcode-viewfinder')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Barcode found' })).toBeVisible({ timeout: 20_000 })
-  await expect(page.locator('#buy-query')).toHaveValue('UPC 5901234123457')
+  await expect(page.getByText('Results for Acme Widget 500 ml')).toBeVisible({ timeout: 20_000 })
+  await expect(page.locator('.rec')).toBeVisible()
 })

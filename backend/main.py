@@ -534,14 +534,15 @@ Rules:
   otherwise "unknown". "free_shipping" is "yes" only if the listing says shipping is free, "no" if it shows
   a shipping charge, otherwise "unknown".
 - If the user's query is or contains a barcode number (UPC/EAN, 8 to 14 digits), first work out which product it is
-  from search results, then find prices for that product.
+  from search results, then find prices for that product, and put its full name (brand, model, size) in "product".
+  If you cannot tell which product the number is, leave "product" empty and say so in "summary".
 - "likely_stores": up to 3 well-known retailers in the user's region that are most likely to stock this kind
   of item at a good price, best first, each with a short "why" (range, price matching, sales). This is your
   general knowledge of retailers, not live stock, so do not claim availability.
 - If you cannot find reliable prices, return an empty offers list and say why in "summary".
 Reply with ONLY one JSON object: {"offers":[{"retailer":string,"price":number,"currency":string,
 "url":string,"condition":string,"in_stock":string,"free_shipping":string,"note":string}],"summary":string,
-"likely_stores":[{"name":string,"why":string}]}"""
+"likely_stores":[{"name":string,"why":string}],"product":string}"""
 
 WEB_SEARCH_TYPES = ("web_search_20260209", "web_search_20250305")
 # Each search costs a flat fee on top of the tokens its results add. Lower this (WEB_SEARCH_MAX_USES=3) to cap the cost of one price check.
@@ -784,14 +785,16 @@ def buy_prices(req: PricesRequest):
         {"name": str(x.get("name") or "").strip()[:40], "why": str(x.get("why") or "").strip()[:140]}
         for x in (data.get("likely_stores") or []) if isinstance(x, dict) and str(x.get("name") or "").strip()
     ][:3]
+    product = str(data.get("product") or "").strip()[:120]
     ranked = rank(offers, likely, req.query.strip(), Filters())
     return {
         "query": req.query.strip(),
+        "product": product,                    # what a barcode number turned out to be ("" when not looked up)
         "offers": offers,                      # every offer found; the page re-ranks with /api/buy/rank
         "recommendation": ranked["recommendation"],
         "likely_stores": likely,
         "summary": str(data.get("summary") or "").strip(),
-        "compare": compare_links(req.query.strip(), country),
+        "compare": compare_links(product or req.query.strip(), country),
         "checked_at": int(time.time()),
     }
 
