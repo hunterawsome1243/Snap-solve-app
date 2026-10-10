@@ -18,6 +18,7 @@ import Extras from './components/Extras.jsx'
 import Icon from './components/Icon.jsx'
 import ScanLoader from './components/ScanLoader.jsx'
 import { buzz } from './lib/haptics.js'
+import { scannerById } from './lib/favorites.js'
 import { CATEGORIES, HOLIDAYS, holidayById, inSeasonIds, themesIn } from './lib/themes.js'
 import HolidayParticles from './components/HolidayParticles.jsx'
 
@@ -31,6 +32,8 @@ const contextString = (c) =>
 
 export default function App() {
   const [tab, setTab] = useState('solve') // solve | buy | extras | history
+  const [tool, setTool] = useState(null) // which Extras scanner is open: plants | food | species | null (the list)
+  const [favs, setFavs] = useState(store.loadFavs) // the two bottom-bar slots, picked with the star in Extras
   const [screen, setScreen] = useState('home') // home | crop | reading | unreadable | problems | formulating | edit | result | practice
   const [photo, setPhoto] = useState(null)
   const [shots, setShots] = useState(null) // { clean, original, found } while choosing a crop
@@ -286,6 +289,16 @@ export default function App() {
     </div>
   )
 
+  // Open a scanner from a bottom-bar slot or from the Extras list. Solve and Snap Buy are tabs; the others open inside Extras.
+  function openScanner(id) {
+    if (id === 'solve' || id === 'buy') {
+      setTool(null)
+      return setTab(id)
+    }
+    setTool(id)
+    setTab('extras')
+  }
+
   return (
     <div className="app">
       {theme === 'halloween' && <Pumpkins />}
@@ -360,7 +373,7 @@ export default function App() {
 
         {tab === 'buy' && <BuyFlow initial={buyInitial} onHistory={(e) => setHistory(store.addHistory(e))} />}
 
-        {tab === 'extras' && <Extras />}
+        {tab === 'extras' && <Extras tool={tool} setTool={setTool} favs={favs} setFavs={(f) => setFavs(store.saveFavs(f))} onOpen={openScanner} />}
 
         {tab === 'history' && (
           <History
@@ -488,13 +501,23 @@ export default function App() {
       {picker(fileRef, false)}
 
       <nav className="tabs">
-        <button className={tab === 'solve' ? 'on' : ''} onClick={() => setTab('solve')}>
-          <span className="ico"><Icon name="camera" /></span> Solve
-        </button>
-        <button className={tab === 'buy' ? 'on' : ''} onClick={() => setTab('buy')}>
-          <span className="ico"><Icon name="bag" /></span> Snap Buy
-        </button>
-        <button className={tab === 'extras' ? 'on' : ''} onClick={() => setTab('extras')}>
+        {[0, 1].map((slot) => {
+          const sc = scannerById(favs[slot])
+          if (!sc) {
+            return (
+              <button key={`empty${slot}`} className="slot-empty" aria-label="Pick a favorite scanner" onClick={() => { setTool(null); setTab('extras') }}>
+                <span className="ico"><Icon name="star" /></span> Favorite
+              </button>
+            )
+          }
+          const here = sc.id === 'solve' || sc.id === 'buy' ? tab === sc.id : tab === 'extras' && tool === sc.id
+          return (
+            <button key={sc.id} className={here ? 'on' : ''} onClick={() => openScanner(sc.id)}>
+              <span className="ico"><Icon name={sc.icon} /></span> {sc.label}
+            </button>
+          )
+        })}
+        <button className={tab === 'extras' && !favs.includes(tool) ? 'on' : ''} onClick={() => { setTool(null); setTab('extras') }}>
           <span className="ico"><Icon name="grid" /></span> Extras
         </button>
         <button className={tab === 'history' ? 'on' : ''} onClick={() => setTab('history')}>

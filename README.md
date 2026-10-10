@@ -197,6 +197,11 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
   search saw it, and anything over a day old gets a warning with a one-tap re-check.
 - **History** shows math and Snap Buy side by side.
 
+**Favourite scanners.** Every scanner (Math Solver, Snap Buy, Plant Scan, Food Scan, Species Scan) is listed in the **Extras** tab. The two
+slots at the left of the bottom bar are favourites: tap the star on a scanner to pin it there (a third star replaces the oldest;
+tap a starred scanner again to unpin it, and an empty slot shows "Favorite" and opens Extras). The slots start as Solve and Snap Buy,
+and your choice is remembered on the device. Shared logic: `frontend/src/lib/favorites.js`.
+
 **Extras tab: Plant Scan.** Snap a leaf or the whole plant (optionally add what looks wrong, like "yellow leaves") and
 Claude tells you what it is with an honest confidence ("Pretty sure", "Likely" or "Best guess", plus up to three
 look-alikes), whether it looks healthy, what is wrong and what to do, how to care for it, and whether it is toxic to

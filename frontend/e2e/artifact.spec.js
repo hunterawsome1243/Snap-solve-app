@@ -232,6 +232,37 @@ test('extras tab: species scan names it, rates the danger, and never calls a fun
   await expect(page.getByRole('alert')).toContainText('closer photo')
 })
 
+test('favourites: all scanners are in Extras, the star pins up to two to the bottom bar', async ({ page }) => {
+  const names = async () => (await page.locator('nav.tabs button').allInnerTexts()).map((t) => t.trim())
+  const star = (title) => page.getByRole('button', { name: new RegExp(title + ' (to|from) favorites') })
+  expect(await names()).toEqual(['Solve', 'Snap Buy', 'Extras', 'History'])
+
+  await page.locator('#tab-extras').click()
+  for (const t of ['Math Solver', 'Snap Buy', 'Plant Scan', 'Food Scan', 'Species Scan']) await expect(page.getByText(t, { exact: true }).first()).toBeVisible()
+  await expect(star('Math Solver')).toHaveAttribute('aria-pressed', 'true')
+  await star('Food Scan').click()
+  await expect(page.getByRole('status')).toContainText('Food Scan is pinned to the bottom bar. Math Solver was replaced.')
+  expect(await names()).toEqual(['Snap Buy', 'Food', 'Extras', 'History'])
+
+  await page.locator('#tab-food').click()
+  await expect(page.getByRole('heading', { name: 'Scan your food' })).toBeVisible()
+  await expect(page.locator('#tab-food')).toHaveAttribute('aria-current', 'true')
+  await expect(page.locator('#tab-extras')).toHaveAttribute('aria-current', 'false')
+
+  await page.locator('#tab-extras').click()
+  await star('Snap Buy').click()
+  await star('Food Scan').click()
+  expect(await names()).toEqual(['Favorite', 'Favorite', 'Extras', 'History'])
+  await page.getByRole('button', { name: /Math Solver/ }).first().click()
+  await expect(page.locator('.snap').first()).toBeVisible()
+  await page.locator('#tab-empty0').click()
+  await expect(page.getByRole('heading', { name: 'Extras' })).toBeVisible()
+
+  await star('Species Scan').click()
+  await page.reload()
+  expect(await names()).toEqual(['Species', 'Favorite', 'Extras', 'History'])
+})
+
 test('themes are sorted into categories, and a category opens a wider view of its themes', async ({ page }) => {
   await page.locator('#themebtn').click()
   await expect(page.locator('.cat-card b')).toHaveText(['Everyday', 'Nature', 'Fun', 'Holidays'])

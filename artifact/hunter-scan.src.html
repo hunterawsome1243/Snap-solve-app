@@ -431,7 +431,15 @@ a.store { border-radius: 14px; }
   .btn, .chip, .tile { transition: none; }
 }
 /* extras + plant scan */
-.tool { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.tool { display: flex; align-items: center; gap: 6px; width: 100%; }
+.tool-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; text-align: left; cursor: pointer; font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+.star { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: none; border: 0; color: var(--muted); cursor: pointer; transition: transform .12s, color .15s, background .15s; }
+.star .ico-svg { width: 24px; height: 24px; }
+.star:active { transform: scale(.9); }
+.star.on { color: #e9a400; background: var(--soft); }
+.star.on .ico-svg path { fill: currentColor; }
+nav.tabs .slot-empty { opacity: .7; }
+nav.tabs .slot-empty .ico { border: 1.5px dashed var(--line); }
 .tool:active { transform: scale(.985); }
 .tool-ico { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--soft); color: var(--accent); }
 .tool-ico .ico-svg { width: 28px; height: 28px; }
@@ -526,12 +534,7 @@ a.store { border-radius: 14px; }
 <input class="sr" id="spcam" type="file" accept="image/*" capture="environment" aria-label="Take a photo of an animal">
 <input class="sr" id="sppick" type="file" accept="image/*" aria-label="Choose an animal image">
 <input class="sr" id="pick2" type="file" accept="image/*" aria-label="Choose a product image">
-<nav class="tabs"><div class="in">
-  <button type="button" id="tab-solve"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>Solve</button>
-  <button type="button" id="tab-buy"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></span>Snap Buy</button>
-  <button type="button" id="tab-extras"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span>Extras</button>
-  <button type="button" id="tab-hist"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>History</button>
-</div></nav>
+<nav class="tabs"><div class="in" id="tabs"></div></nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
 <script>/*KATEX_JS*/</script>
@@ -547,11 +550,12 @@ a.store { border-radius: 14px; }
     set(k, v) { try { localStorage.setItem('snapsolve.' + k, JSON.stringify(v)) } catch {} },
   }
 
+  /*FAVS_JS*/
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
     shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, themeCat: null, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
-    ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false, meals: store.get('meals', []), foNote: '', food: null, foSaved: false, spNote: '', species: null,
+    ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false, meals: store.get('meals', []), favs: cleanFavs(store.get('favs', null)), favNote: '', foNote: '', food: null, foSaved: false, spNote: '', species: null,
   }
 
 
@@ -632,6 +636,7 @@ a.store { border-radius: 14px; }
   const ICON_PATHS = {
     scan: '<path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>',
     leaf: '<path d="M5 19c0-8 5-14 15-14 0 10-5 15-13 15M5 19c2-4 5-7 9-9"/>',
+    star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.9z"/>',
     grid: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
     drop: '<path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/>',
     back: '<path d="m15 6-6 6 6 6"/>',
@@ -2022,22 +2027,30 @@ Rules:
       h('button', { class: 'btn cta', type: 'button', onclick: () => { S.species = null; S.photo = null; S.spNote = ''; go('s-home') } }, icon('camera'), 'Scan another'))]
   }
 
+  function toggleFavorite(sc) {
+    const { favs, dropped } = toggleFav(S.favs, sc.id)
+    S.favs = favs; store.set('favs', favs)
+    S.favNote = favs.includes(sc.id) ? sc.title + ' is pinned to the bottom bar.' + (dropped ? ' ' + scannerById(dropped).title + ' was replaced.' : '') : sc.title + ' was removed from the bottom bar.'
+    render()
+  }
+
   function vExtras() {
     const due = dueCount(S.plants)
+    const badge = {
+      plants: S.plants.length > 0 && h('span', { class: 'due' + (due ? ' now' : '') }, due ? due + ' need' + (due === 1 ? 's' : '') + ' water' : S.plants.length + ' saved plant' + (S.plants.length === 1 ? '' : 's')),
+      food: mealsOn(S.meals).length > 0 && h('span', { class: 'due' }, dayTotals(mealsOn(S.meals)).calories + ' cal today'),
+    }
     return [h('div', { class: 'stack' },
-      h('div', {}, h('h1', {}, 'Extras'), h('p', { class: 'muted' }, 'More ways to use the camera.')),
-      h('button', { class: 'card tool', type: 'button', onclick: () => go('p-home') },
-        h('span', { class: 'tool-ico' }, icon('leaf')),
-        h('span', { class: 'tool-text' }, h('b', {}, 'Plant Scan'), h('span', { class: 'muted' }, 'Identify a plant, check its health and get care tips.'),
-          S.plants.length > 0 && h('span', { class: 'due' + (due ? ' now' : '') }, due ? due + ' need' + (due === 1 ? 's' : '') + ' water' : S.plants.length + ' saved plant' + (S.plants.length === 1 ? '' : 's')))),
-      h('button', { class: 'card tool', type: 'button', onclick: () => go('f-home') },
-        h('span', { class: 'tool-ico' }, icon('food')),
-        h('span', { class: 'tool-text' }, h('b', {}, 'Food Scan'), h('span', { class: 'muted' }, 'Estimate calories and nutrients from a meal or a label.'),
-          mealsOn(S.meals).length > 0 && h('span', { class: 'due' }, dayTotals(mealsOn(S.meals)).calories + ' cal today'))),
-      h('button', { class: 'card tool', type: 'button', onclick: () => go('s-home') },
-        h('span', { class: 'tool-ico' }, icon('paw')),
-        h('span', { class: 'tool-text' }, h('b', {}, 'Species Scan'), h('span', { class: 'muted' }, 'Identify an animal, bird, insect, fish or fungus.'))),
-      h('p', { class: 'muted tiny center' }, 'More tools are on the way.'))]
+      h('div', {}, h('h1', {}, 'Extras'), h('p', { class: 'muted' }, 'All your scanners. Tap the star to pin up to two to the bottom bar.')),
+      SCANNERS.map((sc) => {
+        const on = S.favs.includes(sc.id)
+        return h('div', { class: 'card tool' },
+          h('button', { class: 'tool-main', type: 'button', onclick: () => openScanner(sc.id) },
+            h('span', { class: 'tool-ico' }, icon(sc.icon)),
+            h('span', { class: 'tool-text' }, h('b', {}, sc.title), h('span', { class: 'muted' }, sc.blurb), badge[sc.id])),
+          h('button', { class: 'star' + (on ? ' on' : ''), type: 'button', 'aria-pressed': String(on), 'aria-label': (on ? 'Remove ' : 'Add ') + sc.title + (on ? ' from' : ' to') + ' favorites', onclick: () => toggleFavorite(sc) }, icon('star')))
+      }),
+      h('p', { class: 'muted tiny center', role: 'status' }, S.favNote || 'More tools are on the way.'))]
   }
 
   function vMyPlants() {
@@ -2107,13 +2120,34 @@ Rules:
         h('button', { class: 'btn cta grow', type: 'button', onclick: () => { S.plant = null; S.photo = null; S.plNote = ''; go('p-home') } }, icon('camera'), 'Scan another')))]
   }
 
+  // Open a scanner from a bottom-bar slot or from the Extras list. Solve and Snap Buy are tabs; the others open inside Extras.
+  function openScanner(id) {
+    S.error = ''
+    if (id === 'solve') { S.tab = 'solve'; S.mode = 'solve'; if (/^[bpfsx]-/.test(S.screen)) S.screen = 'home'; return render() }
+    if (id === 'buy') { S.tab = 'buy'; S.mode = 'buy'; if (!S.screen.startsWith('b-') && S.screen !== 'crop') S.screen = 'b-home'; return render() }
+    S.tab = 'extras'; S.mode = 'solve'
+    go({ plants: 'p-home', food: 'f-home', species: 's-home' }[id])
+  }
+  const openExtras = () => { S.tab = 'extras'; S.mode = 'solve'; go('x-home') }
+  // which favourite (if any) is on screen right now
+  const activeScanner = () => (S.tab === 'solve' ? 'solve' : S.tab === 'buy' ? 'buy' : S.tab === 'extras' ? ({ p: 'plants', f: 'food', s: 'species' }[S.screen[0]] || null) : null)
+
+  function paintNav() {
+    const here = activeScanner()
+    const slot = (i) => {
+      const sc = scannerById(S.favs[i])
+      if (!sc) return h('button', { type: 'button', id: 'tab-empty' + i, class: 'slot-empty', 'aria-label': 'Pick a favorite scanner', onclick: openExtras }, h('span', { class: 'ico' }, icon('star')), 'Favorite')
+      return h('button', { type: 'button', id: 'tab-' + sc.id, 'aria-current': String(here === sc.id), onclick: () => openScanner(sc.id) }, h('span', { class: 'ico' }, icon(sc.icon)), sc.label)
+    }
+    $('#tabs').replaceChildren(slot(0), slot(1),
+      h('button', { type: 'button', id: 'tab-extras', 'aria-current': String(S.tab === 'extras' && !S.favs.includes(here)), onclick: openExtras }, h('span', { class: 'ico' }, icon('grid')), 'Extras'),
+      h('button', { type: 'button', id: 'tab-hist', 'aria-current': String(S.tab === 'history'), onclick: () => { S.tab = 'history'; render() } }, h('span', { class: 'ico' }, icon('history')), 'History'))
+  }
+
   function render() {
     $('#eli').checked = S.simple
     $('#themebtn').setAttribute('aria-expanded', String(S.themeOpen))
-    $('#tab-solve').setAttribute('aria-current', S.tab === 'solve')
-    $('#tab-hist').setAttribute('aria-current', S.tab === 'history')
-    $('#tab-buy').setAttribute('aria-current', S.tab === 'buy')
-    $('#tab-extras').setAttribute('aria-current', S.tab === 'extras')
+    paintNav()
     let body
     if (S.tab === 'history') body = vHistory()
     else if (S.tab === 'buy') {
@@ -2145,13 +2179,9 @@ Rules:
   $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; S.latex = ''; S.result = null; S.word = null; S.problems = []; S.active = -1; go('home') })
-  $('#tab-solve').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; if (/^[bpx]-/.test(S.screen)) S.screen = 'home'; render() })
-  $('#tab-extras').addEventListener('click', () => { S.tab = 'extras'; S.mode = 'solve'; if (!/^[pfsx]-/.test(S.screen)) S.screen = 'x-home'; render() })
   $('#plantcam').addEventListener('change', (e) => { plantFile(e.target.files[0]); e.target.value = '' })
   $('#plantpick').addEventListener('change', (e) => { plantFile(e.target.files[0]); e.target.value = '' })
   for (const [id, fn] of [['foodcam', foodFile], ['foodpick', foodFile], ['spcam', speciesFile], ['sppick', speciesFile]]) $('#' + id).addEventListener('change', (e) => { fn(e.target.files[0]); e.target.value = '' })
-  $('#tab-hist').addEventListener('click', () => { S.tab = 'history'; render() })
-  $('#tab-buy').addEventListener('click', () => { S.tab = 'buy'; S.mode = 'buy'; if (!S.screen.startsWith('b-') && S.screen !== 'crop') S.screen = 'b-home'; render() })
   $('#scan').addEventListener('change', (e) => { scanBarcode(e.target.files[0]); e.target.value = '' })
   $('#cam2').addEventListener('change', (e) => { onFile(e.target.files[0], 'buy'); e.target.value = '' })
   $('#pick2').addEventListener('change', (e) => { onFile(e.target.files[0], 'buy'); e.target.value = '' })
