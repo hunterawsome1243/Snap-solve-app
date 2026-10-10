@@ -116,7 +116,7 @@ usage {"endpoint": "solve", "model": "claude-sonnet-5-5", "input": 412, "output"
 
 Price a call as `input x input rate + output x output rate` (thinking counts as output) plus `searches x $10 / 1,000`;
 rates are on <https://platform.claude.com/docs/en/about-claude/pricing>. The endpoints are `read`, `solve`,
-`formulate`, `practice`, `identify`, `plant` and `prices` (Snap Buy; this is the only one that uses web search).
+`formulate`, `practice`, `identify`, `plant`, `food`, `species` and `prices` (Snap Buy; this is the only one that uses web search).
 
 Two optional settings let you trade cost for thoroughness without touching code (set them in `.env` or in Render under
 **Environment**; unset means no change):
@@ -203,6 +203,16 @@ look-alikes), whether it looks healthy, what is wrong and what to do, how to car
 pets. Save it to **My Plants** to get a watering schedule: it shows what is overdue, and "Watered" restarts the count.
 Saved plants live on the device. It never says a wild plant or mushroom is safe to eat. Endpoint: `POST /api/plant/scan`.
 The phone artifact has the same tab: it asks Claude through your account, so there is no server, and it cleans the answer with the same shared code (`frontend/src/lib/plants.js`).
+
+**Extras tab: Food Scan.** Snap a meal, a snack or a nutrition label. It estimates calories, protein, carbs and fat (reading the
+numbers when a label is in the photo), lists what it can see, and flags likely allergens from a fixed list (milk, eggs, fish,
+shellfish, tree nuts, peanuts, wheat, soy, sesame). Numbers from a photo are labelled as estimates. **Add to today** keeps a daily
+log on the device with running totals. Endpoint: `POST /api/food/scan`; shared cleaning code: `frontend/src/lib/food.js`.
+
+**Extras tab: Species Scan.** Snap an animal, bird, insect, fish or fungus. It gives a best-guess name with a confidence label,
+look-alikes, a short profile, and a danger rating (harmless, use caution, dangerous or unknown). A fungus is never rated harmless and
+always carries a never-eat warning. Endpoint: `POST /api/species/scan`; shared cleaning code: `frontend/src/lib/species.js`.
+Both tools are in the phone artifact too.
 
 **The artifact version** (`artifact/`) has the same Solve features, plus barcode scanning and shared history. Its
 Snap Buy cannot search the web, so filters, price tracking and stale-price warnings do not apply there.

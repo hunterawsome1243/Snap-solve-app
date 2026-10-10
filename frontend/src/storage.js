@@ -93,3 +93,25 @@ export function savePlants(plants) {
   }
   return plants
 }
+
+// ---- the food log (meals you saved from Food Scan) ----
+const MEALS = 'snapsolve.meals.v1'
+const MAX_MEALS = 200
+
+export function loadMeals() {
+  try {
+    const v = JSON.parse(localStorage.getItem(MEALS))
+    return Array.isArray(v) ? v : []
+  } catch {
+    return []
+  }
+}
+
+export function saveMeals(meals) {
+  try {
+    localStorage.setItem(MEALS, JSON.stringify(meals.slice(0, MAX_MEALS)))
+  } catch {
+    /* storage full: the meal stays on screen but is not remembered */
+  }
+  return meals
+}
