@@ -170,14 +170,15 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
 - **Save as PDF or image** to share or print (the share sheet on phones).
 - **Practice** with Easy / Medium / Hard and a topic, a hint on demand, and a streak. Answers are graded by
   SymPy, not by the model; a problem is only used if its stored answer agrees with SymPy.
-- "Explain like I'm 12" toggle, history on the device, and **themes sorted into categories** in the picker:
+- "Explain like I'm 12" toggle, history on the device, and **themes in four categories**. The theme picker shows just the
+  categories (the one you are using says so); tap one for a wider view of its themes.
   **Everyday** (Match device, Light, Dark), **Nature** (Ocean, Forest, Sunset), **Fun** (Science, with a spinning atom,
   a sweeping laser and drifting periodic-table tiles; Tropical, with a swaying pineapple and falling fruit) and
   **Holidays**, in the order the year brings them: New Year's, Lunar New Year, Valentine's Day, St. Patrick's Day, Easter,
-  Eid, 4th of July, Halloween (falling pumpkins), Diwali, Thanksgiving, Hanukkah and Christmas. Each holiday theme has its
-  own colours, a logo emoji, and emoji that fall or float up the screen. They are defined once in
-  `frontend/src/lib/themes.js` (their CSS is generated from it, and a test checks every one for readable contrast), and the
-  phone artifact uses the same definitions. All motion respects "reduce motion".
+  4th of July, Halloween (falling pumpkins), Thanksgiving and Christmas. Each holiday theme has its own colours, a logo
+  emoji, and emoji that fall or float up the screen. They are defined once in `frontend/src/lib/themes.js` (their CSS is
+  generated from it, and a test checks every one for readable contrast), and the phone artifact uses the same
+  definitions. All motion respects "reduce motion".
 
 **Snap Buy** (see above)
 - **Barcode scanning** (EAN/UPC from a photo; built-in detector where available, ZXing elsewhere).

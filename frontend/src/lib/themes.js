@@ -42,34 +42,16 @@ export const HOLIDAYS = [
     stripe: ['#ff9ec1', '#ffd166', '#9fe3c3', '#9ec5ff', '#c8a8f0'], emoji: ['🐣', '🥚', '🌷', '🐰', '🌸'], motion: 'fall', logo: '🐣',
   },
   {
-    id: 'eid', name: 'Eid', dark: true,
-    bg: '#06201f', card: '#0d3230', text: '#f7f0da', muted: '#9fc7bf', line: '#1c4c48', soft: '#12403c',
-    brand: '#e6c25a', brand2: '#4fd1c5', ink: '#1a1400', cta: '#e6c25a', cta2: '#f3dc8d', ctaInk: '#1a1400',
-    stripe: ['#e6c25a', '#4fd1c5', '#e6c25a'], emoji: ['🌙', '⭐', '✨', '🏮', '🕌'], motion: 'rise', logo: '🌙',
-  },
-  {
     id: 'july4', name: '4th of July',
     bg: '#f4f7ff', card: '#ffffff', text: '#0b1d4a', muted: '#566690', line: '#d3dcf2', soft: '#e3eafb',
     brand: '#1d3a8a', brand2: '#d32f2f', ink: '#ffffff', cta: '#c62828', cta2: '#c9402a', ctaInk: '#ffffff',
     stripe: ['#d32f2f', '#1d3a8a', '#d32f2f', '#1d3a8a'], emoji: ['🎆', '🎇', '⭐', '🇺🇸', '✨'], motion: 'rise', logo: '🎆',
   },
   {
-    id: 'diwali', name: 'Diwali', dark: true,
-    bg: '#1b0a26', card: '#2b1239', text: '#fff1d6', muted: '#d2adda', line: '#48235c', soft: '#3a1b4d',
-    brand: '#ffb627', brand2: '#ff5e3a', ink: '#2a1400', cta: '#ffb627', cta2: '#ff8a3a', ctaInk: '#2a1400',
-    stripe: ['#ffb627', '#ff5e3a', '#e0359b', '#ffb627'], emoji: ['🪔', '✨', '🎇', '🪷', '🏮'], motion: 'rise', logo: '🪔',
-  },
-  {
     id: 'thanksgiving', name: 'Thanksgiving',
     bg: '#fff3e3', card: '#fffaf1', text: '#3a2210', muted: '#7a5a3c', line: '#efd8ba', soft: '#fbe4c6',
     brand: '#a84a14', brand2: '#d99a1a', ink: '#ffffff', cta: '#a84a14', cta2: '#b45a14', ctaInk: '#ffffff',
     stripe: ['#a84a14', '#d99a1a', '#7a3b12'], emoji: ['🍂', '🍁', '🌽', '🥧', '🦃'], motion: 'fall', logo: '🦃',
-  },
-  {
-    id: 'hanukkah', name: 'Hanukkah',
-    bg: '#eef4ff', card: '#ffffff', text: '#0a2660', muted: '#51648f', line: '#d1def5', soft: '#dde8fb',
-    brand: '#1c58c0', brand2: '#d9aa2b', ink: '#ffffff', cta: '#1c58c0', cta2: '#2468c8', ctaInk: '#ffffff',
-    stripe: ['#1c58c0', '#d9aa2b', '#1c58c0'], emoji: ['🕎', '✡️', '✨', '💙', '🕯️'], motion: 'fall', logo: '🕎',
   },
   {
     id: 'christmas', name: 'Christmas', dark: true,

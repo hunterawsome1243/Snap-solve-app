@@ -53,6 +53,7 @@ export default function App() {
   const [simple, setSimple] = useState(() => store.getPref('simple', false))
   const [theme, setTheme] = useState(() => store.getPref('theme', 'auto'))
   const [themeOpen, setThemeOpen] = useState(false)
+  const [themeCat, setThemeCat] = useState(null) // null = the list of categories, else the category being browsed
   const camRef = useRef(null)
   const fileRef = useRef(null)
 
@@ -304,7 +305,7 @@ export default function App() {
             className="icon-btn"
             aria-label="Choose theme"
             aria-expanded={themeOpen}
-            onClick={() => setThemeOpen((o) => !o)}
+            onClick={() => { setThemeOpen((o) => !o); setThemeCat(null) }}
           >
             <Icon name="palette" />
           </button>
@@ -314,12 +315,31 @@ export default function App() {
       <main className="content">
         {themeOpen && (
           <div className="card stack theme-card">
-            <h2>Theme</h2>
-            {CATEGORIES.map((c) => (
-              <section key={c.id} className="theme-group" aria-label={c.name}>
-                <h3>{c.name}</h3>
-                <div className="themes">
-                  {themesIn(c.id).map((t) => (
+            {!themeCat ? (
+              <>
+                <h2>Theme</h2>
+                <div className="cat-grid">
+                  {CATEGORIES.map((c) => {
+                    const list = themesIn(c.id)
+                    const current = list.find((t) => t.id === theme)
+                    return (
+                      <button key={c.id} className={`cat-card ${current ? 'has-current' : ''}`} onClick={() => setThemeCat(c.id)} aria-label={`${c.name}, ${list.length} themes`}>
+                        <span className="dots">{list.slice(0, 4).map((t) => <i key={t.id} style={{ background: t.colors[1] }} />)}</span>
+                        <b>{c.name}</b>
+                        <span className="muted tiny">{current ? `Using ${current.name}` : `${list.length} themes`}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="row">
+                  <button className="link back" onClick={() => setThemeCat(null)}><Icon name="back" />Themes</button>
+                  <h2>{CATEGORIES.find((c) => c.id === themeCat).name}</h2>
+                </div>
+                <div className="themes wide">
+                  {themesIn(themeCat).map((t) => (
                     <button key={t.id} className="theme" aria-pressed={theme === t.id} onClick={() => setTheme(t.id)}>
                       <span className="dots">
                         {t.colors.map((col) => <i key={col} style={{ background: col }} />)}
@@ -328,8 +348,8 @@ export default function App() {
                     </button>
                   ))}
                 </div>
-              </section>
-            ))}
+              </>
+            )}
           </div>
         )}
         {error && <div className="banner warn" role="alert">{error}</div>}

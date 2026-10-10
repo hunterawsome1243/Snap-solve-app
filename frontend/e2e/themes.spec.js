@@ -1,8 +1,14 @@
 import { expect, test } from '@playwright/test'
 import { blockFonts } from './support/mocks.js'
 
+// which category each theme lives in (the picker shows categories first, then a wider view of one)
+const CATEGORY_OF = {
+  'Match device': 'Everyday', Light: 'Everyday', Dark: 'Everyday', Ocean: 'Nature', Forest: 'Nature', Sunset: 'Nature',
+  Science: 'Fun', Tropical: 'Fun', Halloween: 'Holidays',
+}
 async function pick(page, name) {
   await page.getByLabel('Choose theme').click()
+  await page.getByRole('button', { name: new RegExp(`^${CATEGORY_OF[name] || 'Holidays'},`) }).click()
   await page.locator('.theme', { hasText: name }).click()
   await page.getByLabel('Choose theme').click()
 }
@@ -73,21 +79,38 @@ test('the chosen theme is remembered', async ({ page }) => {
 
 const HOLIDAY_THEMES = [
   ['newyear', "New Year's", 'fall'], ['lunar', 'Lunar New Year', 'fall'], ['valentine', "Valentine's Day", 'rise'], ['stpatrick', "St. Patrick's Day", 'fall'],
-  ['easter', 'Easter', 'fall'], ['eid', 'Eid', 'rise'], ['july4', '4th of July', 'rise'], ['diwali', 'Diwali', 'rise'],
-  ['thanksgiving', 'Thanksgiving', 'fall'], ['hanukkah', 'Hanukkah', 'fall'], ['christmas', 'Christmas', 'fall'],
+  ['easter', 'Easter', 'fall'], ['july4', '4th of July', 'rise'], ['thanksgiving', 'Thanksgiving', 'fall'], ['christmas', 'Christmas', 'fall'],
 ]
 
-test('the picker sorts themes into Everyday, Nature, Fun and Holidays', async ({ page }) => {
+test('the picker shows four categories, and a category opens a wider view of its themes', async ({ page }) => {
   await page.getByLabel('Choose theme').click()
-  await expect(page.locator('.theme-group h3')).toHaveText(['Everyday', 'Nature', 'Fun', 'Holidays'])
-  const names = (group) => page.locator(`.theme-group[aria-label="${group}"] .theme b`).allTextContents()
-  expect(await names('Everyday')).toEqual(['Match device', 'Light', 'Dark'])
-  expect(await names('Nature')).toEqual(['Ocean', 'Forest', 'Sunset'])
-  expect(await names('Fun')).toEqual(['Science', 'Tropical'])
-  // in the order the year brings them round, with Halloween in its place
-  expect(await names('Holidays')).toEqual([
-    "New Year's", 'Lunar New Year', "Valentine's Day", "St. Patrick's Day", 'Easter', 'Eid', '4th of July', 'Halloween', 'Diwali', 'Thanksgiving', 'Hanukkah', 'Christmas',
-  ])
+  // compact: only the categories, no individual themes yet
+  await expect(page.locator('.cat-card b')).toHaveText(['Everyday', 'Nature', 'Fun', 'Holidays'])
+  await expect(page.locator('.theme')).toHaveCount(0)
+  const open = (cat) => page.getByRole('button', { name: new RegExp(`^${cat},`) }).click()
+  const names = () => page.locator('.themes.wide .theme b').allTextContents()
+  await open('Everyday'); expect(await names()).toEqual(['Match device', 'Light', 'Dark'])
+  await page.getByRole('button', { name: 'Themes' }).click()
+  await open('Nature'); expect(await names()).toEqual(['Ocean', 'Forest', 'Sunset'])
+  await page.getByRole('button', { name: 'Themes' }).click()
+  await open('Fun'); expect(await names()).toEqual(['Science', 'Tropical'])
+  await page.getByRole('button', { name: 'Themes' }).click()
+  // in the order the year brings them round, with Halloween in its place (and no Eid, Diwali or Hanukkah)
+  await open('Holidays')
+  expect(await names()).toEqual(["New Year's", 'Lunar New Year', "Valentine's Day", "St. Patrick's Day", 'Easter', '4th of July', 'Halloween', 'Thanksgiving', 'Christmas'])
+  // the wider view really is wider: its tiles are bigger than the small swatches were
+  expect((await page.locator('.themes.wide .theme').first().boundingBox()).width).toBeGreaterThan(130)
+})
+
+test('the category you are using says so, and the picker starts at the categories each time', async ({ page }) => {
+  await pick(page, 'Christmas')
+  await page.getByLabel('Choose theme').click()
+  await expect(page.getByRole('button', { name: /^Holidays,/ })).toContainText('Using Christmas')
+  await expect(page.getByRole('button', { name: /^Nature,/ })).toContainText('3 themes')
+  await page.getByRole('button', { name: /^Nature,/ }).click()
+  await page.getByLabel('Choose theme').click() // close
+  await page.getByLabel('Choose theme').click() // open again: back at the categories
+  await expect(page.locator('.cat-card')).toHaveCount(4)
 })
 
 for (const [id, name, motion] of HOLIDAY_THEMES) {

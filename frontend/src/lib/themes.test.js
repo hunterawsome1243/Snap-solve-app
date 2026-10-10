@@ -23,7 +23,7 @@ describe('themes', () => {
   })
   it('lists the holidays in the order the year brings them, with Halloween in its place', () => {
     expect(themesIn('holidays').map((t) => t.id)).toEqual([
-      'newyear', 'lunar', 'valentine', 'stpatrick', 'easter', 'eid', 'july4', 'halloween', 'diwali', 'thanksgiving', 'hanukkah', 'christmas',
+      'newyear', 'lunar', 'valentine', 'stpatrick', 'easter', 'july4', 'halloween', 'thanksgiving', 'christmas',
     ])
   })
   it('gives every holiday a complete definition', () => {

@@ -469,6 +469,17 @@ a.store { border-radius: 14px; }
 .theme-group { display: flex; flex-direction: column; gap: 8px; }
 .theme-group h3 { margin: 6px 0 0; font: 700 .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .theme-card { max-height: 72vh; overflow-y: auto; }
+.cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.cat-card { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; text-align: left; min-height: 96px; padding: 14px; background: var(--bg); border: 2px solid var(--line); border-radius: 16px; color: var(--ink); font: inherit; cursor: pointer; }
+.cat-card:active { transform: scale(.97); }
+.cat-card.has-current { border-color: var(--accent); }
+.cat-card .dots { display: flex; }
+.cat-card .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); margin-right: -6px; }
+.cat-card b { font-size: 1rem; margin-top: 4px; }
+.themes.wide { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.themes.wide .theme { padding: 14px; min-height: 84px; }
+.themes.wide .theme .dots i { width: 28px; height: 28px; }
+.theme-card .row h2 { margin: 0; }
 .hparts { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
 .hpart { position: absolute; opacity: .65; will-change: transform; }
 .hpart.fall { top: -56px; animation: hpart-fall linear infinite; }
@@ -574,25 +585,6 @@ a.store { border-radius: 14px; }
 :root[data-skin='easter'] .logo-mark::after { content: var(--logo); display: inline-block; font-size: 1.7rem; line-height: 1; transform-origin: 50% 90%; animation: pine-sway 3.6s ease-in-out infinite alternate; }
 :root[data-skin='easter'] .answer { background: linear-gradient(135deg, color-mix(in srgb, #ff9ec1 24%, #fffdff), color-mix(in srgb, #7646c8 14%, #fffdff)); }
 
-:root[data-skin='eid'] {
-  --bg: #06201f; --card: #0d3230; --surface: #0d3230; --text: #f7f0da; --ink: #f7f0da; --muted: #9fc7bf; --line: #1c4c48; --soft: #12403c;
-  --brand: #e6c25a; --accent: #e6c25a; --brand-2: #4fd1c5; --accent-2: #4fd1c5; --brand-ink: #1a1400; --accent-ink: #1a1400;
-  --cta: #e6c25a; --cta-2: #f3dc8d; --cta-ink: #1a1400;
-  --grid: color-mix(in srgb, #e6c25a 9%, transparent); --hi: color-mix(in srgb, #4fd1c5 28%, #0d3230);
-  --ok: #5dffb0; --ok-bg: #0e3a2f; --warn: #ffd166; --warn-bg: #3a2a0c; --warn-line: #a07a1a; --info: #8fd8ff; --info-bg: #11344d;
-  --shadow: 0 10px 28px rgba(0, 0, 0, .5);
-  --logo: "🌙"; color-scheme: dark;
-}
-:root[data-skin='eid'] body {
-  background-image: radial-gradient(520px 380px at 100% 0%, color-mix(in srgb, #4fd1c5 13%, transparent), transparent 70%), radial-gradient(480px 420px at 0% 100%, color-mix(in srgb, #e6c25a 9%, transparent), transparent 70%);
-  background-size: auto, auto; background-attachment: fixed;
-}
-:root[data-skin='eid'] .top, :root[data-skin='eid'] header.top { border-bottom: 4px solid transparent; border-image: linear-gradient(90deg, #e6c25a, #4fd1c5, #e6c25a) 1; }
-:root[data-skin='eid'] .logo-mark { background: transparent; font-size: 0; box-shadow: none; }
-:root[data-skin='eid'] .logo-mark svg { display: none; }
-:root[data-skin='eid'] .logo-mark::after { content: var(--logo); display: inline-block; font-size: 1.7rem; line-height: 1; transform-origin: 50% 90%; animation: pine-sway 3.6s ease-in-out infinite alternate; }
-:root[data-skin='eid'] .answer { background: linear-gradient(135deg, color-mix(in srgb, #4fd1c5 24%, #0d3230), color-mix(in srgb, #e6c25a 14%, #0d3230)); }
-
 :root[data-skin='july4'] {
   --bg: #f4f7ff; --card: #ffffff; --surface: #ffffff; --text: #0b1d4a; --ink: #0b1d4a; --muted: #566690; --line: #d3dcf2; --soft: #e3eafb;
   --brand: #1d3a8a; --accent: #1d3a8a; --brand-2: #d32f2f; --accent-2: #d32f2f; --brand-ink: #ffffff; --accent-ink: #ffffff;
@@ -612,25 +604,6 @@ a.store { border-radius: 14px; }
 :root[data-skin='july4'] .logo-mark::after { content: var(--logo); display: inline-block; font-size: 1.7rem; line-height: 1; transform-origin: 50% 90%; animation: pine-sway 3.6s ease-in-out infinite alternate; }
 :root[data-skin='july4'] .answer { background: linear-gradient(135deg, color-mix(in srgb, #d32f2f 24%, #ffffff), color-mix(in srgb, #1d3a8a 14%, #ffffff)); }
 
-:root[data-skin='diwali'] {
-  --bg: #1b0a26; --card: #2b1239; --surface: #2b1239; --text: #fff1d6; --ink: #fff1d6; --muted: #d2adda; --line: #48235c; --soft: #3a1b4d;
-  --brand: #ffb627; --accent: #ffb627; --brand-2: #ff5e3a; --accent-2: #ff5e3a; --brand-ink: #2a1400; --accent-ink: #2a1400;
-  --cta: #ffb627; --cta-2: #ff8a3a; --cta-ink: #2a1400;
-  --grid: color-mix(in srgb, #ffb627 9%, transparent); --hi: color-mix(in srgb, #ff5e3a 28%, #2b1239);
-  --ok: #5dffb0; --ok-bg: #0e3a2f; --warn: #ffd166; --warn-bg: #3a2a0c; --warn-line: #a07a1a; --info: #8fd8ff; --info-bg: #11344d;
-  --shadow: 0 10px 28px rgba(0, 0, 0, .5);
-  --logo: "🪔"; color-scheme: dark;
-}
-:root[data-skin='diwali'] body {
-  background-image: radial-gradient(520px 380px at 100% 0%, color-mix(in srgb, #ff5e3a 13%, transparent), transparent 70%), radial-gradient(480px 420px at 0% 100%, color-mix(in srgb, #ffb627 9%, transparent), transparent 70%);
-  background-size: auto, auto; background-attachment: fixed;
-}
-:root[data-skin='diwali'] .top, :root[data-skin='diwali'] header.top { border-bottom: 4px solid transparent; border-image: linear-gradient(90deg, #ffb627, #ff5e3a, #e0359b, #ffb627) 1; }
-:root[data-skin='diwali'] .logo-mark { background: transparent; font-size: 0; box-shadow: none; }
-:root[data-skin='diwali'] .logo-mark svg { display: none; }
-:root[data-skin='diwali'] .logo-mark::after { content: var(--logo); display: inline-block; font-size: 1.7rem; line-height: 1; transform-origin: 50% 90%; animation: pine-sway 3.6s ease-in-out infinite alternate; }
-:root[data-skin='diwali'] .answer { background: linear-gradient(135deg, color-mix(in srgb, #ff5e3a 24%, #2b1239), color-mix(in srgb, #ffb627 14%, #2b1239)); }
-
 :root[data-skin='thanksgiving'] {
   --bg: #fff3e3; --card: #fffaf1; --surface: #fffaf1; --text: #3a2210; --ink: #3a2210; --muted: #7a5a3c; --line: #efd8ba; --soft: #fbe4c6;
   --brand: #a84a14; --accent: #a84a14; --brand-2: #d99a1a; --accent-2: #d99a1a; --brand-ink: #ffffff; --accent-ink: #ffffff;
@@ -649,25 +622,6 @@ a.store { border-radius: 14px; }
 :root[data-skin='thanksgiving'] .logo-mark svg { display: none; }
 :root[data-skin='thanksgiving'] .logo-mark::after { content: var(--logo); display: inline-block; font-size: 1.7rem; line-height: 1; transform-origin: 50% 90%; animation: pine-sway 3.6s ease-in-out infinite alternate; }
 :root[data-skin='thanksgiving'] .answer { background: linear-gradient(135deg, color-mix(in srgb, #d99a1a 24%, #fffaf1), color-mix(in srgb, #a84a14 14%, #fffaf1)); }
-
-:root[data-skin='hanukkah'] {
-  --bg: #eef4ff; --card: #ffffff; --surface: #ffffff; --text: #0a2660; --ink: #0a2660; --muted: #51648f; --line: #d1def5; --soft: #dde8fb;
-  --brand: #1c58c0; --accent: #1c58c0; --brand-2: #d9aa2b; --accent-2: #d9aa2b; --brand-ink: #ffffff; --accent-ink: #ffffff;
-  --cta: #1c58c0; --cta-2: #2468c8; --cta-ink: #ffffff;
-  --grid: color-mix(in srgb, #1c58c0 9%, transparent); --hi: color-mix(in srgb, #d9aa2b 28%, #ffffff);
-  --ok: #1b7a3d; --ok-bg: #e0f5dd; --warn: #8a5300; --warn-bg: #fff0c7; --warn-line: #f0b84a; --info: #07696f; --info-bg: #dcf4f1;
-  --shadow: 0 10px 28px color-mix(in srgb, #1c58c0 16%, transparent);
-  --logo: "🕎"; color-scheme: light;
-}
-:root[data-skin='hanukkah'] body {
-  background-image: radial-gradient(520px 380px at 100% 0%, color-mix(in srgb, #d9aa2b 24%, transparent), transparent 70%), radial-gradient(480px 420px at 0% 100%, color-mix(in srgb, #1c58c0 16%, transparent), transparent 70%);
-  background-size: auto, auto; background-attachment: fixed;
-}
-:root[data-skin='hanukkah'] .top, :root[data-skin='hanukkah'] header.top { border-bottom: 4px solid transparent; border-image: linear-gradient(90deg, #1c58c0, #d9aa2b, #1c58c0) 1; }
-:root[data-skin='hanukkah'] .logo-mark { background: transparent; font-size: 0; box-shadow: none; }
-:root[data-skin='hanukkah'] .logo-mark svg { display: none; }
-:root[data-skin='hanukkah'] .logo-mark::after { content: var(--logo); display: inline-block; font-size: 1.7rem; line-height: 1; transform-origin: 50% 90%; animation: pine-sway 3.6s ease-in-out infinite alternate; }
-:root[data-skin='hanukkah'] .answer { background: linear-gradient(135deg, color-mix(in srgb, #d9aa2b 24%, #ffffff), color-mix(in srgb, #1c58c0 14%, #ffffff)); }
 
 :root[data-skin='christmas'] {
   --bg: #0d2418; --card: #143323; --surface: #143323; --text: #f6f1e7; --ink: #f6f1e7; --muted: #a9c4b2; --line: #25513a; --soft: #16392a;
@@ -733,7 +687,7 @@ a.store { border-radius: 14px; }
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
-    shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
+    shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, themeCat: null, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
     ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false,
   }
 
@@ -783,34 +737,16 @@ const HOLIDAYS = [
     stripe: ['#ff9ec1', '#ffd166', '#9fe3c3', '#9ec5ff', '#c8a8f0'], emoji: ['🐣', '🥚', '🌷', '🐰', '🌸'], motion: 'fall', logo: '🐣',
   },
   {
-    id: 'eid', name: 'Eid', dark: true,
-    bg: '#06201f', card: '#0d3230', text: '#f7f0da', muted: '#9fc7bf', line: '#1c4c48', soft: '#12403c',
-    brand: '#e6c25a', brand2: '#4fd1c5', ink: '#1a1400', cta: '#e6c25a', cta2: '#f3dc8d', ctaInk: '#1a1400',
-    stripe: ['#e6c25a', '#4fd1c5', '#e6c25a'], emoji: ['🌙', '⭐', '✨', '🏮', '🕌'], motion: 'rise', logo: '🌙',
-  },
-  {
     id: 'july4', name: '4th of July',
     bg: '#f4f7ff', card: '#ffffff', text: '#0b1d4a', muted: '#566690', line: '#d3dcf2', soft: '#e3eafb',
     brand: '#1d3a8a', brand2: '#d32f2f', ink: '#ffffff', cta: '#c62828', cta2: '#c9402a', ctaInk: '#ffffff',
     stripe: ['#d32f2f', '#1d3a8a', '#d32f2f', '#1d3a8a'], emoji: ['🎆', '🎇', '⭐', '🇺🇸', '✨'], motion: 'rise', logo: '🎆',
   },
   {
-    id: 'diwali', name: 'Diwali', dark: true,
-    bg: '#1b0a26', card: '#2b1239', text: '#fff1d6', muted: '#d2adda', line: '#48235c', soft: '#3a1b4d',
-    brand: '#ffb627', brand2: '#ff5e3a', ink: '#2a1400', cta: '#ffb627', cta2: '#ff8a3a', ctaInk: '#2a1400',
-    stripe: ['#ffb627', '#ff5e3a', '#e0359b', '#ffb627'], emoji: ['🪔', '✨', '🎇', '🪷', '🏮'], motion: 'rise', logo: '🪔',
-  },
-  {
     id: 'thanksgiving', name: 'Thanksgiving',
     bg: '#fff3e3', card: '#fffaf1', text: '#3a2210', muted: '#7a5a3c', line: '#efd8ba', soft: '#fbe4c6',
     brand: '#a84a14', brand2: '#d99a1a', ink: '#ffffff', cta: '#a84a14', cta2: '#b45a14', ctaInk: '#ffffff',
     stripe: ['#a84a14', '#d99a1a', '#7a3b12'], emoji: ['🍂', '🍁', '🌽', '🥧', '🦃'], motion: 'fall', logo: '🦃',
-  },
-  {
-    id: 'hanukkah', name: 'Hanukkah',
-    bg: '#eef4ff', card: '#ffffff', text: '#0a2660', muted: '#51648f', line: '#d1def5', soft: '#dde8fb',
-    brand: '#1c58c0', brand2: '#d9aa2b', ink: '#ffffff', cta: '#1c58c0', cta2: '#2468c8', ctaInk: '#ffffff',
-    stripe: ['#1c58c0', '#d9aa2b', '#1c58c0'], emoji: ['🕎', '✡️', '✨', '💙', '🕯️'], motion: 'fall', logo: '🕎',
   },
   {
     id: 'christmas', name: 'Christmas', dark: true,
@@ -927,14 +863,23 @@ ${root} .answer { background: linear-gradient(135deg, color-mix(in srgb, ${h.bra
     return box
   }
   function vThemes() {
-    return h('div', { class: 'card stack theme-card' }, h('h2', {}, 'Theme'),
-      CATEGORIES.map((c) => {
-        const list = SKINS.filter((t) => t.category === c.id)
-        return list.length && h('section', { class: 'theme-group', 'aria-label': c.name }, h('h3', {}, c.name),
-          h('div', { class: 'themes' }, list.map((k) =>
-            h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
-              h('span', { class: 'dots' }, k.colors.map((col) => h('i', { style: 'background:' + col }))), h('b', {}, k.name)))))
-      }))
+    if (!S.themeCat) {
+      return h('div', { class: 'card stack theme-card' }, h('h2', {}, 'Theme'),
+        h('div', { class: 'cat-grid' }, CATEGORIES.map((c) => {
+          const list = SKINS.filter((t) => t.category === c.id)
+          if (!list.length) return null
+          const current = list.find((t) => t.id === S.skin)
+          return h('button', { class: 'cat-card' + (current ? ' has-current' : ''), type: 'button', 'aria-label': c.name + ', ' + list.length + ' themes', onclick: () => { S.themeCat = c.id; render() } },
+            h('span', { class: 'dots' }, list.slice(0, 4).map((t) => h('i', { style: 'background:' + t.colors[1] }))),
+            h('b', {}, c.name), h('span', { class: 'muted tiny' }, current ? 'Using ' + current.name : list.length + (list.length === 1 ? ' theme' : ' themes')))
+        })))
+    }
+    const cat = CATEGORIES.find((c) => c.id === S.themeCat)
+    return h('div', { class: 'card stack theme-card' },
+      h('div', { class: 'row' }, h('button', { class: 'link left', type: 'button', onclick: () => { S.themeCat = null; render() } }, icon('back'), 'Themes'), h('h2', {}, cat.name)),
+      h('div', { class: 'themes wide' }, SKINS.filter((t) => t.category === cat.id).map((k) =>
+        h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
+          h('span', { class: 'dots' }, k.colors.map((col) => h('i', { style: 'background:' + col }))), h('b', {}, k.name)))))
   }
 
   // ---------- icons (one set, so every phone draws the same pictures) ----------
@@ -2709,7 +2654,7 @@ Rules:
   }
 
   // ---------- wiring ----------
-  $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; render() })
+  $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; S.themeCat = null; render() })
   $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; S.latex = ''; S.result = null; S.word = null; S.problems = []; S.active = -1; go('home') })

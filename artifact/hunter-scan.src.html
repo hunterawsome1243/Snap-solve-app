@@ -469,6 +469,17 @@ a.store { border-radius: 14px; }
 .theme-group { display: flex; flex-direction: column; gap: 8px; }
 .theme-group h3 { margin: 6px 0 0; font: 700 .72rem var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .theme-card { max-height: 72vh; overflow-y: auto; }
+.cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.cat-card { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; text-align: left; min-height: 96px; padding: 14px; background: var(--bg); border: 2px solid var(--line); border-radius: 16px; color: var(--ink); font: inherit; cursor: pointer; }
+.cat-card:active { transform: scale(.97); }
+.cat-card.has-current { border-color: var(--accent); }
+.cat-card .dots { display: flex; }
+.cat-card .dots i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--surface); margin-right: -6px; }
+.cat-card b { font-size: 1rem; margin-top: 4px; }
+.themes.wide { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.themes.wide .theme { padding: 14px; min-height: 84px; }
+.themes.wide .theme .dots i { width: 28px; height: 28px; }
+.theme-card .row h2 { margin: 0; }
 .hparts { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
 .hpart { position: absolute; opacity: .65; will-change: transform; }
 .hpart.fall { top: -56px; animation: hpart-fall linear infinite; }
@@ -522,7 +533,7 @@ a.store { border-radius: 14px; }
   const S = {
     tab: 'solve', screen: 'home', photo: null, latex: '', note: '', practice: false,
     result: null, busy: false, error: '', simple: store.get('simple', false),
-    shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
+    shots: null, shotMode: 'clean', history: store.get('history', []).map((i) => ({ type: 'math', ...i })), hfilter: 'all', problems: [], active: -1, running: false, word: null, uncertain: [], fixIdx: null, pr: null, downloads: null, exporting: '', exportMsg: '', barcode: null, skin: store.get('skin', 'auto'), themeOpen: false, themeCat: null, mode: 'solve', product: null, query: '', stores: [], sample: null, canReadImages: false, ready: false,
     ctl: null, plants: store.get('plants', []), plNote: '', plant: null, plSaved: false,
   }
 
@@ -579,14 +590,23 @@ a.store { border-radius: 14px; }
     return box
   }
   function vThemes() {
-    return h('div', { class: 'card stack theme-card' }, h('h2', {}, 'Theme'),
-      CATEGORIES.map((c) => {
-        const list = SKINS.filter((t) => t.category === c.id)
-        return list.length && h('section', { class: 'theme-group', 'aria-label': c.name }, h('h3', {}, c.name),
-          h('div', { class: 'themes' }, list.map((k) =>
-            h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
-              h('span', { class: 'dots' }, k.colors.map((col) => h('i', { style: 'background:' + col }))), h('b', {}, k.name)))))
-      }))
+    if (!S.themeCat) {
+      return h('div', { class: 'card stack theme-card' }, h('h2', {}, 'Theme'),
+        h('div', { class: 'cat-grid' }, CATEGORIES.map((c) => {
+          const list = SKINS.filter((t) => t.category === c.id)
+          if (!list.length) return null
+          const current = list.find((t) => t.id === S.skin)
+          return h('button', { class: 'cat-card' + (current ? ' has-current' : ''), type: 'button', 'aria-label': c.name + ', ' + list.length + ' themes', onclick: () => { S.themeCat = c.id; render() } },
+            h('span', { class: 'dots' }, list.slice(0, 4).map((t) => h('i', { style: 'background:' + t.colors[1] }))),
+            h('b', {}, c.name), h('span', { class: 'muted tiny' }, current ? 'Using ' + current.name : list.length + (list.length === 1 ? ' theme' : ' themes')))
+        })))
+    }
+    const cat = CATEGORIES.find((c) => c.id === S.themeCat)
+    return h('div', { class: 'card stack theme-card' },
+      h('div', { class: 'row' }, h('button', { class: 'link left', type: 'button', onclick: () => { S.themeCat = null; render() } }, icon('back'), 'Themes'), h('h2', {}, cat.name)),
+      h('div', { class: 'themes wide' }, SKINS.filter((t) => t.category === cat.id).map((k) =>
+        h('button', { class: 'theme', type: 'button', 'aria-pressed': String(S.skin === k.id), onclick: () => { S.skin = k.id; store.set('skin', k.id); applySkin(); render() } },
+          h('span', { class: 'dots' }, k.colors.map((col) => h('i', { style: 'background:' + col }))), h('b', {}, k.name)))))
   }
 
   // ---------- icons (one set, so every phone draws the same pictures) ----------
@@ -1942,7 +1962,7 @@ Rules:
   }
 
   // ---------- wiring ----------
-  $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; render() })
+  $('#themebtn').addEventListener('click', () => { S.themeOpen = !S.themeOpen; S.themeCat = null; render() })
   $('#cam').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#pick').addEventListener('change', (e) => { onFile(e.target.files[0]); e.target.value = '' })
   $('#logo').addEventListener('click', () => { S.tab = 'solve'; S.mode = 'solve'; S.latex = ''; S.result = null; S.word = null; S.problems = []; S.active = -1; go('home') })
