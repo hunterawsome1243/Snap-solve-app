@@ -768,6 +768,9 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
   // ---------- images ----------
   /*SCANNER_JS*/
 
+  // ---------- barcode photos (shared with the React app: frontend/src/lib/barcode.js) ----------
+  /*BARCODE_JS*/
+
   // ---------- plants (shared with the React app: frontend/src/lib/plants.js) ----------
   const DAY = 24 * 60 * 60 * 1000
   /*PLANTS_JS*/
@@ -1372,19 +1375,8 @@ Rules: the problem must have a clean exact answer (no long decimals) and exactly
   async function scanBarcode(file) {
     if (!file || !file.type.startsWith('image/')) return setError('Please choose an image file.')
     S.mode = 'buy'; S.tab = 'buy'; go('b-scanning')
-    const clean = (t) => { const d = String(t || '').replace(/\D/g, ''); return d.length >= 8 && d.length <= 14 ? d : null }
     let code = null
-    if ('BarcodeDetector' in window) {
-      try { const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); code = clean((await new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] }).detect(bmp))[0]?.rawValue) } catch {}
-    }
-    if (!code) {
-      try {
-        await loadScript(LIBS.zxing)
-        const Z = window.ZXing, hints = new Map([[Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A, Z.BarcodeFormat.UPC_E]], [Z.DecodeHintType.TRY_HARDER, true]])
-        const url = URL.createObjectURL(file)
-        try { code = clean((await new Z.BrowserMultiFormatReader(hints).decodeFromImageUrl(url)).getText()) } finally { URL.revokeObjectURL(url) }
-      } catch { code = null }
-    }
+    try { code = await decodeBarcode(file, { loadZXing: async () => { await loadScript(LIBS.zxing); return window.ZXing } }) } catch { code = null }
     if (!code) { S.screen = 'b-home'; return setError('Couldn’t read a barcode. Fill the frame with it, hold steady in good light, or type the product name.') }
     S.barcode = code; S.product = null; S.photo = null; S.query = 'UPC ' + code
     go('b-confirm')

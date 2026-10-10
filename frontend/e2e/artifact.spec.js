@@ -3,7 +3,9 @@
 // from a CDN are served from node_modules, so nothing here touches the network.
 import { expect, test } from '@playwright/test'
 import { blockFonts, EAN_PNG, PAPER_PNG } from './support/mocks.js'
+import { barcodePhoto } from './support/barcodePhoto.js'
 import { fakeRuntime, routeArtifact } from './support/fakeClaude.js'
+import fs from 'node:fs'
 
 test.beforeEach(async ({ page }) => {
   await blockFonts(page)
@@ -211,4 +213,26 @@ test('themes: the "In season" badge follows the date', async ({ page }) => {
   await page.getByRole('button', { name: /^Holidays,/ }).click()
   await expect(page.locator('.theme', { hasText: 'Christmas' }).locator('.season-badge')).toHaveCount(1)
   await expect(page.locator('.theme .season-badge')).toHaveCount(1)
+})
+
+for (const [name, opts] of Object.entries({
+  'small and off to one side': { frac: 0.08, cx: 0.72, cy: 0.3 },
+  'dim and noisy': { frac: 0.3, dark: 0.45, noise: 40 },
+  'tilted 40 degrees': { frac: 0.3, deg: 40 },
+})) {
+  test(`snap buy: reads a barcode from a hard photo: ${name}`, async ({ page }) => {
+    test.setTimeout(90_000)
+    const file = test.info().outputPath('hard.jpg')
+    fs.writeFileSync(file, Buffer.from(await barcodePhoto(page, opts), 'base64'))
+    await page.locator('#tab-buy').click()
+    await page.setInputFiles('#scan', file)
+    await expect(page.getByRole('heading', { name: 'Barcode found' })).toBeVisible({ timeout: 40_000 })
+    await expect(page.locator('#bq')).toHaveValue('UPC 5901234123457')
+  })
+}
+
+test('snap buy: says so when a photo has no barcode', async ({ page }) => {
+  await page.locator('#tab-buy').click()
+  await page.setInputFiles('#scan', PAPER_PNG)
+  await expect(page.getByRole('alert')).toContainText('Couldn’t read a barcode', { timeout: 40_000 })
 })

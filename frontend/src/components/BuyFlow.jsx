@@ -7,6 +7,7 @@ import { ago, isStale } from '../lib/time.js'
 import Cropper from './Cropper.jsx'
 import Icon from './Icon.jsx'
 import ScanLoader from './ScanLoader.jsx'
+import BarcodeCamera from './BarcodeCamera.jsx'
 
 const NO_FILTERS = { new_only: false, free_shipping: false, max_price: null, preferred_store: '' }
 const isDefault = (f) => !f.new_only && !f.free_shipping && f.max_price == null && !f.preferred_store.trim()
@@ -90,6 +91,8 @@ export default function BuyFlow({ initial, onHistory }) {
   const [busyId, setBusyId] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [liveBlocked, setLiveBlocked] = useState(false) // the live camera wasn't available, so Scan barcode takes a photo
+  const liveOk = !liveBlocked && window.isSecureContext && !!navigator.mediaDevices?.getUserMedia
   const [auto, setAuto] = useState(() => store.getPref('buy.auto', false))
   const [perm, setPerm] = useState(() => ('Notification' in window ? Notification.permission : 'unsupported'))
   const rankSeq = useRef(0)
@@ -133,7 +136,7 @@ export default function BuyFlow({ initial, onHistory }) {
     setError('')
     if (mode === 'barcode') {
       setScreen('scanning')
-      const code = await decodeBarcode(file).catch(() => null)
+      const code = await decodeBarcode(file, { loadZXing: () => import('@zxing/library') }).catch(() => null)
       if (!code) {
         setScreen('home')
         return fail(new Error("Couldn't read a barcode. Fill the frame with it, hold steady in good light, or type the product name."))
@@ -327,7 +330,9 @@ export default function BuyFlow({ initial, onHistory }) {
                 Snap Buy
               </label>
               <div className="quick">
-                <label className="tile" htmlFor="buy-scan"><Icon name="barcode" />Scan barcode</label>
+                {liveOk
+                  ? <button className="tile" onClick={() => { setError(''); setScreen('live-barcode') }}><Icon name="barcode" />Scan barcode</button>
+                  : <label className="tile" htmlFor="buy-scan"><Icon name="barcode" />Scan barcode</label>}
                 <label className="tile" htmlFor="buy-pick"><Icon name="upload" />Upload</label>
                 <button className="tile" onClick={() => { setProduct(null); setBarcode(null); setQuery(''); setScreen('confirm') }}><Icon name="text" />Type it</button>
               </div>
@@ -337,6 +342,15 @@ export default function BuyFlow({ initial, onHistory }) {
                 <li><Icon name="check" />Tracks price drops</li>
               </ul>
             </div>
+          )}
+
+          {screen === 'live-barcode' && (
+            <BarcodeCamera
+              onFound={(code) => { setBarcode(code); setProduct(null); setPhoto(null); setQuery(`UPC ${code}`); setScreen('confirm') }}
+              onCancel={() => setScreen('home')}
+              onUnavailable={() => { setLiveBlocked(true); setScreen('home'); setNotice('The live camera isn’t available, so “Scan barcode” will take a photo instead.') }}
+              onPhoto={() => { setScreen('home'); document.getElementById('buy-scan')?.click() }}
+            />
           )}
 
           {screen === 'crop' && photo && <Cropper src={photo} onDone={onCropped} onCancel={reset} />}

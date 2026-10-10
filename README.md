@@ -183,7 +183,11 @@ Amazon, eBay, plus Walmart, Best Buy and Target in the US).
   definitions. All motion respects "reduce motion".
 
 **Snap Buy** (see above)
-- **Barcode scanning** (EAN/UPC from a photo; built-in detector where available, ZXing elsewhere).
+- **Barcode scanning** (EAN/UPC). On the hosted app (or `npm run dev:https`) **Scan barcode** opens the live camera: hold the
+  barcode in the box and it reads on its own, with the camera focusing continuously. From a photo (a photo you pick, or the
+  artifact, which has no live camera) it looks at the picture many ways until one works: full size, shrunk and sharpened for
+  blur, contrast-stretched for dim light, tilted either way, turned sideways, and zoomed into each part. A short UPC-E code is
+  expanded to the 12-digit UPC-A stores use. If it still can't read one, it says so and you can type the product name.
 - **Filters**: new only, free shipping, max price, and a preferred store (a soft preference that wins close calls).
   Filtering re-ranks the offers you already have, with no extra search.
 - **Price tracking**: save a product, re-check it, and see the change since you started. Optional target price.

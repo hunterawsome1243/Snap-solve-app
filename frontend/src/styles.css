@@ -628,3 +628,9 @@ input[type='checkbox'], input[type='radio'], progress { accent-color: var(--bran
 .theme-card .row h2 { margin: 0; }
 
 .season-badge { align-self: flex-start; font-size: .64rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--brand); color: var(--brand-ink); }
+
+/* live barcode scanner */
+.bc-aim { position: absolute; left: 8%; right: 8%; top: 28%; height: 44%; border: 3px solid var(--cta); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, .35); pointer-events: none; }
+.bc-aim::after { content: ''; position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; background: var(--cta); box-shadow: 0 0 10px 2px color-mix(in srgb, var(--cta) 60%, transparent); animation: bc-sweep 1.8s ease-in-out infinite alternate; }
+@keyframes bc-sweep { from { transform: translateY(-60px); opacity: .5; } to { transform: translateY(60px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .bc-aim::after { animation: none; } }
