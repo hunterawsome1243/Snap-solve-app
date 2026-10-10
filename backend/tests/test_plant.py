@@ -53,7 +53,7 @@ def test_odd_values_are_made_safe():
 
 def test_note_reaches_the_model_and_bad_images_are_refused():
     seen = {}
-    main.ask_claude = lambda system, content, max_tokens=0: seen.update(content=content) or GOOD
+    main.ask_claude = lambda system, content, max_tokens=0, **k: seen.update(content=content) or GOOD
     client.post("/api/plant/scan", json={"image": PNG, "media_type": "image/png", "note": "leaves turning yellow"})
     assert "leaves turning yellow" in seen["content"][1]["text"]
     r = client.post("/api/plant/scan", json={"image": PNG, "media_type": "text/plain"})

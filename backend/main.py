@@ -73,10 +73,48 @@ def client() -> anthropic.Anthropic:
     return _client
 
 
-def ask_claude(system: str, content, max_tokens: int = 2500) -> dict:
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
+
+
+def effort_for(endpoint: str) -> str | None:
+    """Optional thinking effort for one endpoint. Unset means the model's own default, so nothing changes until
+    you set EFFORT_<ENDPOINT> (e.g. EFFORT_IDENTIFY=low) or EFFORT for all of them. Watch the usage log, then keep or undo."""
+    v = (os.getenv(f"EFFORT_{endpoint.upper()}") or os.getenv("EFFORT") or "").strip().lower()
+    return v if v in EFFORTS else None
+
+
+def log_usage(endpoint: str, msg) -> None:
+    """One JSON line per model call, so token use (and what a call costs) can be read from the server logs."""
+    u = getattr(msg, "usage", None)
+    if u is None:
+        return
+    details = getattr(u, "output_tokens_details", None)
+    tools = getattr(u, "server_tool_use", None)
+    print("usage " + json.dumps({
+        "endpoint": endpoint, "model": getattr(msg, "model", MODEL),
+        "input": getattr(u, "input_tokens", 0) or 0, "output": getattr(u, "output_tokens", 0) or 0,
+        "thinking": getattr(details, "thinking_tokens", None),
+        "cache_read": getattr(u, "cache_read_input_tokens", 0) or 0,
+        "cache_write": getattr(u, "cache_creation_input_tokens", 0) or 0,
+        "searches": getattr(tools, "web_search_requests", 0) or 0,
+        "effort": effort_for(endpoint),
+    }), flush=True)
+
+
+def create_message(endpoint: str, **kwargs):
+    """The one place the app calls Claude: adds the optional effort setting and logs usage."""
+    effort = effort_for(endpoint)
+    if effort:
+        kwargs["extra_body"] = {"output_config": {"effort": effort}}
+    msg = client().messages.create(model=MODEL, **kwargs)
+    log_usage(endpoint, msg)
+    return msg
+
+
+def ask_claude(system: str, content, max_tokens: int = 2500, endpoint: str = "other") -> dict:
     try:
-        msg = client().messages.create(
-            model=MODEL,
+        msg = create_message(
+            endpoint,
             max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": content}],
@@ -179,6 +217,7 @@ def read_image(req: ReadRequest):
             {"type": "text", "text": "Transcribe the math in this image."},
         ],
         max_tokens=2500,
+        endpoint="read",
     )
     problems = clean_problems(data.get("problems"))
     if not problems and str(data.get("latex") or "").strip():  # older single-problem shape
@@ -218,7 +257,7 @@ class FormulateRequest(BaseModel):
 
 @app.post("/api/formulate")
 def formulate(req: FormulateRequest):
-    data = ask_claude(FORMULATE_SYSTEM, f"Word problem:\n{req.text}", max_tokens=1200)
+    data = ask_claude(FORMULATE_SYSTEM, f"Word problem:\n{req.text}", max_tokens=1200, endpoint="formulate")
     eq = str(data.get("equation_latex") or "").strip()
     variables = [
         {"name": str(v.get("name") or "").strip()[:12], "meaning": str(v.get("meaning") or "").strip()[:120]}
@@ -368,7 +407,7 @@ def _clean_graph(raw) -> dict | None:
 def solve(req: SolveRequest):
     system = SOLVE_SYSTEM + (SIMPLE_ADDENDUM if req.simple else "") + (WORD_ADDENDUM if req.context else "")
     user = f"Problem (LaTeX):\n{req.latex}" + (f"\n\nWord problem context:\n{req.context}" if req.context else "")
-    data = ask_claude(system, user, max_tokens=5000)
+    data = ask_claude(system, user, max_tokens=5000, endpoint="solve")
     steps = _clean_steps(data.get("steps"))
     answer_latex = str(data.get("answer_latex") or "").strip()
     if not steps or not answer_latex:
@@ -441,7 +480,7 @@ def practice(req: PracticeRequest):
     if req.latex:
         ask += f"\nMake it similar in type to this problem, with different numbers:\n{req.latex}"
     for _ in range(2):  # the stored answer must agree with SymPy, or the grading would be unfair
-        data = ask_claude(PRACTICE_SYSTEM, ask, max_tokens=1500)
+        data = ask_claude(PRACTICE_SYSTEM, ask, max_tokens=1500, endpoint="practice")
         problem = data.get("problem") if isinstance(data.get("problem"), dict) else {}
         answer = data.get("answer") if isinstance(data.get("answer"), dict) else {}
         latex = str(data.get("latex") or "").strip()
@@ -505,6 +544,8 @@ Reply with ONLY one JSON object: {"offers":[{"retailer":string,"price":number,"c
 "likely_stores":[{"name":string,"why":string}]}"""
 
 WEB_SEARCH_TYPES = ("web_search_20260209", "web_search_20250305")
+# Each search costs a flat fee on top of the tokens its results add. Lower this (WEB_SEARCH_MAX_USES=3) to cap the cost of one price check.
+WEB_SEARCH_MAX_USES = max(1, min(10, int(os.getenv("WEB_SEARCH_MAX_USES", "5") or 5)))
 AMAZON_DOMAIN = {"US": "com", "GB": "co.uk", "CA": "ca", "DE": "de", "FR": "fr", "IT": "it", "ES": "es", "AU": "com.au", "JP": "co.jp", "IN": "in"}
 
 
@@ -522,6 +563,7 @@ def buy_identify(req: IdentifyRequest):
             {"type": "text", "text": "What product is this?"},
         ],
         max_tokens=600,
+        endpoint="identify",
     )
     query = str(data.get("query") or "").strip()
     ok = bool(data.get("identifiable")) and bool(query)
@@ -664,14 +706,14 @@ def search_web(query: str, country: str) -> tuple[dict, set[str], dict]:
     """Ask Claude to search the web. Returns (parsed JSON answer, URLs seen in results, {url: reported page age})."""
     last_err: Exception | None = None
     for tool_type in WEB_SEARCH_TYPES:
-        tool = {"type": tool_type, "name": "web_search", "max_uses": 5,
+        tool = {"type": tool_type, "name": "web_search", "max_uses": WEB_SEARCH_MAX_USES,
                 "user_location": {"type": "approximate", "country": country}}
         messages = [{"role": "user", "content": f"Find the best current prices for: {query}"}]
         urls: set[str] = set()
         ages: dict[str, str] = {}
         try:
             for _ in range(4):  # a long search can pause; resume it
-                msg = client().messages.create(model=MODEL, max_tokens=4000, system=OFFERS_SYSTEM, tools=[tool], messages=messages)
+                msg = create_message("prices", max_tokens=4000, system=OFFERS_SYSTEM, tools=[tool], messages=messages)
                 for b in msg.content:
                     if b.type == "web_search_tool_result" and isinstance(b.content, list):
                         for r in b.content:
@@ -898,6 +940,7 @@ def plant_scan(req: PlantRequest):
             {"type": "text", "text": ask},
         ],
         max_tokens=1400,
+        endpoint="plant",
     )
     return clean_plant(data)
 

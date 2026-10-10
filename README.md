@@ -106,6 +106,25 @@ GitHub Actions (`.github/workflows/ci.yml`) runs on every pull request and on pu
 and build, the browser tests, and a check that `artifact/hunter-scan.html` is up to date with its source (rebuild it
 with `python artifact/build.py` after editing `artifact/hunter-scan.src.html` or `frontend/src/lib/scanner.js`).
 
+## Watching and trimming API cost
+
+Every call to Claude prints one line to the server log (Render: **Logs**):
+
+```
+usage {"endpoint": "solve", "model": "claude-sonnet-5-5", "input": 412, "output": 1830, "thinking": 900, "cache_read": 0, "cache_write": 0, "searches": 0, "effort": null}
+```
+
+Price a call as `input x input rate + output x output rate` (thinking counts as output) plus `searches x $10 / 1,000`;
+rates are on <https://platform.claude.com/docs/en/about-claude/pricing>. The endpoints are `read`, `solve`,
+`formulate`, `practice`, `identify`, `plant` and `prices` (Snap Buy; this is the only one that uses web search).
+
+Two optional settings let you trade cost for thoroughness without touching code (set them in `.env` or in Render under
+**Environment**; unset means no change):
+
+- `EFFORT` or `EFFORT_<NAME>` (for example `EFFORT_IDENTIFY=low`): how hard the model thinks. Lower effort means fewer
+  output tokens. Change one endpoint at a time and compare the `output` and `thinking` numbers and the answers.
+- `WEB_SEARCH_MAX_USES` (default 5): searches allowed per Snap Buy price check.
+
 ## How verification works
 
 Claude returns the worked solution plus a machine-readable version of the problem and its answer.
