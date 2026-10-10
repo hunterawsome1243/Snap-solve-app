@@ -598,3 +598,17 @@ input[type='checkbox'], input[type='radio'], progress { accent-color: var(--bran
 .plant-edit summary { cursor: pointer; font-size: .78rem; color: var(--muted); }
 .plant-edit .row { margin-top: 6px; }
 .btn.water { min-height: 44px; flex: none; }
+
+/* theme picker groups + holiday particles (the holiday colours are generated from lib/themes.js) */
+.theme-group { display: flex; flex-direction: column; gap: 8px; }
+.theme-group h3 { margin: 6px 0 0; font-size: .74rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.hparts { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.hpart { position: absolute; opacity: .65; will-change: transform; }
+.hpart.fall { top: -56px; animation: hpart-fall linear infinite; }
+.hpart.rise { bottom: -56px; animation: hpart-rise linear infinite; }
+.hpart i { display: block; font-style: normal; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .25)); animation: pumpkin-sway ease-in-out infinite alternate; animation-duration: 4.4s; }
+.hpart:nth-child(2n) i { animation-duration: 5.6s; }
+.hpart:nth-child(3n) i { animation-duration: 6.4s; animation-direction: alternate-reverse; }
+@keyframes hpart-fall { to { transform: translateY(calc(100vh + 110px)) rotate(150deg); } }
+@keyframes hpart-rise { to { transform: translateY(calc(-100vh - 110px)) rotate(-20deg); } }
+.theme-card { max-height: 72vh; overflow-y: auto; }

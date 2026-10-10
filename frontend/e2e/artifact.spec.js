@@ -172,3 +172,22 @@ test('extras tab: a photo with no plant asks for a better one, and the other tab
   await expect(page.locator('.snap')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Scan a plant' })).toHaveCount(0)
 })
+
+test('themes are sorted into categories, and the holiday themes work', async ({ page }) => {
+  await page.locator('#themebtn').click()
+  await expect(page.locator('.theme-group h3')).toHaveText(['Everyday', 'Nature', 'Fun', 'Holidays'])
+  const names = (g) => page.locator(`.theme-group[aria-label="${g}"] .theme b`).allTextContents()
+  expect(await names('Everyday')).toEqual(['Match device']) // light and dark follow the viewer's own setting here
+  expect(await names('Holidays')).toEqual([
+    "New Year's", 'Lunar New Year', "Valentine's Day", "St. Patrick's Day", 'Easter', 'Eid', '4th of July', 'Halloween', 'Diwali', 'Thanksgiving', 'Hanukkah', 'Christmas',
+  ])
+  for (const [name, id, motion] of [['Christmas', 'christmas', 'fall'], ["Valentine's Day", 'valentine', 'rise'], ['Diwali', 'diwali', 'rise']]) {
+    await page.locator('.theme', { hasText: name }).click()
+    expect(await page.evaluate(() => document.documentElement.dataset.skin)).toBe(id)
+    await expect(page.locator(`.hpart.${motion}`)).toHaveCount(12)
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe('rgb(243, 246, 241)')
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.logo-mark'), '::after').content)).not.toBe('none')
+  }
+  await page.locator('.theme', { hasText: 'Ocean' }).click()
+  await expect(page.locator('.hpart')).toHaveCount(0)
+})

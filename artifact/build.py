@@ -4,7 +4,9 @@ Run from the repo root after `npm install --prefix frontend`:  python artifact/b
 The viewer's CSP only allows stylesheets from Google Fonts, so KaTeX's CSS and fonts must be inlined.
 """
 import base64
+import json
 import re
+import subprocess
 from pathlib import Path
 
 root = Path(__file__).resolve().parent
@@ -38,6 +40,15 @@ plants = (root.parent / "frontend" / "src" / "lib" / "plants.js").read_text()
 plants = re.sub(r"^import .*\n", "", plants, flags=re.M)
 plants = re.sub(r"^export ", "", plants, flags=re.M)
 src = src.replace("/*PLANTS_JS*/", plants)
+# themes (names, categories, holiday definitions) are inlined too, and the holiday CSS is generated from the same file by node
+themes_path = root.parent / "frontend" / "src" / "lib" / "themes.js"
+themes = re.sub(r"^export ", "", themes_path.read_text(), flags=re.M)
+src = src.replace("/*THEMES_JS*/", themes)
+holiday_css = subprocess.run(
+    ["node", "--input-type=module", "-e", f"import {{ holidayCss }} from {json.dumps(themes_path.as_uri())}; process.stdout.write(holidayCss())"],
+    check=True, capture_output=True, text=True,
+).stdout
+src = src.replace("/*HOLIDAY_CSS*/", holiday_css)
 out = src.replace("/*KATEX_CSS*/", css).replace("/*KATEX_JS*/", js)
 (root / "hunter-scan.html").write_text(out)
 print(f"wrote {root / 'hunter-scan.html'} ({len(out) / 1024:.0f} KB)")

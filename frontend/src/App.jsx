@@ -18,19 +18,10 @@ import Extras from './components/Extras.jsx'
 import Icon from './components/Icon.jsx'
 import ScanLoader from './components/ScanLoader.jsx'
 import { buzz } from './lib/haptics.js'
+import { CATEGORIES, HOLIDAYS, holidayById, themesIn } from './lib/themes.js'
+import HolidayParticles from './components/HolidayParticles.jsx'
 
-const THEMES = [
-  { id: 'auto', name: 'Match device', colors: ['#f3f6f1', '#2c6e4d', '#0b130f'] },
-  { id: 'light', name: 'Light', colors: ['#f3f6f1', '#2c6e4d', '#15211a'] },
-  { id: 'dark', name: 'Dark', colors: ['#0b130f', '#5fd39b', '#e8f1ea'] },
-  { id: 'halloween', name: 'Halloween', colors: ['#150c20', '#ff8a1f', '#f7ead9'] },
-  { id: 'ocean', name: 'Ocean', colors: ['#eaf6f8', '#087f92', '#07313c'] },
-  { id: 'forest', name: 'Forest', colors: ['#0e1913', '#6fcf8c', '#e5f0e7'] },
-  { id: 'sunset', name: 'Sunset', colors: ['#fff3ee', '#d93f57', '#3a1620'] },
-  { id: 'science', name: 'Science', colors: ['#06121c', '#22e6d4', '#e6fbff'] },
-  { id: 'tropical', name: 'Tropical', colors: ['#fff6e0', '#d6246e', '#ff9a1f'] },
-]
-const SKINS = ['halloween', 'ocean', 'forest', 'sunset', 'science', 'tropical']
+const SKINS = ['halloween', 'ocean', 'forest', 'sunset', 'science', 'tropical', ...HOLIDAYS.map((h) => h.id)]
 
 const uid = (p = 'h') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
 
@@ -298,6 +289,7 @@ export default function App() {
       {theme === 'halloween' && <Pumpkins />}
       {theme === 'science' && <Elements />}
       {theme === 'tropical' && <Fruits />}
+      {holidayById(theme) && <HolidayParticles id={theme} />}
       <header className="top">
         <button className="logo" onClick={() => { setTab('solve'); startNew() }}>
           <span className="logo-mark"><Icon name="scan" /></span> Hunter Scan
@@ -321,18 +313,23 @@ export default function App() {
 
       <main className="content">
         {themeOpen && (
-          <div className="card stack">
+          <div className="card stack theme-card">
             <h2>Theme</h2>
-            <div className="themes">
-              {THEMES.map((t) => (
-                <button key={t.id} className="theme" aria-pressed={theme === t.id} onClick={() => setTheme(t.id)}>
-                  <span className="dots">
-                    {t.colors.map((c) => <i key={c} style={{ background: c }} />)}
-                  </span>
-                  <b>{t.name}</b>
-                </button>
-              ))}
-            </div>
+            {CATEGORIES.map((c) => (
+              <section key={c.id} className="theme-group" aria-label={c.name}>
+                <h3>{c.name}</h3>
+                <div className="themes">
+                  {themesIn(c.id).map((t) => (
+                    <button key={t.id} className="theme" aria-pressed={theme === t.id} onClick={() => setTheme(t.id)}>
+                      <span className="dots">
+                        {t.colors.map((col) => <i key={col} style={{ background: col }} />)}
+                      </span>
+                      <b>{t.name}</b>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         )}
         {error && <div className="banner warn" role="alert">{error}</div>}
